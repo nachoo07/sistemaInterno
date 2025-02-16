@@ -20,7 +20,7 @@ const app = express();
 app.use(express.json()); // Para parsear JSON
 app.use(morgan('dev')); // Logger de solicitudes
 app.use(cors({
-  origin: 'https://sistemainterno.onrender.com', // Cambia esto al origen del frontend
+  origin: ['http://localhost:5173', 'https://sistemainterno.onrender.com'], // Permite ambos orígenes
   credentials: true, // Permite enviar cookies o encabezados de autorización
 }));
 
