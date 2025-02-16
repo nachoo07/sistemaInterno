@@ -45,7 +45,7 @@ export const LoginProvider = ({ children }) => {
     const logout = async () => {
         try {
             // Realizar la solicitud al backend para eliminar las cookies
-            const response = await fetch('http://localhost:4000/api/auth/logout', {
+            const response = await fetch('https://sistemainterno.onrender.com/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include', // Asegura que las cookies se envíen en la solicitud
             });

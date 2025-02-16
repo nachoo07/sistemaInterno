@@ -12,8 +12,9 @@ const UsersProvider = ({ children }) => {
     const obtenerUsuarios = async () => {
         if (auth === 'admin') {
             try {
-                const response = await axios.get("http://localhost:4000/api/users", {
+                const response = await axios.get("https://sistemainterno.onrender.com/api/users", {
                     withCredentials: true,
+                    
                 });
                 // Solo actualizar el estado si la respuesta es diferente
                 if (JSON.stringify(usuarios) !== JSON.stringify(response.data)) {
