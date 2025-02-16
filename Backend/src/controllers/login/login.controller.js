@@ -61,7 +61,7 @@ export const loginUser = async (req, res) => {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,  // Solo accesible desde el servidor
             secure: process.env.NODE_ENV === 'production', // Usar solo en HTTPS en producción
-            sameSite: 'Strict', // Evita el acceso cruzado
+            sameSite: 'None', // Evita el acceso cruzado
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
         });
 
