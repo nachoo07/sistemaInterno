@@ -54,7 +54,7 @@ export const loginUser = async (req, res) => {
         res.cookie('token', accessToken, {
             httpOnly: true,  // Solo accesible desde el servidor
             secure: process.env.NODE_ENV === 'production', // Usar solo en HTTPS en producción
-            sameSite: 'Strict', // Evita el acceso cruzado
+            sameSite: 'None', // Evita el acceso cruzado
             maxAge: 2 * 60 * 60 * 1000, // 2 horas en milisegundos (7200000 ms)
         });
 
