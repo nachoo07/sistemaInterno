@@ -1,0 +1,36 @@
+.notification-icon {
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 30px;
+  }
+  
+  .navbar-text {
+    color: rgb(255, 255, 255) !important;
+    margin-right: 30px;
+    font-size: 20px;
+    padding: 0px !important;
+  }
+  
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .ml-auto {
+    margin-left: auto;
+  }
+
+  .navbar-brand{
+    padding: 0px !important; /* Elimina el padding */
+}
+
+.boton-cerrar-sesion{
+    background-color: #D83D8D !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    font-size: 20px !important;
+    transition: transform 0.2s !important;
+}

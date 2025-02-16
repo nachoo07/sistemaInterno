@@ -1,0 +1,99 @@
+/* Contenedor principal */
+.notificaciones-container {
+    display: flex;
+  }
+  
+  /* Contenido de notificaciones */
+  .notificaciones-content {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex-grow: 1;
+  }
+  
+  /* Título principal */
+  .notificaciones-titulo {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  
+  /* Filtros (botones rojos) */
+  .notificaciones-filtros {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .boton-filtro {
+    padding: 8px 15px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .boton-filtro.activo {
+    background-color: #a71d2a;
+  }
+  
+  .boton-filtro:hover {
+    background-color: #b82a36;
+  }
+  
+  /* Buscador */
+  .notificaciones-buscador {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .buscador-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+  
+  .buscador-icono {
+    margin-left: -40px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  
+  /* Lista de notificaciones */
+  .notificaciones-lista {
+    margin-top: 20px;
+  }
+  
+  .notificaciones-seccion-titulo {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 20px 0 10px;
+  }
+  
+  .notificaciones-items {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .notificaciones-items li {
+    margin-bottom: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .notificaciones-items li::before {
+    content: "•";
+    margin-right: 8px;
+    color: #6c757d;
+    font-size: 20px;
+  }

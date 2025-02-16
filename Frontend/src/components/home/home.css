@@ -1,0 +1,33 @@
+body {
+  background-color: #ebf2f2; /* Cambia este color al que prefieras */
+}
+
+
+.home-container {
+    display: grid;
+    grid-template-columns: repeat(3, 220px);
+    gap: 50px !important;
+    justify-content: center ;
+    align-items: center ;
+    margin-top: 50px !important;
+    justify-items: center ;
+  }
+  
+  .rectangle {
+    width: 250px !important;
+    height: 150px;
+    background-color: #D83D8D !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    font-size: 35px !important;
+    color: white;
+  }
+  
+  .rectangle:hover {
+    transform: scale(1.05);
+  }

@@ -1,0 +1,136 @@
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import User from "../../models/users/user.model.js";
+
+// Login para usuarios y administradores
+
+// Generar Access Token
+const generateAccessToken = (payload) => {
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '2h' }); // Expira en 15 minutos
+};
+
+// Generar Refresh Token
+const generateRefreshToken = (payload) => {
+    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' }); // Expira en 7 días
+};
+
+export const loginUser = async (req, res) => {
+    const { mail, password } = req.body;
+    // Log para verificar las credenciales recibidas
+    console.log('Credenciales recibidas:', { mail, password });
+    if (!mail || !password) {
+        return res.status(400).json({ message: 'Se requiere correo electrónico y contraseña.' });
+    }
+
+    try {
+        // Buscar al usuario por correo
+        const user = await User.findOne({ mail });
+        if (!user) {
+            return res.status(400).json({ message: 'Credenciales Invalidas' });
+        }
+ // Verificar si el usuario está activo
+ if (!user.state) {
+    return res.status(403).json({ message: 'Su cuenta está inactiva. Por favor contacte al administrador.' });
+}
+        // Comparar la contraseña
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Credenciales Invalidas' });
+        }
+
+        // Crear el payload para los tokens
+        const payload = {
+            userId: user._id,
+            role: user.role,
+            name: user.name,
+            mail: user.mail,
+        };
+
+        // Generar tokens
+        const accessToken = generateAccessToken(payload);
+        const refreshToken = generateRefreshToken(payload);
+
+        // Configurar las cookies para Access Token y Refresh Token
+        res.cookie('token', accessToken, {
+            httpOnly: true,  // Solo accesible desde el servidor
+            secure: process.env.NODE_ENV === 'production', // Usar solo en HTTPS en producción
+            sameSite: 'Strict', // Evita el acceso cruzado
+            maxAge: 2 * 60 * 60 * 1000, // 2 horas en milisegundos (7200000 ms)
+        });
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,  // Solo accesible desde el servidor
+            secure: process.env.NODE_ENV === 'production', // Usar solo en HTTPS en producción
+            sameSite: 'Strict', // Evita el acceso cruzado
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+        });
+
+        res.status(200).json({
+            message: 'Login successful',
+            user: { name: user.name, role: user.role, mail: user.mail },
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error logging in.', error });
+    }
+};
+
+export const logout = (req, res) => {
+    console.log('Cookies recibidas en el servidor:', req.cookies); // Todas las cookies
+    console.log('RefreshToken recibido:', req.cookies.refreshToken); // La cookie específica
+
+    // Verificar si la cookie "refreshToken" existe
+    if (!req.cookies.refreshToken) {
+        return res.status(400).json({ message: 'No refresh token found in cookies' });
+    }
+
+    // Eliminar la cookie "refreshToken"
+    res.clearCookie('refreshToken', {
+        httpOnly: true, // Solo accesible desde el servidor
+        secure: process.env.NODE_ENV === 'production', // Usar cookies seguras en producción
+        path: '/', // Disponible en toda la aplicación
+    });
+
+    // Eliminar otras cookies relacionadas si existen
+    res.clearCookie('token', { httpOnly: true, path: '/' }); // Elimina 'token' si estaba configurada
+    res.clearCookie('authRole', { httpOnly: true, path: '/' }); // Elimina 'authRole'
+
+    console.log('Cookies eliminadas correctamente');
+    res.status(200).json({ message: 'User logged out successfully!' });
+};
+
+export const refreshAccessToken = (req, res) => {
+    console.log("Cookies recibidas en /refresh:", req.cookies);
+    console.log("Refresh token recibido:", req.cookies.refreshToken);
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+        return res.status(401).json({ message: 'Refresh token not found, please log in again.' });
+    }
+
+    try {
+        // Validar el Refresh Token
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+        // Crear un nuevo Access Token
+        const accessToken = generateAccessToken({ 
+            userId: decoded.userId, 
+            role: decoded.role, 
+            name: decoded.name, 
+            mail: decoded.mail 
+        });
+
+        /*res.cookie('token', accessToken, {
+            httpOnly: true,  // Solo accesible desde el servidor
+            secure: process.env.NODE_ENV === 'production', // Usar solo en HTTPS en producción
+            sameSite: 'Strict', // Evita el acceso cruzado
+            maxAge: 15 * 60 * 1000, // 15 minutos
+        });*/
+        
+        res.status(200).json({ 
+            message: 'Access token refreshed',
+            accessToken
+        });
+    } catch (error) {
+        res.status(403).json({ message: 'Invalid refresh token, please log in again.' });
+    }
+};

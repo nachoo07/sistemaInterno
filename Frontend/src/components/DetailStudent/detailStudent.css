@@ -1,0 +1,139 @@
+.student-detail-container {
+  display: flex;
+  justify-content: center;
+}
+
+.perfil-container {
+  width: 100%;
+  max-width: 900px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 20px;
+  margin-top: 30px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.perfil-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.perfil-avatar {
+  margin-right: 20px;
+  display: flex;
+  justify-content: flex-start;
+  margin-right: 210px;
+}
+
+.perfil-avatar img {
+  width: 150px; /* Ajusta el tamaño según tus necesidades */
+  height: 150px; /* Asegura que la imagen sea cuadrada */
+  object-fit: cover; /* Asegura que la imagen se recorte para llenar el contenedor */
+  border: 2px solid #ccc; /* Agrega un borde opcional */
+}
+
+.perfil-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centrar el contenido horizontalmente */
+}
+
+.perfil-info h2 {
+  margin: 0;
+  font-size: 35px;
+  color: #333;
+}
+
+.btn-ver-cuotas {
+  background-color: #D83D8D;
+  color: white;
+  padding: 10px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+.btn-ver-cuotas:hover {
+  background-color: #D83D8D;
+}
+
+.perfil-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.perfil-row {
+  display: flex;
+  flex-direction: row;
+  width: 100% !important;
+  gap: 20px;
+}
+
+.perfil-comentario{
+width: 100%;
+}
+
+.perfil-row div {
+  flex: 1;
+}
+
+label {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 5px;
+  display: block;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+}
+
+textarea {
+  height: 60px;
+}
+
+.perfil-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.btn-editar,
+.btn-eliminar {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 200px;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.btn-editar {
+  background-color: #D83D8D;
+  color: white;
+}
+
+.btn-editar:hover {
+  background-color: #D83D8D;
+}
+
+.btn-eliminar {
+  background-color: #D83D8D;
+  color: white;
+}
+
+.btn-eliminar:hover {
+  background-color: #D83D8D;
+}

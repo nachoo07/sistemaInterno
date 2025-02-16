@@ -1,0 +1,16 @@
+.main-container {
+    display: flex;
+    height: 100vh;
+  }
+  
+  .vertical-menu {
+    width: 250px; /* Ajusta el ancho según sea necesario */
+    background-color: #f4f4f4; /* Color de fondo del menú */
+    padding: 20px;
+  }
+  
+  .content-container {
+    flex-grow: 1;
+    padding: 20px; /* Ajusta el padding según sea necesario */
+    
+  }

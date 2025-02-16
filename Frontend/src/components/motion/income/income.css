@@ -1,0 +1,125 @@
+.main-container {
+  display: flex;
+  height: 100vh;
+}
+
+.content-container {
+  flex-grow: 1;
+  padding: 20px; /* Ajusta el padding según sea necesario */
+}
+
+form {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+form div {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 200px; /* Ajusta el ancho mínimo según sea necesario */
+}
+
+form label {
+  margin-bottom: 5px;
+}
+
+form input, form select, .custom-datepicker {
+  padding: 8px;
+  font-size: 16px;
+  width: 100%;
+  
+}
+
+form button {
+  padding: 10px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  flex: 1;
+  min-width: 100px; /* Ajusta el ancho mínimo según sea necesario */
+}
+
+form button:hover {
+  background-color: #0056b3;
+}
+
+.custom-datepicker {
+  padding: 0px !important;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  text-align: center;
+  width: 100% !important;
+}
+
+.date-range-picker {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+ 
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+  text-transform: capitalize; /* Añadir esta línea */
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+td {
+  background-color: #fff;
+}
+
+td svg {
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.titulo-registrar-dinero{
+  text-align: center;
+  font-size: 50px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+label {
+  font-size: 20px;
+}
+
+.boton-guardar{
+  background-color: #D83D8D;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  margin: 0px;
+}
+
+.boton-registro{
+  background-color: #D83D8D;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  margin: 0px;
+  margin-left: 10px;
+}

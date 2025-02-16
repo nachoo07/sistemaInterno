@@ -1,0 +1,76 @@
+.users-container {
+  display: flex;
+}
+
+.table-container {
+  padding: 20px;
+  flex-grow: 1;
+}
+
+.table-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.table-controls .mb-3 {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.control-button {
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+.action-icon {
+  cursor: pointer;
+  font-size: 25px;
+  color: #ff0000;
+}
+
+.action-icon-edit {
+  margin-right: 10px;
+  margin-left: 10px;
+  cursor: pointer;
+  font-size: 25px;
+  color: #007bff;
+}
+
+.action-icon:hover {
+  color: #0056b3;
+}
+
+.titulo-panel-usurios {
+  text-align: center;
+  font-size: 50px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* Estilos adicionales para el modal */
+.modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+  border-top: 1px solid #dee2e6;
+}
+
+.modal-footer .btn {
+  margin-left: 10px;
+}

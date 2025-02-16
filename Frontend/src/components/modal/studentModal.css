@@ -1,0 +1,50 @@
+.modal-dialog {
+    max-width: 900px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .modal-body {
+    background-color: #f9f9f9;
+    padding: 20px;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  
+  .full-width {
+    grid-column: span 2;
+  }
+  
+  button[type="submit"] {
+    width: 100%;
+  }
+
+  .modal-title {
+    font-size: 30px !important; /* Cambia el tamaño de la fuente */
+    font-weight: bold; /* Cambia el peso de la fuente */
+    color: #D83D8D; /* Cambia el color del texto */
+    text-align: center; /* Centra el texto */
+    width: 100%; /* Asegura que el título ocupe todo el ancho disponible */
+}
+
+.boton-guardar {
+  display: block; /* Asegura que el botón ocupe toda la línea */
+  grid-column: span 2;
+  padding: 10px 20px; /* Aumenta el tamaño del botón */
+  font-size: 18px; /* Aumenta el tamaño de la fuente */
+  background-color: #D83D8D; /* Cambia el color de fondo */
+  border-color: #D83D8D; /* Cambia el color del borde */
+  color: white; /* Cambia el color del texto */
+  border-radius: 5px; /* Añade bordes redondeados */
+  cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+  transition: background-color 0.3s ease; /* Añade una transición suave para el color de fondo */
+}
+
+.boton-guardar:hover {
+  background-color: #D83D8D; /* Cambia el color de fondo al pasar el cursor */
+  border-color: #D83D8D; /* Cambia el color del borde al pasar el cursor */
+}

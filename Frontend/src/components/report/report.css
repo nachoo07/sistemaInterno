@@ -1,0 +1,169 @@
+.main-container {
+    display: flex;
+   
+  }
+  
+  .content-container {
+    flex-grow: 1;
+    padding: 20px; /* Ajusta el padding según sea necesario */
+  }
+  
+  .rectangle-container {
+    display: flex; 
+    justify-content: center;
+    
+  }
+  
+  .rectangulo-activo {
+    width: 200px; /* Ajusta el ancho según sea necesario */
+    height: 60px; /* Ajusta la altura según sea necesario */
+    border-radius: 10px;
+    color: white;
+    background-color: #D83D8D; /* Cambia el color según sea necesario */
+    margin: 15px; /* Espacio entre los rectángulos */
+  }
+
+  .rectangulo-inactivo {
+    width: 200px; /* Ajusta el ancho según sea necesario */
+    height: 60px; /* Ajusta la altura según sea necesario */
+    border-radius: 10px;
+    color: white;
+    background-color: #D83D8D; /* Cambia el color según sea necesario */
+    margin: 15px; /* Espacio entre los rectángulos */
+  }
+
+  .titulo-activo{
+    margin: 10px;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+  }
+
+  .cuadrado-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .cuadrado {
+    flex: 1;
+    height: 200px; /* Ajusta la altura según sea necesario */
+    background-color: #3498db; /* Cambia el color según sea necesario */
+    margin: 10px; /* Espacio entre los cuadrados */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white; /* Color del texto */
+    text-align: center;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .dashboard-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    height: 420px;
+    margin-bottom: 20px;
+  }
+  
+   .reporte-mensual{
+    text-align: center;
+    font-size: 50px;
+    font-weight: bold;
+   }
+  .overdue {
+    color: red;
+  }
+  
+  .not-due {
+    color: orange;
+  }
+  
+  .paid {
+    color: green;
+  }
+
+.nombre-fecha{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+}
+.custom-datepicker {
+    padding: 0px !important;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 50px !important;
+    margin-right: 50px;
+  }
+
+
+.cuota-diaria{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    margin: 10px;
+}
+
+.ingreso-egreso{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px;
+}
+
+
+.graphic-container {
+  width: 100%;
+  height: 300px; /* Incrementé la altura para hacer el gráfico más grande */
+}
+
+.full-width-card {
+  grid-column: span 3; /* Ocupa todo el ancho disponible */
+  height: 500px; /* Asegura que la tarjeta ocupe suficiente espacio */
+}
+
+.calendar-container {
+  display: flex;
+  align-items: flex-start;
+}
+
+.calendar-toggle {
+  background: #eaf4e0;
+  border: 1px solid #4d8b40;
+  color: #4d8b40;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.calendar-popup {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  width: 250px;
+  z-index: 10; /* Asegura que el calendario esté por encima del gráfico */
+}
