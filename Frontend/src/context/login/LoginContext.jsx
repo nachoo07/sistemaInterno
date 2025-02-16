@@ -1,7 +1,6 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-
 export const LoginContext = createContext();
 
 export const LoginProvider = ({ children }) => {
@@ -10,7 +9,6 @@ export const LoginProvider = ({ children }) => {
 
     const navigate = useNavigate();
 
-    
     useEffect(() => {
         // Al cargar el componente, revisamos si hay información almacenada en el localStorage
         const role = localStorage.getItem('authRole');
@@ -21,7 +19,6 @@ export const LoginProvider = ({ children }) => {
         if (role && role !== 'undefined') {
             setAuth(role);
         }
-
         if (name && name !== 'undefined') {
             setUserData({ name });
         }
@@ -48,6 +45,9 @@ export const LoginProvider = ({ children }) => {
             const response = await fetch('https://sistemainterno.onrender.com/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include', // Asegura que las cookies se envíen en la solicitud
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
             if (response.status === 200) {
@@ -68,20 +68,6 @@ export const LoginProvider = ({ children }) => {
             console.error('Error al hacer logout:', error);
         }
     };
-    // Función para obtener un nuevo access token
-    /*const refreshToken = async () => {
-        try {
-            const response = await api.post('/auth/refresh');
-    
-            console.log("Respuesta completa del backend:", response);  // 🔥 Muestra todo el objeto de respuesta
-            console.log("Nuevo accessToken recibido:", response.data.accessToken);
-            
-            return response.data.accessToken;
-        } catch (error) {
-            console.error("Error al refrescar el token", error.response?.data || error.message);
-            return null;
-        }
-    };*/
 
     return (
         <LoginContext.Provider value={{ auth, login, logout , userData }}>

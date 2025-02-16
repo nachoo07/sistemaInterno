@@ -24,6 +24,7 @@ app.use(cors({
   credentials: true, // Permite enviar cookies o encabezados de autorización
 }));
 
+app.use(express.urlencoded({ extended: true })); // Para procesar datos de formularios
 app.use(cookieParser()); //para parsear cookies
 
 // Rutas

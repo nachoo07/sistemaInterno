@@ -75,8 +75,8 @@ export const loginUser = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-    console.log('Cookies recibidas en el servidor:', req.cookies); // Todas las cookies
-    console.log('RefreshToken recibido:', req.cookies.refreshToken); // La cookie específica
+    console.log('Cookies recibidas en el servidor:', req.cookies);
+    console.log('RefreshToken recibido:', req.cookies.refreshToken);
 
     // Verificar si la cookie "refreshToken" existe
     if (!req.cookies.refreshToken) {
@@ -85,14 +85,19 @@ export const logout = (req, res) => {
 
     // Eliminar la cookie "refreshToken"
     res.clearCookie('refreshToken', {
-        httpOnly: true, // Solo accesible desde el servidor
-        secure: process.env.NODE_ENV === 'production', // Usar cookies seguras en producción
-        path: '/', // Disponible en toda la aplicación
+        httpOnly: true,
+        secure: true, // Importante para HTTPS
+        sameSite: 'None', // Necesario para que funcione en frontend separado
+        path: '/' 
     });
 
-    // Eliminar otras cookies relacionadas si existen
-    res.clearCookie('token', { httpOnly: true, path: '/' }); // Elimina 'token' si estaba configurada
-    res.clearCookie('authRole', { httpOnly: true, path: '/' }); // Elimina 'authRole'
+    // Eliminar la cookie "token" si existe
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: true, // Asegurar que coincida con la configuración original
+        sameSite: 'None', 
+        path: '/' 
+    });
 
     console.log('Cookies eliminadas correctamente');
     res.status(200).json({ message: 'User logged out successfully!' });
