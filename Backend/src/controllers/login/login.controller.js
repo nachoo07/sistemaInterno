@@ -82,22 +82,27 @@ export const logout = (req, res) => {
     if (!req.cookies.refreshToken) {
         return res.status(400).json({ message: 'No refresh token found in cookies' });
     }
+// Limpiar cookies independientemente de si existe refreshToken
+res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'None',
+    path: '/',
+});
 
-    // Eliminar la cookie "refreshToken"
-    res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: true, // Importante para HTTPS
-        sameSite: 'None', // Necesario para que funcione en frontend separado
-        path: '/' 
-    });
+res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'None',
+    path: '/',
+});
 
-    // Eliminar la cookie "token" si existe
-    res.clearCookie('token', {
-        httpOnly: true,
-        secure: true, // Asegurar que coincida con la configuración original
-        sameSite: 'None', 
-        path: '/' 
-    });
+res.clearCookie('authRole', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'None',
+    path: '/',
+});
 
     console.log('Cookies eliminadas correctamente');
     res.status(200).json({ message: 'User logged out successfully!' });
