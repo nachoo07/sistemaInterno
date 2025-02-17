@@ -87,9 +87,7 @@ const StudentDetail = () => {
     style={{
         width: '150px',
         height: '150px',
-        objectFit: 'cover',
-        borderRadius: '50%',
-        border: '2px solid #ccc'
+      
     }}
     onError={handleImageError}
 />

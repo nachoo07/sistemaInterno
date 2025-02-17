@@ -93,11 +93,11 @@ const studentSchema = new mongoose.Schema({
         validate: {
             validator: (v) => {
                 if (!v) return true;
-                return /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg))|(https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/view\?usp=sharing)$/.test(v);
+                return /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg))|(https:\/\/drive\.google\.com\/uc\?export=view&id=[a-zA-Z0-9_-]+)$/.test(v);
             },
             message: "Invalid image URL format.",
         },
-    },
+    }
 }, {
     timestamps: true, // Agrega createdAt y updatedAt automáticamente
 });
