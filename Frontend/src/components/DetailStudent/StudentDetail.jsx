@@ -12,6 +12,7 @@ const StudentDetail = () => {
   const navigate = useNavigate();
   const [student, setStudent] = useState(null);
   const [show, setShow] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const [formData, setFormData] = useState({
     name: '',lastName: '',cuil: '',birthDate: '',address: '',mail: '',category: '',motherName: '',
     motherPhone: '',fatherName: '',fatherPhone: '',profileImage: '',comment: '',state: '', // Valor inicial
@@ -70,26 +71,28 @@ const StudentDetail = () => {
     // Obtener la fecha actual en formato YYYY-MM-DD
     const today = new Date().toISOString().split('T')[0];
 
+    const handleImageError = () => {
+      setImageError(true);
+  };
+  
   return (
     <div className="student-detail-container">
       <VerticalMenu />
       <div className="perfil-container">
         <div className="perfil-header">
         <div className="perfil-avatar">
-                        <img
-                            src={student.profileImage || "default-avatar.png"}
-                            alt="Perfil"
-                            style={{
-                                width: '150px',
-                                height: '150px',
-                                objectFit: 'cover',
-                                borderRadius: '50%',
-                                border: '2px solid #ccc'
-                            }}
-                            onError={(e) => {
-                                e.target.src = "default-avatar.png";
-                            }}
-                        />
+        <img
+    src={imageError ? '/images/default-avatar.png' : (student.profileImage || 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg')}
+    alt="Perfil"
+    style={{
+        width: '150px',
+        height: '150px',
+        objectFit: 'cover',
+        borderRadius: '50%',
+        border: '2px solid #ccc'
+    }}
+    onError={handleImageError}
+/>
                     </div>
           <div className="perfil-info">
             <h2>{student.name} {student.lastName}</h2>

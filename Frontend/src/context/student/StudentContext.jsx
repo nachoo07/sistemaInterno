@@ -78,7 +78,7 @@ const StudentsProvider = ({ children }) => {
         await axios.put(`https://sistemainterno.onrender.com/api/students/update/${estudiante._id}`, estudiante, {
           withCredentials: true,
         });
-        obtenerEstudiantes();
+        await obtenerEstudiantes();
         Swal.fire("¡Éxito!", "El estudiante ha sido actualizado correctamente", "success");
       } catch (error) {
         console.error("Error al actualizar estudiante:", error);
