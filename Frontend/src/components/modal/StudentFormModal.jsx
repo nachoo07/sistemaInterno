@@ -1,5 +1,8 @@
 import React from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
+import { storage } from '../../firebase/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useState } from 'react';
 import '../modal/studentModal.css';
 
 const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formData }) => {
@@ -29,6 +32,29 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
     handleChange({ target: { name: e.target.name, value } });
   };
 
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    const storageRef = ref(storage, `images/${file.name}`);
+    try {
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+      handleChange({
+        target: {
+          name: 'profileImage',
+          value: downloadURL
+        }
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    } finally {
+      setUploading(false);
+    }
+  };
 
 
   return (
@@ -199,16 +225,21 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
             </Form.Control>
           </Form.Group>
           <Form.Group controlId="formProfileImage" className="full-width">
-            <Form.Label>Imagen de Perfil</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="URL de la imagen"
-              name="profileImage"
-              value={formData.profileImage}
-              onChange={handleChange}
-              title="Formato de URL de imagen inválido."
-            />
-          </Form.Group>
+        <Form.Label>Imagen de Perfil</Form.Label>
+        <Form.Control
+          type="file"
+          onChange={handleFileChange}
+          disabled={uploading}
+        />
+        {uploading && <p>Subiendo imagen...</p>}
+        {formData.profileImage && (
+          <img
+            src={formData.profileImage}
+            alt="Vista previa"
+            style={{ width: '100px', height: '100px' }}
+          />
+        )}
+      </Form.Group>
 
           <Form.Group controlId="formComentario" className="full-width">
             <Form.Label>Comentario</Form.Label>
