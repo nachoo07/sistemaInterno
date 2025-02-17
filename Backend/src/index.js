@@ -20,12 +20,23 @@ const app = express();
 app.use(express.json()); // Para parsear JSON
 app.use(morgan('dev')); // Logger de solicitudes
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://sistemainterno.onrender.com'], // Permite ambos orígenes
-  credentials: true, // Permite enviar cookies o encabezados de autorización
+  origin: ['http://localhost:5173', 'https://sistemainterno.onrender.com'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
+  exposedHeaders: ['set-cookie']
 }));
 
-app.use(express.urlencoded({ extended: true })); // Para procesar datos de formularios
+
 app.use(cookieParser()); //para parsear cookies
+
+
+// Middleware para debug de cookies
+app.use((req, res, next) => {
+  console.log('Cookies recibidas:', req.cookies);
+  next();
+});
+
 
 // Rutas
 app.use('/api/users', userRoutes); // Prefijo para rutas de usuarios

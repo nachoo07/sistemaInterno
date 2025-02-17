@@ -16,29 +16,27 @@ const generateRefreshToken = (payload) => {
 
 export const loginUser = async (req, res) => {
     const { mail, password } = req.body;
-    // Log para verificar las credenciales recibidas
     console.log('Credenciales recibidas:', { mail, password });
+
     if (!mail || !password) {
         return res.status(400).json({ message: 'Se requiere correo electrónico y contraseña.' });
     }
 
     try {
-        // Buscar al usuario por correo
         const user = await User.findOne({ mail });
         if (!user) {
             return res.status(400).json({ message: 'Credenciales Invalidas' });
         }
- // Verificar si el usuario está activo
- if (!user.state) {
-    return res.status(403).json({ message: 'Su cuenta está inactiva. Por favor contacte al administrador.' });
-}
-        // Comparar la contraseña
+
+        if (!user.state) {
+            return res.status(403).json({ message: 'Su cuenta está inactiva. Por favor contacte al administrador.' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Credenciales Invalidas' });
         }
 
-        // Crear el payload para los tokens
         const payload = {
             userId: user._id,
             role: user.role,
@@ -46,34 +44,47 @@ export const loginUser = async (req, res) => {
             mail: user.mail,
         };
 
-        // Generar tokens
         const accessToken = generateAccessToken(payload);
         const refreshToken = generateRefreshToken(payload);
 
-        // Configurar las cookies para Access Token y Refresh Token
+        // Configuración de cookies
         res.cookie('token', accessToken, {
-            httpOnly: true,  // Solo accesible desde el servidor
-            secure: process.env.NODE_ENV === 'production', // Usar solo en HTTPS en producción
-            sameSite: 'None', // Evita el acceso cruzado
-            maxAge: 2 * 60 * 60 * 1000, // 2 horas en milisegundos (7200000 ms)
+            httpOnly: true,
+            secure: true, // Siempre true para HTTPS
+            sameSite: 'None', // Necesario para cross-site
+            path: '/',
+            domain: '.sistemainterno.onrender.com', // Dominio principal
+            maxAge: 2 * 60 * 60 * 1000 // 2 horas
         });
 
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,  // Solo accesible desde el servidor
-            secure: process.env.NODE_ENV === 'production', // Usar solo en HTTPS en producción
-            sameSite: 'None', // Evita el acceso cruzado
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+            path: '/',
+            domain: '.sistemainterno.onrender.com',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+        });
+
+        // Log para verificar las cookies
+        console.log('Cookies configuradas:', {
+            token: accessToken,
+            refreshToken: refreshToken
         });
 
         res.status(200).json({
             message: 'Login successful',
-            user: { name: user.name, role: user.role, mail: user.mail },
+            user: { 
+                name: user.name, 
+                role: user.role, 
+                mail: user.mail 
+            }
         });
     } catch (error) {
+        console.error('Error en login:', error);
         res.status(500).json({ message: 'Error logging in.', error });
     }
 };
-
 export const logout = (req, res) => {
     console.log('Cookies recibidas en el servidor:', req.cookies);
     console.log('RefreshToken recibido:', req.cookies.refreshToken);
@@ -82,27 +93,22 @@ export const logout = (req, res) => {
     if (!req.cookies.refreshToken) {
         return res.status(400).json({ message: 'No refresh token found in cookies' });
     }
-// Limpiar cookies independientemente de si existe refreshToken
-res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'None',
-    path: '/',
-});
 
-res.clearCookie('token', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'None',
-    path: '/',
-});
+    // Eliminar la cookie "refreshToken"
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true, // Importante para HTTPS
+        sameSite: 'None', // Necesario para que funcione en frontend separado
+        path: '/' 
+    });
 
-res.clearCookie('authRole', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'None',
-    path: '/',
-});
+    // Eliminar la cookie "token" si existe
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: true, // Asegurar que coincida con la configuración original
+        sameSite: 'None', 
+        path: '/' 
+    });
 
     console.log('Cookies eliminadas correctamente');
     res.status(200).json({ message: 'User logged out successfully!' });

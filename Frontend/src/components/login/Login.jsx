@@ -25,16 +25,17 @@ const Login = () => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Limpia errores anteriores
+    setError(null);
   
     try {
       const response = await fetch('https://sistemainterno.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
-        body: JSON.stringify({ mail: email, password }), // Cambiado correo por mail
-        credentials: 'include', // Incluye cookies
+        body: JSON.stringify({ mail: email, password }),
+        credentials: 'include',
       });
   
       if (!response.ok) {
@@ -44,19 +45,22 @@ const Login = () => {
       }
   
       const data = await response.json();
-      const { role, name } = data.user;
-      login(role, name); // Almacena la información en el contexto
+      console.log('Respuesta del servidor:', data);
+      console.log('Cookies después del login:', document.cookie);
       
-  // Redirige según el rol del usuario
-  if (role === 'admin') {
-    navigate('/'); // Ruta para administradores
-  } else {
-    navigate('/homeuser'); // Ruta para usuarios comunes
-  }
+      const { role, name } = data.user;
+      login(role, name);
+      
+      if (role === 'admin') {
+        navigate('/');
+      } else {
+        navigate('/homeuser');
+      }
     } catch (error) {
+      console.error('Error durante el login:', error);
       setError('Error de red o del servidor');
     }
-  };
+};
 
   return (
     <>
