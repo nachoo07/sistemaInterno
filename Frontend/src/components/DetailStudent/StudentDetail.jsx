@@ -75,10 +75,20 @@ const StudentDetail = () => {
       <VerticalMenu />
       <div className="perfil-container">
         <div className="perfil-header">
-          <div className="perfil-avatar">
+        <div className="perfil-avatar">
             <img
-              src={student.profileImage || "default-avatar.png"}
+              src={student.profileImage || "/ruta/imagen/por/defecto.jpg"}
               alt="Perfil"
+              onError={(e) => {
+                e.target.src = '/ruta/imagen/por/defecto.jpg';
+                e.target.onerror = null;
+              }}
+              style={{ 
+                width: '150px', 
+                height: '150px', 
+                objectFit: 'cover',
+                borderRadius: '50%' 
+              }}
             />
           </div>
           <div className="perfil-info">

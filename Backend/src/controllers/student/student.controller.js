@@ -40,7 +40,16 @@ export const createStudent = async (req, res) => {
         return res.status(400).json({ message: "Faltan campos obligatorios" });
     }
 
+
     try {
+
+        const studentData = { ...req.body };
+        
+        // Convertir URL de Google Drive si existe
+        if (studentData.profileImage) {
+            studentData.profileImage = validateAndConvertGoogleDriveUrl(studentData.profileImage);
+        }
+
         const newStudent = await Student.create({
             name,
             lastName,
@@ -85,6 +94,13 @@ export const deleteStudent = async (req, res) => {
 // Actualizar un estudiante por su ID
 export const updateStudent = async (req, res) => {
     try {
+
+        const updateData = { ...req.body };
+        
+        // Convertir URL de Google Drive si existe
+        if (updateData.profileImage) {
+            updateData.profileImage = validateAndConvertGoogleDriveUrl(updateData.profileImage);
+        }
         const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
         if (!student) return res.status(404).json({ message: 'Estudiante no encontrado' });
@@ -109,4 +125,20 @@ export const getStudentById = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+};
+
+
+export const validateAndConvertGoogleDriveUrl = (url) => {
+    if (!url) return null;
+    
+    // Validar si es una URL de Google Drive
+    const drivePattern = /^https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/view/;
+    const match = url.match(drivePattern);
+    
+    if (match) {
+        const fileId = match[1];
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    
+    return url;
 };

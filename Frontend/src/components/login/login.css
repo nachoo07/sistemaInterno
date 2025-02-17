@@ -9,7 +9,7 @@
 
 .form-wrapper {
     display: flex;
-    flex-direction: column; /* Asegúrate de que el contenedor del formulario esté en modo columna */
+    flex-direction: column ; /* Asegúrate de que el contenedor del formulario esté en modo columna */
     background-color: white;
     padding: 20px;
     border-radius: 5px;
@@ -26,7 +26,7 @@
 
 form {
     display: flex;
-    flex-direction: column; /* Asegúrate de que el formulario esté en modo columna */
+    flex-direction: column !important; /* Asegúrate de que el formulario esté en modo columna */
     align-items: flex-start !important;
 }
 
