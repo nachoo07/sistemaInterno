@@ -53,7 +53,7 @@ export const createStudent = async (req, res) => {
 
     try {
 
-       const convertedProfileImage = profileImage;
+       let convertedProfileImage = profileImage;
         if (profileImage && profileImage.includes('drive.google.com')) {
             convertedProfileImage = convertGoogleDriveURL(profileImage);
         }
@@ -102,12 +102,14 @@ export const deleteStudent = async (req, res) => {
 export const updateStudent = async (req, res) => {
     try {
         
-        const convertedProfileImage = req.body.profileImage;
+        let convertedProfileImage = req.body.profileImage;
         if (req.body.profileImage && req.body.profileImage.includes('drive.google.com')) {
             convertedProfileImage = convertGoogleDriveURL(req.body.profileImage);
         }
-        const student = await Student.findByIdAndUpdate(req.params.id, req.body, 
-            { new: true });
+        const student = await Student.findByIdAndUpdate(req.params.id, { 
+            ...req.body, 
+            profileImage: convertedProfileImage // Aquí se actualiza la imagen con el enlace corregido
+        }, { new: true });
 
 
         if (!student) return res.status(404).json({ message: 'Estudiante no encontrado' });
