@@ -76,21 +76,21 @@ const StudentDetail = () => {
       <div className="perfil-container">
         <div className="perfil-header">
         <div className="perfil-avatar">
-            <img
-              src={student.profileImage || "/ruta/imagen/por/defecto.jpg"}
-              alt="Perfil"
-              onError={(e) => {
-                e.target.src = '/ruta/imagen/por/defecto.jpg';
-                e.target.onerror = null;
-              }}
-              style={{ 
-                width: '150px', 
-                height: '150px', 
-                objectFit: 'cover',
-                borderRadius: '50%' 
-              }}
-            />
-          </div>
+                        <img
+                            src={student.profileImage || "default-avatar.png"}
+                            alt="Perfil"
+                            style={{
+                                width: '150px',
+                                height: '150px',
+                                objectFit: 'cover',
+                                borderRadius: '50%',
+                                border: '2px solid #ccc'
+                            }}
+                            onError={(e) => {
+                                e.target.src = "default-avatar.png";
+                            }}
+                        />
+                    </div>
           <div className="perfil-info">
             <h2>{student.name} {student.lastName}</h2>
             <button className="btn-ver-cuotas" onClick={handleViewShares}>Ver Cuotas</button>

@@ -29,27 +29,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
     handleChange({ target: { name: e.target.name, value } });
   };
 
-  const convertGoogleDriveUrl = (url) => {
-    if (!url) return '';
-    // Extraer el ID del archivo de la URL de Google Drive
-    const fileId = url.match(/\/d\/(.+?)\/view/)?.[1];
-    if (fileId) {
-      // Convertir a URL directa de visualización
-      return `https://drive.google.com/uc?export=view&id=${fileId}`;
-    }
-    return url;
-  };
 
-  const handleImageUrlChange = (e) => {
-    const { name, value } = e.target;
-    const convertedUrl = convertGoogleDriveUrl(value);
-    handleChange({
-      target: {
-        name,
-        value: convertedUrl
-      }
-    });
-  };
 
   return (
     <Modal show={show} onHide={handleClose} dialogClassName="modal-dialog">
@@ -218,31 +198,17 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               <option value="Inactivo">Inactivo</option>
             </Form.Control>
           </Form.Group>
-
-             <Form.Group controlId="formProfileImage" className="full-width">
-        <Form.Label>Imagen de Perfil (URL de Google Drive)</Form.Label>
-        <Form.Control
-          type="text"
-          placeholder="Ejemplo: https://drive.google.com/file/d/ID_DEL_ARCHIVO/view"
-          name="profileImage"
-          value={formData.profileImage}
-          onChange={handleImageUrlChange}
-          title="Ingrese una URL válida de Google Drive"
-        />
-        {formData.profileImage && (
-          <div className="mt-2">
-            <img 
-              src={formData.profileImage} 
-              alt="Vista previa" 
-              style={{ maxWidth: '100px', height: 'auto' }}
-              onError={(e) => {
-                e.target.src = 'ruta/a/imagen/por/defecto.jpg';
-                e.target.onerror = null;
-              }}
+          <Form.Group controlId="formProfileImage" className="full-width">
+            <Form.Label>Imagen de Perfil</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="URL de la imagen"
+              name="profileImage"
+              value={formData.profileImage}
+              onChange={handleChange}
+              title="Formato de URL de imagen inválido."
             />
-          </div>
-        )}
-      </Form.Group>
+          </Form.Group>
 
           <Form.Group controlId="formComentario" className="full-width">
             <Form.Label>Comentario</Form.Label>

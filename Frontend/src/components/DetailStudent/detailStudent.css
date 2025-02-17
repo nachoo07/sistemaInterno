@@ -27,12 +27,10 @@
 }
 
 .perfil-avatar img {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid #fff;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  width: 150px; /* Ajusta el tamaño según tus necesidades */
+  height: 150px; /* Asegura que la imagen sea cuadrada */
+  object-fit: cover; /* Asegura que la imagen se recorte para llenar el contenedor */
+  border: 2px solid #ccc; /* Agrega un borde opcional */
 }
 
 .perfil-info {
@@ -138,16 +136,4 @@ textarea {
 
 .btn-eliminar:hover {
   background-color: #D83D8D;
-}
-
-.image-preview {
-  margin-top: 10px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.image-preview img {
-  max-width: 100px;
-  height: auto;
 }
