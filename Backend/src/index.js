@@ -32,10 +32,10 @@ app.use(cookieParser()); //para parsear cookies
 
 
 // Middleware para debug de cookies
-app.use((req, res, next) => {
-  console.log('Cookies recibidas:', req.cookies);
-  next();
-});
+//app.use((req, res, next) => {
+  //console.log('Cookies recibidas:', req.cookies);
+ //next();
+//});
 
 
 // Rutas

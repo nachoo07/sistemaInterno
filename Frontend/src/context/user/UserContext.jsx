@@ -30,7 +30,7 @@ const UsersProvider = ({ children }) => {
     const addUsuarioAdmin = async (usuario) => {
         if (auth === 'admin') { // Verifica si el usuario es admin
             try {
-                const response = await axios.post("http://localhost:4000/api/users", usuario, {
+                const response = await axios.post("https://sistemainterno.onrender.com/api/users", usuario, {
                     withCredentials: true,
                 });
                 setUsuarios((prevUsuarios) => [...prevUsuarios, response.data]);
@@ -45,7 +45,7 @@ const UsersProvider = ({ children }) => {
     const updateUsuarioAdmin = async (id, usuarioActualizado) => {
         if (auth === 'admin') { // Verifica si el usuario es admin
             try {
-                const response = await axios.put(`http://localhost:4000/api/users/${id}`, usuarioActualizado, {
+                const response = await axios.put(`https://sistemainterno.onrender.com/api/users/${id}`, usuarioActualizado, {
                     withCredentials: true,
                 });
                 setUsuarios((prevUsuarios) =>
@@ -76,7 +76,7 @@ const UsersProvider = ({ children }) => {
                 });
 
                 if (confirmacion.isConfirmed) {
-                    await axios.delete(`http://localhost:4000/api/users/${id}`, {
+                    await axios.delete(`https://sistemainterno.onrender.com/api/users/${id}`, {
                         withCredentials: true,
                     });
                     setUsuarios((prevUsuarios) => prevUsuarios.filter((usuario) => usuario._id !== id));

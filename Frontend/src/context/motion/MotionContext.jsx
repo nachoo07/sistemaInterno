@@ -19,7 +19,7 @@ export const MotionProvider = ({ children }) => {
   const fetchMotions = async () => {
     if (auth === 'admin') {
       try {
-        const response = await axios.get('http://localhost:4000/api/motions/', { withCredentials: true });
+        const response = await axios.get('https://sistemainterno.onrender.com/api/motions/', { withCredentials: true });
         console.log('Response Data:', response.data);
         setMotions(response.data);
       } catch (error) {
@@ -31,7 +31,7 @@ export const MotionProvider = ({ children }) => {
 
   const createMotion = async (motion) => {
     try {
-      const response = await axios.post('http://localhost:4000/api/motions/create', motion, { withCredentials: true });
+      const response = await axios.post('https://sistemainterno.onrender.com/api/motions/create', motion, { withCredentials: true });
       setMotions(prevMotions => [...prevMotions, response.data]);
       Swal.fire("¡Éxito!", "La cuota ha sido creada correctamente", "success");
     } catch (error) {
@@ -42,7 +42,7 @@ export const MotionProvider = ({ children }) => {
   
   const updateMotion = async (id, updatedMotion) => {
     try {
-      const response = await axios.put(`http://localhost:4000/api/motions/update/${id}`, updatedMotion, { withCredentials: true });
+      const response = await axios.put(`https://sistemainterno.onrender.com/api/motions/update/${id}`, updatedMotion, { withCredentials: true });
       setMotions(prevMotions => prevMotions.map(motion => (motion._id === id ? response.data : motion)));
       Swal.fire("¡Éxito!", "La cuota ha sido actualizada correctamente", "success");
     } catch (error) {
@@ -64,7 +64,7 @@ export const MotionProvider = ({ children }) => {
         cancelButtonText: "Cancelar",
       });
       if (confirmacion.isConfirmed) {
-        await axios.delete(`http://localhost:4000/api/motions/delete/${id}`, { withCredentials: true });
+        await axios.delete(`https://sistemainterno.onrender.com/api/motions/delete/${id}`, { withCredentials: true });
         setMotions(motions.filter(motion => motion._id !== id));
         Swal.fire("¡Eliminada!", "La cuota ha sido eliminada correctamente", "success");
       }
@@ -76,7 +76,7 @@ export const MotionProvider = ({ children }) => {
 
   const getMotionsByDate = async (date) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/motions/date/${date}`, { withCredentials: true });
+      const response = await axios.get(`https://sistemainterno.onrender.com/api/motions/date/${date}`, { withCredentials: true });
       return response.data;
     } catch (error) {
       console.error('Error obteniendo movimientos por fecha:', error);
@@ -87,7 +87,7 @@ export const MotionProvider = ({ children }) => {
 
   const getMotionsByDateRange = async (startDate, endDate) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/motions/date-range?startDate=${startDate}&endDate=${endDate}`, { withCredentials: true });
+      const response = await axios.get(`https://sistemainterno.onrender.com/api/motions/date-range?startDate=${startDate}&endDate=${endDate}`, { withCredentials: true });
       return response.data;
     } catch (error) {
       console.error('Error obteniendo movimientos por rango de fechas:', error);

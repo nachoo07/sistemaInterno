@@ -16,7 +16,7 @@ const generateRefreshToken = (payload) => {
 
 export const loginUser = async (req, res) => {
     const { mail, password } = req.body;
-    console.log('Credenciales recibidas:', { mail, password });
+    //console.log('Credenciales recibidas:', { mail, password });
 
     if (!mail || !password) {
         return res.status(400).json({ message: 'Se requiere correo electrónico y contraseña.' });
@@ -67,10 +67,10 @@ export const loginUser = async (req, res) => {
         });
 
         // Log para verificar las cookies
-        console.log('Cookies configuradas:', {
-            token: accessToken,
-            refreshToken: refreshToken
-        });
+        //console.log('Cookies configuradas:', {
+         //   token: accessToken,
+         //   refreshToken: refreshToken
+        //});
 
         res.status(200).json({
             message: 'Login successful',
@@ -86,8 +86,8 @@ export const loginUser = async (req, res) => {
     }
 };
 export const logout = (req, res) => {
-    console.log('Cookies recibidas en el servidor:', req.cookies);
-    console.log('RefreshToken recibido:', req.cookies.refreshToken);
+    //console.log('Cookies recibidas en el servidor:', req.cookies);
+    //console.log('RefreshToken recibido:', req.cookies.refreshToken);
 
     // Verificar si la cookie "refreshToken" existe
     if (!req.cookies.refreshToken) {
@@ -110,13 +110,13 @@ export const logout = (req, res) => {
         path: '/' 
     });
 
-    console.log('Cookies eliminadas correctamente');
+    //console.log('Cookies eliminadas correctamente');
     res.status(200).json({ message: 'User logged out successfully!' });
 };
 
 export const refreshAccessToken = (req, res) => {
-    console.log("Cookies recibidas en /refresh:", req.cookies);
-    console.log("Refresh token recibido:", req.cookies.refreshToken);
+    //console.log("Cookies recibidas en /refresh:", req.cookies);
+   // console.log("Refresh token recibido:", req.cookies.refreshToken);
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {

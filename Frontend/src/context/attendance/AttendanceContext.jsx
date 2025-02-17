@@ -20,7 +20,7 @@ export const AttendanceProvider = ({children}) => {
   const ObtenerAsistencia = async () => {
     if (auth === "admin" || auth === "user"){
       try {
-        const response = await axios.get('http://localhost:4000/api/attendance/', {withCredentials: true});
+        const response = await axios.get('https://sistemainterno.onrender.com/api/attendance/', {withCredentials: true});
         console.log('Asistencias obtenidas:', response.data); // Verifica los datos obtenidos
         
         setAttendance(response.data);
@@ -36,7 +36,7 @@ export const AttendanceProvider = ({children}) => {
    const agregarAsistencia = async (asistencia) => {
     if (auth === "admin" || auth === "user") {
     try {
-      const response = await axios.post('http://localhost:4000/api/attendance/create', asistencia, {
+      const response = await axios.post('https://sistemainterno.onrender.com/api/attendance/create', asistencia, {
         withCredentials: true,
       });
       setAttendance((prev) => [...prev, response.data]);
@@ -54,7 +54,7 @@ export const AttendanceProvider = ({children}) => {
     if (auth === "admin" || auth === "user") {
     try {
       //console.log("Datos enviados:", { date, category, attendance });
-      const response = await axios.put('http://localhost:4000/api/attendance/update', {
+      const response = await axios.put('https://sistemainterno.onrender.com/api/attendance/update', {
         date, category, attendance
       },{withCredentials: true},
       console.log("Fecha enviada para actualizar:", date)

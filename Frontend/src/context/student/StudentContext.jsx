@@ -13,7 +13,7 @@ const StudentsProvider = ({ children }) => {
   const obtenerEstudiantes = async () => {
     if (auth === "admin" || auth === "user") {
       try {
-        const response = await axios.get("http://localhost:4000/api/students", {
+        const response = await axios.get("https://sistemainterno.onrender.com/api/students", {
           withCredentials: true,
         });
         console.log("Response data:", response.data);
@@ -29,7 +29,7 @@ const StudentsProvider = ({ children }) => {
   const addEstudiante = async (estudiante) => {
     if (auth === "admin") {
       try {
-        const response = await axios.post("http://localhost:4000/api/students/create", estudiante, {
+        const response = await axios.post("https://sistemainterno.onrender.com/api/students/create", estudiante, {
           withCredentials: true,
         });
         setEstudiantes((prevEstudiantes) => Array.isArray(prevEstudiantes) ? [...prevEstudiantes, response.data] : [response.data]);
@@ -58,7 +58,7 @@ const StudentsProvider = ({ children }) => {
         });
 
         if (confirmacion.isConfirmed) {
-          await axios.delete(`http://localhost:4000/api/students/delete/${id}`, {
+          await axios.delete(`https://sistemainterno.onrender.com/api/students/delete/${id}`, {
             withCredentials: true,
           });
           setEstudiantes((prevEstudiantes) => prevEstudiantes.filter((estudiante) => estudiante._id !== id));
@@ -75,7 +75,7 @@ const StudentsProvider = ({ children }) => {
   const updateEstudiante = async (estudiante) => {
     if (auth === "admin") {
       try {
-        await axios.put(`http://localhost:4000/api/students/update/${estudiante._id}`, estudiante, {
+        await axios.put(`https://sistemainterno.onrender.com/api/students/update/${estudiante._id}`, estudiante, {
           withCredentials: true,
         });
         obtenerEstudiantes();
