@@ -13,6 +13,7 @@ import { errorHandler } from './middlewares/user/user.middlewares.js'; // Maneja
 import './cron/cronShare.js'; // Importa el cron job para que se ejecute
 import testRouter from './routes/cron.js';
 import motionRoutes from './routes/motion/motion.router.js';
+import path from 'path';
 
 const app = express();
 
@@ -30,7 +31,8 @@ app.use(cors({
 
 app.use(cookieParser()); //para parsear cookies
 
-app.use('/uploads', express.static('uploads'));
+// Habilitar la carpeta 'uploads' para servir archivos estáticos
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Middleware para debug de cookies
 //app.use((req, res, next) => {
   //console.log('Cookies recibidas:', req.cookies);

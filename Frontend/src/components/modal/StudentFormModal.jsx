@@ -31,12 +31,33 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
     handleChange({ target: { name: e.target.name, value } });
   };
 
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setFormData] = useState(false);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    handleChange({ target: { name: 'profileImage', value: file } });
-  };
+    setFormData({ ...formData, profileImage: file });
+};
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formDataToSend = new FormData();
+
+    for (const key in formData) {
+        formDataToSend.append(key, formData[key]);
+    }
+
+    try {
+        const response = await fetch('http://localhost:5000/api/students', {
+            method: 'POST',
+            body: formDataToSend,
+        });
+
+        const data = await response.json();
+        console.log('Respuesta:', data);
+    } catch (error) {
+        console.error('Error al subir datos:', error);
+    }
+};
 
   return (
     <Modal show={show} onHide={handleClose} dialogClassName="modal-dialog">

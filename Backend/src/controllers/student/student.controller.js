@@ -110,13 +110,13 @@ export const deleteStudent = async (req, res) => {
 
 // Actualizar un estudiante por su ID
 export const updateStudent = async (req, res) => {
-    upload(req, res, async (err) => {
+    upload.single('profileImage')(req, res, async (err) => {
         if (err) {
             return res.status(500).json({ message: "Error al subir la imagen", error: err.message });
         }
 
         try {
-            const profileImage = req.file ? req.file.filename : req.body.profileImage; // Obtener el nombre del archivo si se subió o mantener el existente
+            const profileImage = req.file ? req.file.filename : req.body.profileImage; // Si no se sube imagen, mantener la existente
 
             const student = await Student.findByIdAndUpdate(req.params.id, { ...req.body, profileImage }, { new: true });
 

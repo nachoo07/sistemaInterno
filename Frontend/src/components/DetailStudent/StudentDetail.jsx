@@ -82,13 +82,9 @@ const StudentDetail = () => {
         <div className="perfil-header">
         <div className="perfil-avatar">
         <img
-    src={`/uploads/${student.profileImage}`}
+    src={`https://sistemainterno.onrender.com/uploads/${student.profileImage}`}
     alt="Perfil"
-    style={{
-        width: '150px',
-        height: '150px',
-      
-    }}
+    style={{ width: '150px', height: '150px' }}
     onError={handleImageError}
 />
                     </div>
