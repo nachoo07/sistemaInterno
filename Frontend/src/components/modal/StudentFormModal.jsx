@@ -32,6 +32,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
   };
 
   const [uploading, setUploading] = useState(false);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     handleChange({ target: { name: 'profileImage', value: file } });
@@ -43,7 +44,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
         <Modal.Title>{formData._id ? "Editar Alumno" : "Agregar Alumno"}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form onSubmit={handleSubmit} className="form-grid">
+        <Form onSubmit={handleSubmit} className="form-grid" encType="multipart/form-data">
           <Form.Group controlId="formNombre">
             <Form.Label>Nombre</Form.Label>
             <Form.Control
@@ -208,6 +209,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
         <Form.Label>Imagen de Perfil</Form.Label>
         <Form.Control
           type="file"
+          name="profileImage"
           onChange={handleFileChange}
           disabled={uploading}
         />

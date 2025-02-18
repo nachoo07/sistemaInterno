@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'path';
 
 // Configuración de Multer para la subida de archivos
+// Configuración de Multer para la subida de archivos
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/'); // Carpeta donde se guardarán las imágenes
@@ -13,8 +14,7 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage }).single('profileImage'); // 'profileImage' debe coincidir con el nombre del campo en el formulario
-
+const upload = multer({ storage: storage }); //  se inicializa multer sin .single()
 
 
 // Obtener todos los estudiantes
@@ -35,27 +35,27 @@ export const getAllStudents = async (req, res) => {
 // Crear un nuevo estudiante
 export const createStudent = async (req, res) => {
     
-    upload(req, res, async (err) => {
+    upload.single('profileImage')(req, res, async (err) => { //se usa upload.single como middleware
         if (err) {
             return res.status(500).json({ message: "Error al subir la imagen", error: err.message });
         }
 
-    const { 
-        name, 
-        lastName,
-        cuil, 
-        birthDate, 
-        address, 
-        motherName, 
-        fatherName, 
-        motherPhone, 
-        fatherPhone, 
-        category, 
-        mail, 
-        state, 
-        fee, 
-        comment
-    } = req.body;
+        const {
+            name,
+            lastName,
+            cuil,
+            birthDate,
+            address,
+            motherName,
+            fatherName,
+            motherPhone,
+            fatherPhone,
+            category,
+            mail,
+            state,
+            fee,
+            comment
+        } = req.body;
 
     // Validaciones de los campos obligatorios
     if (!name || !cuil || !birthDate || !address || !motherName || !fatherName || !motherPhone || !fatherPhone || !category || !mail ) {
