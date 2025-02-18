@@ -87,16 +87,9 @@ const studentSchema = new mongoose.Schema({
         trim: true,
     },
     profileImage: {
-        type: String,
+        type: String, // Cambiado a String para almacenar la ruta/nombre del archivo
         trim: true,
         default: 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg',
-        validate: {
-            validator: (v) => {
-                if (!v) return true;
-                return /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg))|(https:\/\/drive\.google\.com\/uc\?export=view&id=[a-zA-Z0-9_-]+)$/.test(v);
-            },
-            message: "Invalid image URL format.",
-        },
     }
 }, {
     timestamps: true, // Agrega createdAt y updatedAt automáticamente

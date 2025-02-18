@@ -1,7 +1,6 @@
 import React from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { storage } from '../../firebase/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 import { useState } from 'react';
 import '../modal/studentModal.css';
 
@@ -33,29 +32,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
   };
 
   const [uploading, setUploading] = useState(false);
-
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    setUploading(true);
-    const storageRef = ref(storage, `images/${file.name}`);
-    try {
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-      handleChange({
-        target: {
-          name: 'profileImage',
-          value: downloadURL
-        }
-      });
-    } catch (error) {
-      console.error("Error uploading file:", error);
-    } finally {
-      setUploading(false);
-    }
+    handleChange({ target: { name: 'profileImage', value: file } });
   };
-
 
   return (
     <Modal show={show} onHide={handleClose} dialogClassName="modal-dialog">
@@ -234,7 +214,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
         {uploading && <p>Subiendo imagen...</p>}
         {formData.profileImage && (
           <img
-            src={formData.profileImage}
+            src={formData.profileImage instanceof File ? URL.createObjectURL(formData.profileImage) : formData.profileImage}
             alt="Vista previa"
             style={{ width: '100px', height: '100px' }}
           />

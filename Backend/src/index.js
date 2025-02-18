@@ -30,7 +30,7 @@ app.use(cors({
 
 app.use(cookieParser()); //para parsear cookies
 
-
+app.use('/uploads', express.static('uploads'));
 // Middleware para debug de cookies
 //app.use((req, res, next) => {
   //console.log('Cookies recibidas:', req.cookies);

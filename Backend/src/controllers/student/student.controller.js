@@ -1,14 +1,20 @@
 import Student from '../../models/student/student.model.js';
+import multer from 'multer';
+import path from 'path';
 
-
-const convertGoogleDriveURL = (url) => {
-    const regex = /file\/d\/([a-zA-Z0-9_-]+)/;
-    const match = url.match(regex);
-    if (match) {
-        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+// Configuración de Multer para la subida de archivos
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // Carpeta donde se guardarán las imágenes
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
-    return url;
-};
+});
+
+const upload = multer({ storage: storage }).single('profileImage'); // 'profileImage' debe coincidir con el nombre del campo en el formulario
+
 
 
 // Obtener todos los estudiantes
@@ -28,6 +34,12 @@ export const getAllStudents = async (req, res) => {
 
 // Crear un nuevo estudiante
 export const createStudent = async (req, res) => {
+    
+    upload(req, res, async (err) => {
+        if (err) {
+            return res.status(500).json({ message: "Error al subir la imagen", error: err.message });
+        }
+
     const { 
         name, 
         lastName,
@@ -42,8 +54,7 @@ export const createStudent = async (req, res) => {
         mail, 
         state, 
         fee, 
-        comment,
-        profileImage 
+        comment
     } = req.body;
 
     // Validaciones de los campos obligatorios
@@ -53,10 +64,8 @@ export const createStudent = async (req, res) => {
 
     try {
 
-       let convertedProfileImage = profileImage;
-        if (profileImage && profileImage.includes('drive.google.com')) {
-            convertedProfileImage = convertGoogleDriveURL(profileImage);
-        }
+        const profileImage = req.file ? req.file.filename : ''; // Obtener el nombre del archivo si se subió
+
         const newStudent = await Student.create({
             name,
             lastName,
@@ -72,7 +81,7 @@ export const createStudent = async (req, res) => {
             state,
             fee,
             comment,
-            profileImage: convertedProfileImage
+            profileImage
         });
 
         const savedStudent = await newStudent.save();
@@ -83,6 +92,7 @@ export const createStudent = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ message: "Error al crear el estudiante", error: error.message });
     }
+});
 };
 
 // Eliminar un estudiante por su ID
@@ -100,27 +110,26 @@ export const deleteStudent = async (req, res) => {
 
 // Actualizar un estudiante por su ID
 export const updateStudent = async (req, res) => {
-    try {
-        
-        let convertedProfileImage = req.body.profileImage;
-        if (req.body.profileImage && req.body.profileImage.includes('drive.google.com')) {
-            convertedProfileImage = convertGoogleDriveURL(req.body.profileImage);
+    upload(req, res, async (err) => {
+        if (err) {
+            return res.status(500).json({ message: "Error al subir la imagen", error: err.message });
         }
-        const student = await Student.findByIdAndUpdate(req.params.id, { 
-            ...req.body, 
-            profileImage: convertedProfileImage // Aquí se actualiza la imagen con el enlace corregido
-        }, { new: true });
 
+        try {
+            const profileImage = req.file ? req.file.filename : req.body.profileImage; // Obtener el nombre del archivo si se subió o mantener el existente
 
-        if (!student) return res.status(404).json({ message: 'Estudiante no encontrado' });
+            const student = await Student.findByIdAndUpdate(req.params.id, { ...req.body, profileImage }, { new: true });
 
-        res.json({
-            message: "El estudiante fue actualizado correctamente",
-            student
-        });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
+            if (!student) return res.status(404).json({ message: 'Estudiante no encontrado' });
+
+            res.json({
+                message: "El estudiante fue actualizado correctamente",
+                student
+            });
+        } catch (error) {
+            res.status(400).json({ message: error.message });
+        }
+    });
 };
 
 // Obtener un estudiante por su ID

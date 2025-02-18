@@ -82,7 +82,7 @@ const StudentDetail = () => {
         <div className="perfil-header">
         <div className="perfil-avatar">
         <img
-    src={imageError ? '/images/default-avatar.png' : (student.profileImage || 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg')}
+    src={`/uploads/${student.profileImage}`}
     alt="Perfil"
     style={{
         width: '150px',
