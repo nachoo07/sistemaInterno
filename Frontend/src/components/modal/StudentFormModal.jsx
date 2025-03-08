@@ -1,71 +1,84 @@
-import React from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-
-import { useState } from 'react';
-import '../modal/studentModal.css';
+import React, { useState } from 'react';
+import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import './studentModal.css';
 
 const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formData }) => {
-  // Formatear la fecha de nacimiento para el campo de fecha
-  const formattedBirthDate = formData.birthDate ? new Date(formData.birthDate).toISOString().split('T')[0] : '';
-  // Obtener la fecha actual en formato YYYY-MM-DD
-  const today = new Date().toISOString().split('T')[0];
-  // Función para capitalizar la primera letra
+  const [uploading, setUploading] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
-  const capitalize = (str) => {
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  };
+  const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
-  // Función para manejar el cambio en los campos del formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    handleChange({
-      target: {
-        name,
-        value: name === 'name' || name === 'lastName' ? capitalize(value) : value,
-      },
-    });
+    handleChange({ target: { name, value: name === 'name' || name === 'lastName' ? capitalize(value) : value } });
   };
-  // Función para permitir solo números en el campo de entrada
+
   const handleNumberInput = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
     handleChange({ target: { name: e.target.name, value } });
   };
 
-  const [uploading, setFormData] = useState(false);
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setFormData({ ...formData, profileImage: file });
-};
+    handleChange({ target: { name: 'profileImage', value: file } });
+  };
 
-const handleSubmit = async (e) => {
+  const handleCheckboxChange = (e) => {
+    handleChange({ target: { name: 'hasSiblingDiscount', value: e.target.checked } });
+  };
+
+  const validateParentFields = () => {
+    const fields = ['motherName', 'motherPhone', 'fatherName', 'fatherPhone'].map(field => formData[field]?.trim() || '');
+    const filledCount = fields.filter(Boolean).length;
+
+    if (filledCount > 0 && filledCount < 2) {
+      setAlertMessage('Debe completar al menos 2 de los 4 campos de información de los padres.');
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+      return false;
+    }
+
+    const motherComplete = fields[0] && fields[1];
+    const fatherComplete = fields[2] && fields[3];
+    if (filledCount >= 2 && !motherComplete && !fatherComplete) {
+      setAlertMessage('Complete ambos campos (nombre y teléfono) de la madre o del padre.');
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+      return false;
+    }
+
+    return true;
+  };
+
+  const onSubmit = (e) => {
     e.preventDefault();
-    const formDataToSend = new FormData();
-
-    for (const key in formData) {
-        formDataToSend.append(key, formData[key]);
+    if (validateParentFields()) {
+      handleSubmit(e);
     }
+  };
 
-    try {
-        const response = await fetch('http://localhost:5000/api/students', {
-            method: 'POST',
-            body: formDataToSend,
-        });
-
-        const data = await response.json();
-        console.log('Respuesta:', data);
-    } catch (error) {
-        console.error('Error al subir datos:', error);
-    }
-};
+  const today = new Date().toISOString().split('T')[0];
 
   return (
-    <Modal show={show} onHide={handleClose} dialogClassName="modal-dialog">
+    <Modal show={show} onHide={handleClose} dialogClassName="student-modal">
       <Modal.Header closeButton>
         <Modal.Title>{formData._id ? "Editar Alumno" : "Agregar Alumno"}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form onSubmit={handleSubmit} className="form-grid" encType="multipart/form-data">
+        {showAlert && (
+          <Alert
+            variant="warning"
+            onClose={() => setShowAlert(false)}
+            dismissible
+            className="custom-alert"
+          >
+            <Alert.Heading>¡Atención!</Alert.Heading>
+            <p>{alertMessage}</p>
+          </Alert>
+        )}
+        <Form onSubmit={onSubmit} className="form-grid" encType="multipart/form-data">
+
           <Form.Group controlId="formNombre">
             <Form.Label>Nombre</Form.Label>
             <Form.Control
@@ -75,11 +88,9 @@ const handleSubmit = async (e) => {
               value={formData.name}
               onChange={handleInputChange}
               required
-              minLength={1}
               maxLength={50}
             />
           </Form.Group>
-
           <Form.Group controlId="formLastName">
             <Form.Label>Apellido</Form.Label>
             <Form.Control
@@ -89,25 +100,23 @@ const handleSubmit = async (e) => {
               value={formData.lastName}
               onChange={handleInputChange}
               required
-              minLength={1}
               maxLength={50}
             />
           </Form.Group>
 
           <Form.Group controlId="formDNI">
-            <Form.Label>Cuil</Form.Label>
+            <Form.Label>CUIL</Form.Label>
             <Form.Control
               type="text"
               placeholder="CUIL"
               name="cuil"
               value={formData.cuil}
-              onChange={handleChange}
+              onChange={handleNumberInput}
               required
-              pattern="\d{10,11}" // Acepta 7 u 8 dígitos numéricos
+              pattern="\d{10,11}"
               title="CUIL debe contener 10 u 11 dígitos."
             />
           </Form.Group>
-
           <Form.Group controlId="formBirthDate">
             <Form.Label>Fecha de Nacimiento</Form.Label>
             <Form.Control
@@ -115,7 +124,7 @@ const handleSubmit = async (e) => {
               name="birthDate"
               value={formData.birthDate}
               onChange={handleChange}
-              max={today} // Establecer la fecha máxima como la fecha actual
+              max={today}
               required
             />
           </Form.Group>
@@ -129,21 +138,19 @@ const handleSubmit = async (e) => {
               value={formData.address}
               onChange={handleChange}
               required
-              minLength={1}
               maxLength={100}
             />
           </Form.Group>
-
           <Form.Group controlId="formMail">
-            <Form.Label>Mail</Form.Label>
+            <Form.Label>Email</Form.Label>
             <Form.Control
               type="email"
-              placeholder="Mail"
+              placeholder="Email"
               name="mail"
               value={formData.mail}
               onChange={handleChange}
               required
-              pattern="\S+@\S+\.\S+" // Validación de formato de email
+              pattern="\S+@\S+\.\S+"
               title="Formato de email inválido."
             />
           </Form.Group>
@@ -157,11 +164,11 @@ const handleSubmit = async (e) => {
               value={formData.category}
               onChange={handleNumberInput}
               required
-              pattern="^[0-9]+$" // Solo números positivos
-              minLength={4}
+              pattern="^[0-9]+$"
               maxLength={50}
             />
           </Form.Group>
+
 
           <Form.Group controlId="formNombreMama">
             <Form.Label>Nombre Mamá</Form.Label>
@@ -169,53 +176,25 @@ const handleSubmit = async (e) => {
               type="text"
               placeholder="Nombre Mamá"
               name="motherName"
-              value={formData.motherName}
+              value={formData.motherName || ''}
               onChange={handleChange}
-              minLength={1}
               maxLength={50}
             />
           </Form.Group>
-
           <Form.Group controlId="formCelularMama">
             <Form.Label>Celular Mamá</Form.Label>
             <Form.Control
               type="text"
               placeholder="Celular Mamá"
               name="motherPhone"
-              value={formData.motherPhone}
-              onChange={handleChange}
-              pattern="\d{10,15}" // Acepta números de 10 a 15 dígitos
-              title="El número de celular debe tener entre 10 y 15 dígitos."
+              value={formData.motherPhone || ''}
+              onChange={handleNumberInput}
+              pattern="\d{10,15}"
+              title="El número debe tener entre 10 y 15 dígitos."
             />
           </Form.Group>
-
-          <Form.Group controlId="formNombrePapa">
-            <Form.Label>Nombre Papá</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Nombre Papá"
-              name="fatherName"
-              value={formData.fatherName}
-              onChange={handleChange}
-              minLength={1}
-              maxLength={50}
-            />
-          </Form.Group>
-
-          <Form.Group controlId="formCelularPapa">
-            <Form.Label>Celular Papá</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Celular Papá"
-              name="fatherPhone"
-              value={formData.fatherPhone}
-              onChange={handleChange}
-              pattern="\d{10,15}" // Acepta números de 10 a 15 dígitos
-              title="El número de celular debe tener entre 10 y 15 dígitos."
-            />
-          </Form.Group>
-          <Form.Group controlId="formState" className="form-group">
-            <Form.Label className="form-label">Estado</Form.Label>
+          <Form.Group controlId="formState">
+            <Form.Label>Estado</Form.Label>
             <Form.Control
               as="select"
               name="state"
@@ -226,24 +205,60 @@ const handleSubmit = async (e) => {
               <option value="Inactivo">Inactivo</option>
             </Form.Control>
           </Form.Group>
-          <Form.Group controlId="formProfileImage" className="full-width">
-        <Form.Label>Imagen de Perfil</Form.Label>
-        <Form.Control
-          type="file"
-          name="profileImage"
-          onChange={handleFileChange}
-          disabled={uploading}
-        />
-        {uploading && <p>Subiendo imagen...</p>}
-        {formData.profileImage && (
-          <img
-            src={formData.profileImage instanceof File ? URL.createObjectURL(formData.profileImage) : formData.profileImage}
-            alt="Vista previa"
-            style={{ width: '100px', height: '100px' }}
-          />
-        )}
-      </Form.Group>
+          <Form.Group controlId="formNombrePapa">
+            <Form.Label>Nombre Papá</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Nombre Papá"
+              name="fatherName"
+              value={formData.fatherName || ''}
+              onChange={handleChange}
+              maxLength={50}
+            />
+          </Form.Group>
+          <Form.Group controlId="formCelularPapa">
+            <Form.Label>Celular Papá</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Celular Papá"
+              name="fatherPhone"
+              value={formData.fatherPhone || ''}
+              onChange={handleNumberInput}
+              pattern="\d{10,15}"
+              title="El número debe tener entre 10 y 15 dígitos."
+            />
+          </Form.Group>
 
+          <Form.Group controlId="formHasSiblingDiscount" className="full-width" >
+            <Form.Check
+              type="checkbox"
+              name="hasSiblingDiscount"
+              className='checkbox'
+              checked={formData.hasSiblingDiscount || false}
+              onChange={handleCheckboxChange}
+              label="Aplicar 10% de descuento por hermanos"
+            />
+          </Form.Group>
+          <Form.Group controlId="formProfileImage" className="full-width form-group-with-preview">
+            <div>
+              <Form.Label>Imagen de Perfil</Form.Label>
+              <Form.Control
+                type="file"
+                name="profileImage"
+                onChange={handleFileChange}
+                disabled={uploading}
+              />
+              {uploading && <p className="uploading">Subiendo imagen...</p>}
+            </div>
+            {formData.profileImage && (
+              <img
+                src={formData.profileImage instanceof File ? URL.createObjectURL(formData.profileImage) : formData.profileImage}
+                alt="Vista previa"
+                className="preview-img "
+                onError={(e) => e.target.src = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg'}
+              />
+            )}
+          </Form.Group>
           <Form.Group controlId="formComentario" className="full-width">
             <Form.Label>Comentario</Form.Label>
             <Form.Control
@@ -251,13 +266,14 @@ const handleSubmit = async (e) => {
               rows={3}
               placeholder="Comentario"
               name="comment"
-              value={formData.comment}
+              value={formData.comment || ''}
               onChange={handleChange}
               maxLength={500}
             />
           </Form.Group>
-          <Button type="submit" className="boton-guardar">
-            {formData._id ? "Actualizar Alumno" : "Crear Alumno"}
+
+          <Button type="submit" className="save-btn full-width" disabled={uploading}>
+            {uploading ? "Guardando..." : (formData._id ? "Actualizar" : "Guardar")}
           </Button>
         </Form>
       </Modal.Body>

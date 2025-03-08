@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import { LoginContext } from "../login/LoginContext";
 
 export const StudentsContext = createContext();
-
 const StudentsProvider = ({ children }) => {
   const [estudiantes, setEstudiantes] = useState([]);
   const { auth } = useContext(LoginContext); // Obtenemos el rol desde el contexto de login
@@ -13,11 +12,10 @@ const StudentsProvider = ({ children }) => {
   const obtenerEstudiantes = async () => {
     if (auth === "admin" || auth === "user") {
       try {
-        const response = await axios.get("https://sistemainterno.onrender.com/api/students", {
+        const response = await axios.get("http://localhost:4000/api/students", {
           withCredentials: true,
         });
-        console.log("Response data:", response.data);
-        setEstudiantes(response.data);
+        setEstudiantes(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error("Error obteniendo estudiantes:", error);
         Swal.fire("¡Error!", "No se pudieron obtener los estudiantes. Verifica la URL y el servidor.", "error");
@@ -29,10 +27,24 @@ const StudentsProvider = ({ children }) => {
   const addEstudiante = async (estudiante) => {
     if (auth === "admin") {
       try {
-        const response = await axios.post("https://sistemainterno.onrender.com/api/students/create", estudiante, {
+        const formData = new FormData();
+        for (const key in estudiante) {
+          if (key === 'profileImage' && estudiante[key] instanceof File) {
+            formData.append(key, estudiante[key]);
+          } else if (estudiante[key]) {
+            formData.append(key, estudiante[key]);
+          }
+        }
+        const response = await axios.post("http://localhost:4000/api/students/create", formData, {
           withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data', // Asegúrate de que el Content-Type sea correcto
+          },
         });
-        setEstudiantes((prevEstudiantes) => Array.isArray(prevEstudiantes) ? [...prevEstudiantes, response.data] : [response.data]);
+        setEstudiantes((prev) => {
+          const prevArray = Array.isArray(prev) ? prev : [];
+          return [...prevArray, response.data.student];
+        });
         Swal.fire("¡Éxito!", "El estudiante ha sido creado correctamente", "success");
         obtenerEstudiantes();
       } catch (error) {
@@ -56,17 +68,20 @@ const StudentsProvider = ({ children }) => {
           confirmButtonText: "Sí, eliminar",
           cancelButtonText: "Cancelar",
         });
-
         if (confirmacion.isConfirmed) {
-          await axios.delete(`https://sistemainterno.onrender.com/api/students/delete/${id}`, {
+          await axios.delete(`http://localhost:4000/api/students/delete/${id}`, {
             withCredentials: true,
           });
-          setEstudiantes((prevEstudiantes) => prevEstudiantes.filter((estudiante) => estudiante._id !== id));
+          setEstudiantes((prev) => prev.filter((estudiante) => estudiante._id !== id));
           Swal.fire("¡Eliminado!", "El estudiante ha sido eliminado correctamente", "success");
+        }
+        else {
+          return false;
         }
       } catch (error) {
         console.error("Error al eliminar estudiante:", error);
         Swal.fire("¡Error!", "Ha ocurrido un error al eliminar el estudiante", "error");
+        return false;
       }
     }
   };
@@ -75,9 +90,23 @@ const StudentsProvider = ({ children }) => {
   const updateEstudiante = async (estudiante) => {
     if (auth === "admin") {
       try {
-        await axios.put(`https://sistemainterno.onrender.com/api/students/update/${estudiante._id}`, estudiante, {
+        const formData = new FormData();
+        for (const key in estudiante) {
+          if (key === 'profileImage' && estudiante[key] instanceof File) {
+            formData.append(key, estudiante[key]);
+          } else if (estudiante[key]) {
+            formData.append(key, estudiante[key]);
+          }
+        }
+          const response = await axios.put(`http://localhost:4000/api/students/update/${estudiante._id}`, formData, {
           withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data', // Asegúrate de que el Content-Type sea correcto
+          },
         });
+        setEstudiantes((prev) =>
+          prev.map((est) => (est._id === estudiante._id ? response.data.student : est))
+        );
         obtenerEstudiantes();
         Swal.fire("¡Éxito!", "El estudiante ha sido actualizado correctamente", "success");
       } catch (error) {
@@ -86,9 +115,6 @@ const StudentsProvider = ({ children }) => {
       }
     }
   };
-
-
-
   // Ejecuta obtenerEstudiantes si cambia el rol o si hay un cambio en el auth
   useEffect(() => {
     if (auth === "admin" || auth === "user") {
@@ -96,10 +122,11 @@ const StudentsProvider = ({ children }) => {
     }
   }, [auth]); // Dependiendo de auth, recargamos los estudiantes si es necesario
 
-const countStudentsByState = (state) => {
-  return estudiantes.filter(estudiante => estudiante.state === state).length;
-};
-
+  const countStudentsByState = (state) => {
+    // Verificar si estudiantes es un array
+    const estudiantesArray = Array.isArray(estudiantes) ? estudiantes : [];
+    return estudiantesArray.filter(student => student.state === state).length;
+  };
 
   return (
     <StudentsContext.Provider

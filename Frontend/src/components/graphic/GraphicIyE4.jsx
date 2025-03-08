@@ -1,82 +1,131 @@
-import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import React, { useEffect, useRef } from 'react';
+import ApexCharts from 'apexcharts';
 import '../graphic/graphic.css';
 
-const COLORS = ['#FF8042', '#FFBB28'];
-
-const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-  if (percent === 0) return null; // No mostrar etiqueta si el porcentaje es 0
-
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-};
-
-const CustomTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="custom-tooltip">
-        <p className="label">{`${payload[0].name}`}</p>
-      </div>
-    );
-  }
-  return null;
-};
-
 const GraphicIyE4 = ({ efectivo = 0, transferencia = 0 }) => {
-  const total = efectivo + transferencia;
+  const chartRef = useRef(null);
 
-  // Si no hay datos, mostrar un mensaje con color gris
-  if (total === 0) {
-    return (
-      <div className="no-data">
-        <PieChart width={400} height={400}>
-          <Pie
-            data={[{ name: 'Sin datos', value: 1 }]}
-            cx="50%"
-            cy="50%"
-            outerRadius={80}
-            fill="#d3d3d3"
-            dataKey="value"
-          />
-        </PieChart>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const efectivoNum = Number(efectivo) || 0;
+    const transferenciaNum = Number(transferencia) || 0;
+    const total = efectivoNum + transferenciaNum;
 
-  const data = [
-    { name: 'Efectivo', value: efectivo },
-    { name: 'Transferencia', value: transferencia },
-  ];
+    if (!chartRef.current) {
+      return;
+    }
+
+    const options = {
+      series: total === 0 ? [1] : [efectivoNum, transferenciaNum], 
+      chart: {
+        width: total === 0 ? 380 : 475, 
+        height: total === 0 ? 380 : 475, 
+        type: 'donut',
+        events: {
+
+          mouseMove: total === 0 ? () => false : undefined,
+          click: total === 0 ? () => false : undefined
+        }
+      },
+      dataLabels: {
+        enabled: false 
+      },
+      responsive: [{
+        breakpoint: 576,
+        options: {
+          chart: {
+            width: total === 0 ? 200 : 200,
+            height: total === 0 ? 200 : 200
+          },
+          legend: {
+            show: false 
+          }
+        }
+      }],
+      legend: {
+        position: 'right',
+        offsetY: 0,
+        height: 230,
+        horizontalAlign: 'center',
+        verticalAlign: 'middle',
+        fontSize: '18px',
+        markers: {
+          width: 12,
+          height: 12,
+          radius: 2
+        },
+        itemMargin: {
+          horizontal: 10,
+          vertical: 5
+        },
+        show: true, 
+        formatter: function (seriesName, opts) {
+          if (total === 0) {
+            return 'No hay datos';
+          }
+          return `${seriesName}: $${opts.w.globals.series[opts.seriesIndex].toLocaleString('es-ES')}`;
+        }
+      },
+      colors: total === 0 ? ['#00E396'] : ['#FF8042', '#FFBB28'], 
+      annotations: {
+        position: 'front',
+        yaxis: total === 0 ? [{
+          y: 0,
+          borderColor: 'transparent',
+          label: {
+            text: 'No hay datos disponibles',
+            style: {
+              color: '#d3d3d3',
+              fontSize: '20px',
+              fontWeight: 'bold',
+            }
+          }
+        }] : []
+      },
+      tooltip: {
+        enabled: true,
+        custom: function ({ series, seriesIndex, dataPointIndex, w }) {
+          if (total === 0) {
+            return `<div class="custom-tooltip">
+              <p class="label">No hay datos disponibles</p>
+            </div>`;
+          }
+          return `<div class="custom-tooltip">
+            <p class="label">${w.config.labels[seriesIndex]}: $${series[seriesIndex].toLocaleString('es-ES')}</p>
+          </div>`;
+        }
+      },
+      labels: total === 0 ? ['Sin datos'] : ['Efectivo', 'Transferencia'],
+      plotOptions: {
+        pie: {
+          donut: {
+            size: '65%' 
+          }
+        }
+      },
+      states: {
+        // Deshabilitar efectos de hover y active cuando no hay datos
+        hover: {
+          filter: total === 0 ? { type: 'none' } : undefined
+        },
+        active: {
+          filter: total === 0 ? { type: 'none' } : undefined
+        }
+      }
+    };
+
+    const chart = new ApexCharts(chartRef.current, options);
+    chart.render();
+
+    return () => {
+      if (chart) chart.destroy();
+    };
+  }, [efectivo, transferencia]);
 
   return (
     <div className="graphic-container">
-      <ResponsiveContainer width={400} height={400}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={renderCustomizedLabel}
-            outerRadius={80}
-            fill="#8884d8"
-            dataKey="value"
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index]} />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-        </PieChart>
-      </ResponsiveContainer>
+      <div className="chart-wrapper" ref={chartRef}>
+        <div id="chart" />
+      </div>
     </div>
   );
 };

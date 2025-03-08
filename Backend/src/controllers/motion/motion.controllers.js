@@ -53,13 +53,10 @@ export const getMotionsByDate = async (req, res) => {
         $gte: startDate,
         $lt: endDate
       },
-     
     }).select('paymentMethod date amount incomeType'); // Seleccionar solo los campos necesarios
-
     if (motions.length === 0) {
       return res.status(200).json({ message: "No hay movimientos disponibles para esta fecha" });
     }
-
     res.status(200).json(motions);
   } catch (error) {
     res.status(500).json({ message: error.message });

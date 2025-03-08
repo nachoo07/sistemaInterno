@@ -1,20 +1,46 @@
 .student-detail-container {
   display: flex;
   justify-content: center;
+  height: 100vh;
+  background-color: #f5f6fa;
+}
+
+.content-detail {
+  flex-grow: 1;
+  padding: 20px;
+  margin-left: 50px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  overflow-y: auto !important;
+  height: 670px;
+}
+
+.dashboard-container-detail {
+  display: flex;
+  height: 670px !important;
+}
+
+.main-content {
+  margin-top: 0px;
+
 }
 
 .perfil-container {
-  width: 100%;
-  max-width: 900px;
+  width: 800px;
   background-color: #ffffff;
   border-radius: 20px;
   padding: 20px;
-  margin-top: 30px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 0px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 1000px;
 }
 
 .perfil-header {
   display: flex;
+  justify-content: space-around;
   align-items: center;
   margin-bottom: 20px;
 }
@@ -22,21 +48,22 @@
 .perfil-avatar {
   margin-right: 20px;
   display: flex;
-  justify-content: flex-start;
-  margin-right: 210px;
+  justify-content: center;
+  align-items: center;
 }
 
 .perfil-avatar img {
-  width: 150px; /* Ajusta el tamaño según tus necesidades */
-  height: 150px; /* Asegura que la imagen sea cuadrada */
-  object-fit: cover; /* Asegura que la imagen se recorte para llenar el contenedor */
-  border: 2px solid #ccc; /* Agrega un borde opcional */
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border: 3px solid #D83D8D;
+  border-radius: 50%;
 }
 
 .perfil-info {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centrar el contenido horizontalmente */
+  justify-content: center;
 }
 
 .perfil-info h2 {
@@ -48,37 +75,40 @@
 .btn-ver-cuotas {
   background-color: #D83D8D;
   color: white;
-  padding: 10px 10px;
+  padding: 10px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   margin-top: 10px;
-  font-size: 20px;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
 }
 
 .btn-ver-cuotas:hover {
-  background-color: #D83D8D;
+  background-color: #c32a7b;
 }
 
 .perfil-form {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  flex-direction: column !important;
+  gap: 10px;
+  height: 800px;
 }
 
 .perfil-row {
   display: flex;
   flex-direction: row;
-  width: 100% !important;
-  gap: 20px;
+  width: 100%;
+  gap: 10px;
 }
 
-.perfil-comentario{
-width: 100%;
+.perfil-comentario {
+  width: 100%;
 }
 
 .perfil-row div {
   flex: 1;
+  gap: 10px;
 }
 
 label {
@@ -95,6 +125,12 @@ textarea {
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: white;
+  transition: border-color 0.3s ease;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #D83D8D;
 }
 
 textarea {
@@ -106,7 +142,7 @@ textarea {
   flex-direction: row;
   gap: 20px;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .btn-editar,
@@ -116,8 +152,8 @@ textarea {
   border-radius: 5px;
   cursor: pointer;
   width: 200px;
-  font-size: 20px;
-  margin-bottom: 15px;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
 }
 
 .btn-editar {
@@ -126,7 +162,7 @@ textarea {
 }
 
 .btn-editar:hover {
-  background-color: #D83D8D;
+  background-color: #c32a7b;
 }
 
 .btn-eliminar {
@@ -135,5 +171,59 @@ textarea {
 }
 
 .btn-eliminar:hover {
-  background-color: #D83D8D;
+  background-color: #c32a7b;
+}
+
+@media (max-width: 576px) {
+
+  .content-detail {
+    margin-left: 0;
+    padding: 10px;
+  }
+
+  .perfil-container {
+    width: 100%;
+    padding: 10px;
+    height: auto;
+  }
+
+  .perfil-header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .perfil-avatar {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .perfil-info h2 {
+    font-size: 24px;
+  }
+
+  .btn-ver-cuotas {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
+
+  .perfil-row {
+    flex-direction: column;
+  }
+
+  .perfil-actions {
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .btn-editar,
+  .btn-eliminar {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .perfil-form {
+    height: auto;
+    flex-direction: column;
+  }
 }

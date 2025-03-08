@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { FaCalendarAlt } from "react-icons/fa";
-import "../calendar/calendarReport.css"; // Archivo CSS para estilos
+import "../calendar/calendarReport.css";
 
-const CalendarReport = ({onMonthChange}) => {
+const CalendarReport = ({ onMonthChange }) => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -63,7 +63,6 @@ const CalendarReport = ({onMonthChange}) => {
           <strong>{endDay} {monthNames[selectedMonth]} {selectedYear}</strong>
         </span>
       </button>
-
       {isOpen && (
         <div className="calendar-popup">
           <div className="calendar-header">
@@ -99,7 +98,6 @@ const CalendarReport = ({onMonthChange}) => {
         </div>
       )}
     </div>
-
   )
 }
 

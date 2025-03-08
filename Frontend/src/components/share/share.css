@@ -1,221 +1,372 @@
-.share-container {
+.dashboard-container-share {
+  display: flex;
+  height: 670px !important;
+}
+
+.content-share {
+  flex-grow: 1;
   padding: 20px;
+  overflow-y: auto !important;
+  height: 670px;
+  background: #f9f9f9;
 }
 
-.search-filter {
+.students-view {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 20px;
 }
 
-.search-filter input {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  flex: 1;
-  
-}
-
-input{
-  margin: 0px;
-}
-
-.search-results {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.search-result {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.search-result:hover {
-  background-color: #f0f0f0;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
-
-table th,
-table td {
-  border: 1px solid #ccc;
-  padding: 10px;
-  text-align: left;
-}
-
-.input-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.input-group input,
-.input-group select {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  flex: 1;
-}
-
-.input-group button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  background-color: #D83D8D;
-  color: white;
-  cursor: pointer;
-}
-
-.boton-guardar{
-  background-color: #D83D8D;
-  color: white;
-  border-radius: 5px;
-  border-color: #D83D8D;
-  margin-left: 15px;
-  text-align: center;
-}
-
-.boton-guardar:hover{
-  background-color: #D83D8D;
-  border-color: #D83D8D;
-}
-
-
-.panel-cuota-titulo {
-  text-align: center;
-  font-size: 50px;
+.title {
+  font-size: 36px;
   font-weight: bold;
+  text-align: center;
+  color: #333;
   margin-bottom: 20px;
 }
 
-.search-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-}
-
-.search-input-wrapper {
+.search-bar {
   position: relative;
-  width: 100%;
-
+  max-width: 500px;
+  margin: 0 auto;
 }
 
-.search-input-wrapper input {
-  width: 100%;
-  padding: 10px 40px 10px 10px;
-  /* Ajusta el padding para dejar espacio al icono */
+.search-bar input {
+  width: 500px;
+  padding: 12px 40px 12px 15px;
   border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 20px;
+  border-radius: 25px;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .search-icon {
   position: absolute;
-  right: 10px;
+  right: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: #ccc;
+  color: #D83D8D;
+  font-size: 18px;
 }
 
-.search-results {
-  margin-top: 10px;
-  width: 100%;
-
+.students-table {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.search-result {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-top: 5px;
-  cursor: pointer;
-  font-size: 20px;
-}
-
-.search-result:hover {
-  background-color: #f0f0f0;
-}
-
-.detalle-cuota {
-  margin: 20px 0px 20px 0px;
+.students-table th,
+.students-table td {
+  padding: 12px;
   text-align: center;
-  font-size: 50px;
+  border: none;
+  background: #fff;
+}
+
+.students-table th {
+  background: #D83D8D;
+  color: white;
   font-weight: bold;
 }
 
+.students-table tr:nth-child(even) {
+  background: #f2f2f2;
+}
 
-/* Estilo para el alert */
-.alert-custom {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 5px;
+.students-table tr:hover {
+  background: #e8e8e8;
+}
+
+.pagination {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 16px;
-  max-width: 600px;
+  justify-content: center;
+  gap: 5px;
   margin-top: 20px;
 }
 
-.alert-custom .alert-close-btn {
-  background: transparent;
+.pagination-btn {
+  background: #D83D8D;
+  color: white;
   border: none;
-  color: #721c24;
+  padding: 8px 12px;
+  border-radius: 5px;
+}
+
+.pagination-btn:hover,
+.pagination-btn.active {
+  background: #b03275;
+}
+
+.pagination-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.cuotas-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.back-btn {
+  background: #D83D8D;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+}
+
+.back-btn:hover {
+  background: #b03275;
+}
+
+.year-filter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.label-ano {
+  font-size: 20px !important;
+  margin: 0px !important;
+  color: #333;
+  margin-right: 15px !important;
+}
+
+.year-filter label {
   font-size: 18px;
-  cursor: pointer;
+  color: #333;
+}
+
+.year-filter select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 16px;
+}
+
+.cuotas-table {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cuotas-table th,
+.cuotas-table td {
+  padding: 12px;
+  text-align: center;
+  border: none;
+  background: #fff;
+}
+
+.cuotas-table th {
+  background: #D83D8D;
+  color: white;
   font-weight: bold;
 }
 
-.alert-custom .alert-close-btn:hover {
-  color: #f5c6cb;
+.cuotas-table tr.state-pendiente {
+  background: #fff3cd;
 }
 
-.year-filter{
+.cuotas-table tr.state-pagado {
+  background: #d4edda;
+}
+
+.cuotas-table tr.state-vencido {
+  background: #f8d7da;
+}
+
+.cuotas-table tr:hover {
+  background: #e8e8e8;
+}
+
+.cuota-form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.form-row select,
+.form-row input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.form-row select:disabled {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.form-actions {
   display: flex;
   gap: 10px;
-  font-size: 22px;
-  text-align: center;
-  
+  justify-content: flex-end;
 }
 
-.filtro{
-  font-size: 25px;
-  padding-top: 5px;
-  margin-bottom: 0px;
-}
-
-.select{
-  background-color: #D83D8D;
+.action-btn,
+.save-btn,
+.cancel-btn {
+  background: #D83D8D;
   color: white;
-  padding: 10px;
-  height: 45px;
+  border: none;
+  padding: 8px 15px;
+  margin-right: 10px;
   border-radius: 5px;
-  border-color: #D83D8D;
 }
 
-.boton-pagar{
-  background-color: #D83D8D;
-  color: white;
+.action-btn.delete {
+  background: #D83D8D;
+}
+
+.action-btn:hover,
+.save-btn:hover,
+.cancel-btn:hover {
+  background: #b03275;
+}
+
+.action-btn.delete:hover {
+  background: #b03275;
+}
+
+.custom-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1050;
+  max-width: 400px;
+}
+
+.loading {
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+}
+
+.cuota-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.cuota-filter label {
+  font-size: 18px;
+  color: #333;
+}
+
+.cuota-filter select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 16px;
+  flex: 1;
+}
+
+.share-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.action-btn {
+  gap: 5px;
+}
+
+.btn-icon {
+  display: none;
+}
+
+.botones-acciones {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cancel-btn {
   height: 40px;
-  border-radius: 5px;
-  border-color: #D83D8D;
-  margin-left: 15px;
-  text-align: center;
+  margin: 10px 10px 0px 0px;
 }
 
-.boton-pagar:hover{
-  background-color: #D83D8D;
-  border-color: #D83D8D;
+@media (max-width: 576px) {
+  .sidebar {
+    display: none;
+  }
+
+  .content-share {
+    margin-left: 0;
+  }
+
+  .search-bar .search-input {
+    width: 100%;
+  }
+
+  .share-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .metodo-pago {
+    display: none;
+  }
+
+  .edit {
+    margin: 0px;
+    width: 30px;
+    padding: 4px 8px;
+  }
+
+  .delete {
+    margin: 0px;
+    width: 30px;
+    padding: 4px 8px;
+  }
+
+  .btn-text {
+    display: none;
+  }
+
+  .btn-icon {
+    display: inline;
+  }
+
+  .botones-acciones {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .cancel-btn {
+    height: 40px;
+    margin: 10px 10px 0px 0px;
+  }
+
+  .cuotas-table {
+    margin: 0px;
+
+  }
 }

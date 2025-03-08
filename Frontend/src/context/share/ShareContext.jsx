@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import { LoginContext } from "../login/LoginContext";
 
 export const SharesContext = createContext();
-
 const SharesProvider = ({ children }) => {
   const [cuotas, setCuotas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -15,10 +14,9 @@ const SharesProvider = ({ children }) => {
     if (auth === "admin") {
       setLoading(true);
       try {
-        const response = await axios.get("https://sistemainterno.onrender.com/api/shares", {
+        const response = await axios.get("http://localhost:4000/api/shares", {
           withCredentials: true,
         });
-        console.log("Response data:", response.data);
         setCuotas(response.data);
       } catch (error) {
         console.error("Error obteniendo cuotas:", error);
@@ -28,15 +26,13 @@ const SharesProvider = ({ children }) => {
       }
     }
   };
-
   // Obtener cuotas por estudiante
   const obtenerCuotasPorEstudiante = async (studentId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`https://sistemainterno.onrender.com/api/shares/student/${studentId}`, {
+      const response = await axios.get(`http://localhost:4000/api/shares/student/${studentId}`, {
         withCredentials: true,
       });
-      console.log("Cuotas del estudiante:", response.data);
       setCuotas(response.data);
     } catch (error) {
       console.error("Error obteniendo cuotas por estudiante:", error);
@@ -45,12 +41,11 @@ const SharesProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
   // Agregar una cuota
   const addCuota = async (cuota) => {
     if (auth === "admin") {
       try {
-        const response = await axios.post("https://sistemainterno.onrender.com/api/shares/create", cuota, {
+        const response = await axios.post("http://localhost:4000/api/shares/create", cuota, {
           withCredentials: true,
         });
         setCuotas((prevCuotas) => Array.isArray(prevCuotas) ? [...prevCuotas, response.data] : [response.data]);
@@ -62,7 +57,6 @@ const SharesProvider = ({ children }) => {
       }
     }
   };
-
   // Eliminar una cuota
   const deleteCuota = async (id) => {
     if (auth === "admin") {
@@ -77,9 +71,8 @@ const SharesProvider = ({ children }) => {
           confirmButtonText: "Sí, eliminar",
           cancelButtonText: "Cancelar",
         });
-
         if (confirmacion.isConfirmed) {
-          await axios.delete(`https://sistemainterno.onrender.com/api/shares/delete/${id}`, {
+          await axios.delete(`http://localhost:4000/api/shares/delete/${id}`, {
             withCredentials: true,
           });
           setCuotas((prevCuotas) => prevCuotas.filter((cuota) => cuota._id !== id));
@@ -91,12 +84,11 @@ const SharesProvider = ({ children }) => {
       }
     }
   };
-
   // Actualizar una cuota
   const updateCuota = async (cuota) => {
     if (auth === "admin") {
       try {
-        await axios.put(`https://sistemainterno.onrender.com/api/shares/update/${cuota._id}`, cuota, {
+        await axios.put(`http://localhost:4000/api/shares/update/${cuota._id}`, cuota, {
           withCredentials: true,
         });
         obtenerCuotas();
@@ -110,7 +102,7 @@ const SharesProvider = ({ children }) => {
 
   const obtenerCuotasPorFecha = async (fecha) => {
     try {
-      const response = await axios.get(`https://sistemainterno.onrender.com/api/shares/date/${fecha}`, {
+      const response = await axios.get(`http://localhost:4000/api/shares/date/${fecha}`, {
         withCredentials: true,
       });
       return response.data;
@@ -123,7 +115,7 @@ const SharesProvider = ({ children }) => {
 
   const obtenerCuotasPorFechaRange = async (startDate, endDate) => {
     try {
-      const response = await axios.get(`https://sistemainterno.onrender.com/api/shares/date-range?startDate=${startDate}&endDate=${endDate}`, {
+      const response = await axios.get(`http://localhost:4000/api/shares/date-range?startDate=${startDate}&endDate=${endDate}`, {
         withCredentials: true,
       });
       return response.data;
@@ -134,7 +126,6 @@ const SharesProvider = ({ children }) => {
     }
   };
 
-  // Ejecuta obtenerCuotas si cambia el rol o si hay un cambio en el auth
   useEffect(() => {
     if (auth === "admin") {
       obtenerCuotas(); // Solo ejecuta la función de obtener cuotas si es admin

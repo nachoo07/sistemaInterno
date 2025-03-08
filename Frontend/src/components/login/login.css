@@ -1,41 +1,42 @@
-.login-container {
+.login-page-container {
     display: flex;
-    flex-direction: column; /* Asegúrate de que el contenedor principal esté en modo columna */
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
     background-color: #D83D8D;
 }
 
-.form-wrapper {
+.login-page-form-wrapper {
     display: flex;
-    flex-direction: column ; /* Asegúrate de que el contenedor del formulario esté en modo columna */
+    flex-direction: column;
     background-color: white;
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    
 }
-.form-label{
-    font-size: 25px ;
+
+.login-page-form-label {
+    font-size: 25px;
     margin-bottom: 10px;
 }
-.formulario {
+
+.login-page-form-input {
     width: 350px;
 }
 
-form {
+.login-page-form {
     display: flex;
-    flex-direction: column !important; /* Asegúrate de que el formulario esté en modo columna */
+    flex-direction: column !important;
     align-items: flex-start !important;
 }
 
-.button-container {
+.login-page-button-container {
     margin-top: 20px;
     margin-left: 75px;
 }
 
-.custom-button {
+.login-page-submit-button {
     background-color: #D83D8D;
     border-color: #D83D8D;
     color: white;
@@ -44,15 +45,14 @@ form {
     transition: background-color 0.3s ease;
 }
 
-.custom-button:hover {
+.login-page-submit-button:hover {
     background-color: #D83D8D;
     border-color: #D83D8D;
 }
 
-.login-image {
-    width: 170px; /* Ajusta el tamaño de la imagen según sea necesario */
+.login-page-logo {
+    width: 170px;
     height: 120px;
-    
     margin-left: 75px;
-    margin-bottom: 20px; /* Espacio entre la imagen y el formulario */
+    margin-bottom: 20px;
 }

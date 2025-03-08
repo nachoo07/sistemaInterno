@@ -1,16 +1,28 @@
 .main-container {
-    display: flex;
-    height: 100vh;
-  }
-  
-  .vertical-menu {
-    width: 250px; /* Ajusta el ancho según sea necesario */
-    background-color: #f4f4f4; /* Color de fondo del menú */
-    padding: 20px;
-  }
-  
-  .content-container {
-    flex-grow: 1;
-    padding: 20px; /* Ajusta el padding según sea necesario */
-    
-  }
+  display: flex;
+  height: 100vh;
+}
+
+.content-container {
+  flex-grow: 1;
+  padding: 20px;
+}
+
+.main-content{
+  margin-top: 0px;
+}
+
+.dashboard-container-motion {
+  display: flex;
+  height: 670px !important;
+}
+
+.content-motion {
+  flex-grow: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  overflow-y: auto !important;
+  height: 670px;
+}

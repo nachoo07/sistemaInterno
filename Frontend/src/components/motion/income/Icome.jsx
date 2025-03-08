@@ -3,180 +3,225 @@ import '../income/income.css';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import 'dayjs/locale/es';
-import { FaEdit, FaTrash } from 'react-icons/fa';
 import { MotionContext } from '../../../context/motion/MotionContext';
-
+import { Table, Button } from 'react-bootstrap';
+import { FaTrash, FaEdit } from 'react-icons/fa';
 dayjs.locale('es');
 dayjs.extend(utc);
 
-const Icome = () => {
+const Income = () => {
   const { motions, createMotion, updateMotion, deleteMotion } = useContext(MotionContext);
-  const [concept, setConcept] = useState('');
-  const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [selectedDate, setSelectedDate] = useState(''); // Ahora empieza vacío
-  const [startDate, setStartDate] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
-  const [endDate, setEndDate] = useState(dayjs().format('YYYY-MM-DD'));
-  const [incomeType, setIncomeType] = useState('');
+
+  const [formData, setFormData] = useState({
+    concept: '',
+    amount: '',
+    paymentMethod: '',
+    selectedDate: '',
+    incomeType: ''
+  });
+
+  const [filters, setFilters] = useState({
+    startDate: dayjs().startOf('month').format('YYYY-MM-DD'),
+    endDate: dayjs().format('YYYY-MM-DD'),
+    incomeType: ''
+  });
+
   const [editIndex, setEditIndex] = useState(null);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newData = { 
-      concept, 
-      date: selectedDate, // Se guarda sin modificaciones
-      amount, 
-      paymentMethod, 
-      incomeType 
-    };
+    const motionData = { ...formData };
+
     if (editIndex !== null) {
-      updateMotion(motions[editIndex]._id, newData);
+      updateMotion(motions[editIndex]._id, motionData);
       setEditIndex(null);
     } else {
-      createMotion(newData);
+      createMotion(motionData);
     }
-    setConcept('');
-    setSelectedDate('');
-    setAmount('');
-    setPaymentMethod('');
-    setIncomeType('');
+
+    setFormData({
+      concept: '',
+      amount: '',
+      paymentMethod: '',
+      selectedDate: '',
+      incomeType: ''
+    });
   };
 
   const handleEdit = (index) => {
     const item = motions[index];
-    setConcept(item.concept);
-    setSelectedDate(dayjs.utc(item.date).format('YYYY-MM-DD'));
-    setAmount(item.amount);
-    setPaymentMethod(item.paymentMethod);
-    setIncomeType(item.incomeType);
+    setFormData({
+      concept: item.concept,
+      selectedDate: dayjs.utc(item.date).format('YYYY-MM-DD'),
+      amount: item.amount,
+      paymentMethod: item.paymentMethod,
+      incomeType: item.incomeType
+    });
     setEditIndex(index);
   };
 
-  const handleDelete = (index) => {
-    deleteMotion(motions[index]._id);
+  const handleDelete = (index) => deleteMotion(motions[index]._id);
+
+  const handleCancel = () => {
+    setFormData({
+      concept: '',
+      amount: '',
+      paymentMethod: '',
+      selectedDate: '',
+      incomeType: ''
+    });
+    setEditIndex(null);
   };
 
   const filteredData = motions.filter(item => {
-    if (!item || !item.date) return false;
+    if (!item?.date) return false;
     const itemDate = dayjs(item.date);
-    return itemDate.isAfter(dayjs(startDate)) && itemDate.isBefore(dayjs(endDate));
+    return (
+      itemDate.isAfter(dayjs(filters.startDate)) &&
+      itemDate.isBefore(dayjs(filters.endDate)) &&
+      (!filters.incomeType || item.incomeType === filters.incomeType)
+    );
   });
 
   return (
-    <>
-      <div className='main-container'>
-        <div className='content-container'>
-          <h1 className='titulo-registrar-dinero'>Registrar Dinero</h1>
+    <div className="income-dashboard">
+      <div className="income-content">
+        <h1 className="income-title">Movimientos</h1>
+
+        <div className="motion-form">
           <form onSubmit={handleSubmit}>
-            <div>
-              <label>Concepto:</label>
-              <input 
-                type="text" 
-                value={concept} 
-                onChange={(e) => setConcept(e.target.value)} 
-                required 
+            <div className="motion-form-row">
+              <input
+                type="text"
+                name="concept"
+                placeholder="Concepto"
+                value={formData.concept}
+                onChange={handleInputChange}
+                required
               />
-            </div>
-            <div>
-              <label>Fecha:</label>
               <input
                 type="date"
-                value={selectedDate}
+                name="selectedDate"
                 max={dayjs().format('YYYY-MM-DD')}
-                onChange={(e) => setSelectedDate(dayjs(e.target.value).format('YYYY-MM-DD'))}
+                value={formData.selectedDate}
+                onChange={handleInputChange}
                 required
               />
-            </div>
-            <div>
-              <label>Monto:</label>
-              <input 
-                type="number" 
-                value={amount} 
-                onChange={(e) => setAmount(e.target.value)} 
-                required 
+              <input
+                type="number"
+                name="amount"
+                placeholder="Monto"
+                value={formData.amount}
+                onChange={handleInputChange}
+                required
               />
-            </div>
-            <div>
-              <label>Método de Pago:</label>
-              <select 
-                value={paymentMethod} 
-                onChange={(e) => setPaymentMethod(e.target.value)} 
+              <select
+                name="paymentMethod"
+                value={formData.paymentMethod}
+                onChange={handleInputChange}
                 required
               >
-                <option value="">Seleccionar</option>
+                <option value="">Método de Pago</option>
                 <option value="efectivo">Efectivo</option>
                 <option value="transferencia">Transferencia</option>
               </select>
-            </div>
-            <div>
-              <label>Tipo de Ingreso:</label>
-              <select 
-                value={incomeType} 
-                onChange={(e) => setIncomeType(e.target.value)} 
+              <select
+                name="incomeType"
+                value={formData.incomeType}
+                onChange={handleInputChange}
                 required
               >
-                <option value="">Seleccionar</option>
+                <option value="">Tipo</option>
                 <option value="ingreso">Ingreso</option>
                 <option value="egreso">Egreso</option>
               </select>
             </div>
-            <button className='boton-guardar' type="submit">
-              {editIndex !== null ? 'Actualizar' : 'Guardar'}
-            </button> </form>
+            <div className="motion-form-actions">
+              <Button type="submit" className="motion-save-btn">
+                {editIndex !== null ? 'Actualizar' : 'Guardar'}
+              </Button>
+              {editIndex !== null && (
+                <Button className="motion-cancel-btn" onClick={handleCancel}>
+                  Cancelar
+                </Button>
+              )}
+            </div>
+          </form>
+        </div>
 
-          <div className='date-range-picker'>
-            <div>
+        <div className="motion-date-filter">
+          <div className="motion-filter-item">
             <label>Desde:</label>
             <input
               type="date"
-              value={startDate}
+              value={filters.startDate}
               max={dayjs().format('YYYY-MM-DD')}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
             />
-            </div>
-          <div>
-          <label>Hasta:</label>
+          </div>
+          <div className="motion-filter-item">
+            <label>Hasta:</label>
             <input
               type="date"
-              value={endDate}
+              value={filters.endDate}
               max={dayjs().format('YYYY-MM-DD')}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
             />
           </div>
-     
+          <div className="motion-filter-item">
+            <label>Tipo:</label>
+            <select
+              value={filters.incomeType}
+              onChange={(e) => setFilters(prev => ({ ...prev, incomeType: e.target.value }))}
+            >
+              <option value="">Todos</option>
+              <option value="ingreso">Ingreso</option>
+              <option value="egreso">Egreso</option>
+            </select>
           </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Concepto</th>
-                <th>Fecha</th>
-                <th>Monto</th>
-                <th>Método de Pago</th>
-                <th>Tipo de Ingreso</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.concept}</td>
-                  <td>{dayjs.utc(item.date).format('DD-MM-YYYY')}</td>
-                  <td>{`$ ${item.amount.toLocaleString('es')}`}</td>
-                  <td>{item.paymentMethod}</td>
-                  <td>{item.incomeType}</td>
-                  <td>
-                    <button className='boton-registro' onClick={() => handleEdit(index)}>Editar</button>
-                    <button className='boton-registro' onClick={() => handleDelete(index)}>Eliminar</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
+
+        <Table className="motion-table">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th>Fecha</th>
+              <th>Monto</th>
+              <th className='metodo-pago-motion'>Método</th>
+              <th>Tipo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((item, index) => (
+              <tr key={item._id || index} className='motion-row'>
+                <td>{item.concept}</td>
+                <td>{dayjs.utc(item.date).format('DD-MM-YYYY')}</td>
+                <td>{`$ ${item.amount.toLocaleString('es')}`}</td>
+                <td className='metodo-pago-motion'>{item.paymentMethod}</td>
+                <td>{item.incomeType}</td>
+                <td className="motion-actions">
+                  <Button className="motion-edit-btn" onClick={() => handleEdit(index)}>
+                    <span className="text-btn">Editar</span>
+                    <span className="icon-btn"><FaEdit /></span>
+                  </Button>
+                  <Button className="motion-delete-btn" onClick={() => handleDelete(index)}>
+                    <span className="text-btn">Eliminar</span>
+                    <span className="icon-btn"><FaTrash /></span>
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       </div>
-    </>
+    </div>
   );
 };
 
-export default Icome;
+export default Income;

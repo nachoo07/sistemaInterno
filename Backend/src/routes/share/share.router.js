@@ -7,7 +7,9 @@ import {
     getShareById,
     getSharesByStudent,
     getSharesByDate,
-    getSharesByDateRange
+    getSharesByDateRange,
+    getStudentsWithShareStatus,
+    updatePendingShares
 } from '../../controllers/share/share.controller.js';
 import { protect, admin } from '../../middlewares/login/protect.js'; // Importar los middlewares
 
@@ -20,7 +22,8 @@ router.put('/update/:id', protect, admin, updateShare); // Solo los admins puede
 router.delete('/delete/:id', protect, admin, deleteShare); // Solo los admins pueden eliminar cuotas
 router.get('/date/:date', protect, admin, getSharesByDate); // Obtener cuotas por fecha
 router.get('/date-range', protect, admin, getSharesByDateRange); // Obtener cuotas por rango de fechas
-
+router.get('/students-status', getStudentsWithShareStatus); // Obtener estudiantes con estado de cuota
+router.put('/update-pending', protect, admin, updatePendingShares); // Actualizar cuotas pendientes
 // Rutas públicas (sin autenticación)
 router.get('/:id', protect, admin, getShareById); // Obtener una cuota por ID
 router.get('/student/:studentId', protect, admin, getSharesByStudent); // Obtener cuotas por estudiante

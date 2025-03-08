@@ -1,78 +1,84 @@
-import React, { createContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 export const LoginContext = createContext();
-
 export const LoginProvider = ({ children }) => {
-    const [auth, setAuth] = useState(null); // Guarda el rol del usuario
-    const [userData, setUserData] = useState(null); // Guarda el nombre del usuario
-
+    const [auth, setAuth] = useState(localStorage.getItem('authRole') || null);
+    const [userData, setUserData] = useState(localStorage.getItem('authName') ? { name: localStorage.getItem('authName') } : null);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        // Al cargar el componente, revisamos si hay información almacenada en el localStorage
-        const role = localStorage.getItem('authRole');
-        const name = localStorage.getItem('authName');
-        console.log('LocalStorage obtenido en el frontend:', { role, name });
-
-        // Solo actualizar el estado si los valores no están vacíos
-        if (role && role !== 'undefined') {
+    // Login
+    const login = async (mail, password) => {
+        try {
+            const response = await axios.post('http://localhost:4000/api/auth/login', { mail, password }, { withCredentials: true });
+            const { role, name } = response.data.user;
             setAuth(role);
-        }
-        if (name && name !== 'undefined') {
             setUserData({ name });
+            localStorage.setItem('authRole', role);
+            localStorage.setItem('authName', name);
+            return role; // Devolver el rol para usarlo en Login.js
+        } catch (error) {
+            console.error('Error en login:', error.response?.data || error.message);
+            throw error.response?.data?.message || 'Error al iniciar sesión';
         }
-    }, []); // Dependencias vacías para que se ejecute solo una vez al montar el componente
-
-    const login = (role, name) => {
-        if (!role || !name) {
-            console.error('Role o Name no definidos:', { role, name });
-            return;
-        }
-
-        setAuth(role);
-        setUserData({ name }); // Guarda el nombre del usuario en el estado
-
-        // Almacena los datos en localStorage
-        localStorage.setItem('authRole', role);
-        localStorage.setItem('authName', name);
-        console.log('LocalStorage configurado en el frontend:', { role, name });
     };
-
+    // Logout
     const logout = async () => {
         try {
-            // Realizar la solicitud al backend para eliminar las cookies
-            const response = await fetch('https://sistemainterno.onrender.com/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include', // Asegura que las cookies se envíen en la solicitud
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-  // Imprimir las cookies antes de eliminarlas
-  console.log('Cookies antes de logout:', document.cookie);
-            if (response.status === 200) {
-                setAuth(null);
-                setUserData(null); // Limpia el nombre del usuario al hacer logout
-
-                // Elimina los datos de localStorage
-                localStorage.removeItem('authRole');
-                localStorage.removeItem('authName');
-                console.log('LocalStorage eliminado en el frontend');
-                
-                // Redirigir a la página de login o inicio
-                window.location.href = '/login'; // O la página que desees
-            } else {
-                console.error('Error al hacer logout:', response);
-            }
+            await axios.post('http://localhost:4000/api/auth/logout', {}, { withCredentials: true });
+            setAuth(null);
+            setUserData(null);
+            localStorage.removeItem('authRole');
+            localStorage.removeItem('authName');
+            navigate('/login');
         } catch (error) {
-            console.error('Error al hacer logout:', error);
+            console.error('Error en logout:', error);
         }
     };
+    // Renovar token
+    const refreshAccessToken = async () => {
+        try {
+            await axios.post('http://localhost:4000/api/auth/refresh', {}, { withCredentials: true });
+        } catch (error) {
+            console.error('Error al renovar token:', error.response?.data || error.message);
+            logout(); // Si falla la renovación, cerrar sesión
+            throw error;
+        }
+    };
+    // Interceptor para manejar errores 401
+    useEffect(() => {
+        const interceptor = axios.interceptors.response.use(
+            (response) => response,
+            async (error) => {
+                const originalRequest = error.config;
+                if (error.response?.status === 401 && !originalRequest._retry) {
+                    originalRequest._retry = true;
+                    try {
+                        await refreshAccessToken();
+                        return axios(originalRequest); // Reintentar la solicitud original
+                    } catch (refreshError) {
+                        return Promise.reject(refreshError);
+                    }
+                }
+                return Promise.reject(error);
+            }
+        );
+        return () => axios.interceptors.response.eject(interceptor);
+    }, []);
+
+    // Renovación proactiva del token cada 90 minutos
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (auth) {
+                refreshAccessToken();
+            }
+        }, 90 * 60 * 1000); // 90 minutos (antes de las 2 horas)
+        return () => clearInterval(interval);
+    }, [auth]);
 
     return (
-        <LoginContext.Provider value={{ auth, login, logout , userData }}>
+        <LoginContext.Provider value={{ auth, userData, login, logout }}>
             {children}
         </LoginContext.Provider>
     );

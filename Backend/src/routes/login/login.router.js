@@ -7,7 +7,6 @@ const router = express.Router();
 router.post('/login', loginUser);
 //Ruta para cerear sesión
 router.post('/logout', logout);
-
 // Ruta para refrescar el token de acceso
 router.post('/refresh', refreshAccessToken);
 

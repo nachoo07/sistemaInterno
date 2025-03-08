@@ -6,7 +6,7 @@ const ProtectedRoute = ({ element, role, ...rest }) => {
   const { auth } = useContext(LoginContext); // Obtenemos el estado del rol del usuario desde el contexto
 
   const location = useLocation(); // Obtenemos la ubicación actual
- 
+
   // Si el usuario no está autenticado, siempre redirigir a /login
   if (!auth) {
     if (location.pathname !== '/login') {

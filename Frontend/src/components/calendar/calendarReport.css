@@ -1,7 +1,5 @@
 .calendar-container {
   position: relative;
-  margin-bottom: 20px;
-  margin-top: 10px;
 }
 
 .calendar-toggle {
@@ -27,7 +25,6 @@
   padding: 15px;
   width: 250px;
   z-index: 10;
-  /* Asegura que el calendario esté por encima del gráfico */
 }
 
 .calendar-header {

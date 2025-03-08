@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import { LoginContext } from "../login/LoginContext"; // Asegúrate de ajustar la ruta
 
 export const UsersContext = createContext();
-
 const UsersProvider = ({ children }) => {
     const { auth } = useContext(LoginContext);  // Obtén el estado de autenticación
     const [usuarios, setUsuarios] = useState([]);
@@ -12,9 +11,8 @@ const UsersProvider = ({ children }) => {
     const obtenerUsuarios = async () => {
         if (auth === 'admin') {
             try {
-                const response = await axios.get("https://sistemainterno.onrender.com/api/users", {
+                const response = await axios.get("http://localhost:4000/api/users", {
                     withCredentials: true,
-                    
                 });
                 // Solo actualizar el estado si la respuesta es diferente
                 if (JSON.stringify(usuarios) !== JSON.stringify(response.data)) {
@@ -30,7 +28,7 @@ const UsersProvider = ({ children }) => {
     const addUsuarioAdmin = async (usuario) => {
         if (auth === 'admin') { // Verifica si el usuario es admin
             try {
-                const response = await axios.post("https://sistemainterno.onrender.com/api/users", usuario, {
+                const response = await axios.post("http://localhost:4000/api/users", usuario, {
                     withCredentials: true,
                 });
                 setUsuarios((prevUsuarios) => [...prevUsuarios, response.data]);
@@ -45,7 +43,7 @@ const UsersProvider = ({ children }) => {
     const updateUsuarioAdmin = async (id, usuarioActualizado) => {
         if (auth === 'admin') { // Verifica si el usuario es admin
             try {
-                const response = await axios.put(`https://sistemainterno.onrender.com/api/users/${id}`, usuarioActualizado, {
+                const response = await axios.put(`http://localhost:4000/api/users/${id}`, usuarioActualizado, {
                     withCredentials: true,
                 });
                 setUsuarios((prevUsuarios) =>
@@ -76,7 +74,7 @@ const UsersProvider = ({ children }) => {
                 });
 
                 if (confirmacion.isConfirmed) {
-                    await axios.delete(`https://sistemainterno.onrender.com/api/users/${id}`, {
+                    await axios.delete(`http://localhost:4000/api/users/${id}`, {
                         withCredentials: true,
                     });
                     setUsuarios((prevUsuarios) => prevUsuarios.filter((usuario) => usuario._id !== id));

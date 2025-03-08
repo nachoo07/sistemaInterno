@@ -1,125 +1,207 @@
-.main-container {
+.income-dashboard {
   display: flex;
-  height: 100vh;
+  height: 670px !important;
 }
 
-.content-container {
+.income-content {
   flex-grow: 1;
-  padding: 20px; /* Ajusta el padding según sea necesario */
+  overflow-y: auto !important;
+  height: 670px;
+  background: #f9f9f9;
 }
 
-form {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-form div {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 200px; /* Ajusta el ancho mínimo según sea necesario */
-}
-
-form label {
-  margin-bottom: 5px;
-}
-
-form input, form select, .custom-datepicker {
-  padding: 8px;
-  font-size: 16px;
-  width: 100%;
-  
-}
-
-form button {
-  padding: 10px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  flex: 1;
-  min-width: 100px; /* Ajusta el ancho mínimo según sea necesario */
-}
-
-form button:hover {
-  background-color: #0056b3;
-}
-
-.custom-datepicker {
-  padding: 0px !important;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  text-align: center;
-  width: 100% !important;
-}
-
-.date-range-picker {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
- 
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-table, th, td {
-  border: 1px solid #ddd;
-}
-
-th, td {
-  padding: 8px;
-  text-align: left;
-  text-transform: capitalize; /* Añadir esta línea */
-}
-
-th {
-  background-color: #f4f4f4;
-}
-
-td {
-  background-color: #fff;
-}
-
-td svg {
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.titulo-registrar-dinero{
-  text-align: center;
-  font-size: 50px;
+.income-title {
+  font-size: 36px;
   font-weight: bold;
+  text-align: center;
+  color: #333;
   margin-bottom: 20px;
 }
 
-label {
-  font-size: 20px;
+.motion-form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
 }
 
-.boton-guardar{
-  background-color: #D83D8D;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 20px;
-  margin: 0px;
+.motion-form-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
 }
 
-.boton-registro{
-  background-color: #D83D8D;
+.motion-form-row input,
+.motion-form-row select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.motion-form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.motion-save-btn,
+.motion-cancel-btn {
+  background: #D83D8D;
   color: white;
   border: none;
-  cursor: pointer;
-  font-size: 20px;
-  margin: 0px;
-  margin-left: 10px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.motion-save-btn:hover,
+.motion-cancel-btn:hover {
+  background: #b03275;
+}
+
+.motion-date-filter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.motion-filter-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.motion-filter-item label {
+  font-size: 18px;
+  color: #333;
+  margin-right: 10px;
+}
+
+.motion-filter-item input,
+.motion-filter-item select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 16px;
+}
+
+.motion-table {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.motion-table th,
+.motion-table td {
+  padding: 12px;
+  text-align: center;
+  border: none;
+  background: #fff;
+}
+
+.motion-table th {
+  background: #D83D8D;
+  color: white;
+  font-weight: bold;
+}
+
+.motion-table tr:nth-child(even) {
+  background: #f2f2f2;
+}
+
+.motion-table tr:hover {
+  background: #e8e8e8;
+}
+
+.motion-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.motion-edit-btn,
+.motion-delete-btn {
+  background: #D83D8D;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+}
+
+.motion-edit-btn:hover,
+.motion-delete-btn:hover {
+  background: #b03275;
+}
+
+.icon-btn {
+  display: none;
+}
+
+@media (max-width: 576px) {
+  .income-content {
+    padding: 10px;
+  }
+
+  .content-motion {
+    padding: 0px;
+  }
+
+  .income-title {
+    font-size: 34px;
+  }
+
+  .text-btn {
+    display: none;
+  }
+
+  .motion-form-row {
+    flex-direction: column;
+  }
+
+  .motion-form-row input,
+  .motion-form-row select {
+    min-width: 100%;
+  }
+
+  .motion-date-filter {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .motion-filter-item {
+    width: 100%;
+  }
+
+  .motion-actions {
+    flex-direction: row;
+    gap: 5px;
+  }
+
+
+  .motion-edit-btn {
+    padding: 5px 8px;
+
+  }
+
+  .motion-delete-btn {
+    padding: 5px 8px;
+  }
+
+  .metodo-pago-motion {
+    display: none;
+  }
+
+  .motion-row {
+    font-size: 15px;
+
+  }
 }

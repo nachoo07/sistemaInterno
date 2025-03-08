@@ -1,10 +1,10 @@
 import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaSearch } from 'react-icons/fa'; // Importa el icono de lupa
-import { SharesContext } from "../../context/share/ShareContext"; // Contexto de cuotas
-import { StudentsContext } from "../../context/student/StudentContext"; // Contexto de estudiantes
-import VerticalMenu from "../verticalMenu/VerticalMenu";
-import { Button, Table } from 'react-bootstrap';
+import {FaSearch, FaBars, FaUsers, FaBell, FaMoneyBill, FaChartBar, FaExchangeAlt,FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaEdit, FaTrash, FaMoneyBillWave } from 'react-icons/fa';
+import { SharesContext } from "../../context/share/ShareContext";
+import { StudentsContext } from "../../context/student/StudentContext";
+import { Button, Table, Alert } from 'react-bootstrap';
+import axios from "axios";
 import "./share.css";
 
 const Share = () => {
@@ -23,17 +23,19 @@ const Share = () => {
   const [selectedCuota, setSelectedCuota] = useState(null);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isEditing, setIsEditing] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");  // Mensaje de error
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState(""); 
   const [currentPage, setCurrentPage] = useState(1);
-  const studentsPerPage = 15;
-
-  const months = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
+  const [studentsWithStatus, setStudentsWithStatus] = useState([]);
+  const [filterCuotaState, setFilterCuotaState] = useState("");
+  const studentsPerPage = 10;
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const availableYears = [2025, 2026, 2027, 2028];
 
   useEffect(() => {
     obtenerEstudiantes();
+    fetchStudentsWithStatus();
   }, []);
 
   useEffect(() => {
@@ -50,6 +52,31 @@ const Share = () => {
     filterData();
   }, [cuotas, selectedYear]);
 
+  const menuItems = [
+    { name: 'Inicio', route: '/', icon: <FaHome /> },
+    { name: 'Alumnos', route: '/student', icon: <FaUsers /> },
+    { name: 'Notificaciones', route: '/notification', icon: <FaBell /> },
+    { name: 'Cuotas', route: '/share', icon: <FaMoneyBill /> },
+    { name: 'Reportes', route: '/report', icon: <FaChartBar /> },
+    { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt /> },
+    { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck /> },
+    { name: 'Usuarios', route: '/user', icon: <FaUserCog /> },
+    { name: 'Ajustes', route: '/settings', icon: <FaCog /> },
+    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope /> },
+    { name: 'Volver Atrás', route: null, action: () => navigate(-1), icon: <FaArrowLeft /> }
+  ];
+
+  const fetchStudentsWithStatus = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/api/shares/students-status", {
+        withCredentials: true,
+      });
+      setStudentsWithStatus(response.data);
+    } catch (error) {
+      console.error("Error al obtener estados de estudiantes:", error);
+    }
+  };
+
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const handleStudentSelect = (student) => {
@@ -63,47 +90,48 @@ const Share = () => {
       return;
     }
     const filtered = cuotas
-      .filter((cuota) =>
-        cuota.student?._id === selectedStudent?._id &&
-        new Date(cuota.date).getFullYear() === selectedYear // Filtrar por año seleccionado
-      )
+      .filter((cuota) => cuota.student?._id === selectedStudent?._id && new Date(cuota.date).getFullYear() === selectedYear)
       .sort((a, b) => new Date(a.date).getMonth() - new Date(b.date).getMonth());
     setFilteredData(filtered);
   };
 
-  // Obtener la fecha actual en formato YYYY-MM-DD
   const today = new Date().toISOString().split('T')[0];
 
   const handleSave = () => {
     if (!date || !amount || selectedMonth === "") {
-      setErrorMessage("Por favor completa todos los campos.");
+      setAlertMessage("Por favor completa todos los campos.");
+      setShowAlert(true);
       return;
     }
-  
-    // Crear la fecha con el mes y año seleccionados
-    const cuotaDate = new Date(selectedYear, selectedMonth, 1); // Día 1 del mes seleccionado
-  
+
+    if (selectedStudent.state === "Inactivo") {
+      setAlertMessage("No se puede crear ni actualizar cuotas para un estudiante inactivo.");
+      setShowAlert(true);
+      return;
+    }
+
+    const cuotaDate = new Date(selectedYear, parseInt(selectedMonth), 1);
+
     const cuotaData = {
       student: selectedStudent._id,
       amount: parseFloat(amount),
-      date: cuotaDate, // Asignamos correctamente la fecha con el mes seleccionado
+      date: cuotaDate,
       paymentmethod: paymentMethod,
       paymentdate: date,
     };
-  
+
     if (selectedCuota) {
       updateCuota({ ...cuotaData, _id: selectedCuota._id });
     } else {
       addCuota(cuotaData);
     }
-  
-    // Resetear inputs y estado de edición
     setAmount("");
     setDate("");
     setPaymentMethod("");
     setSelectedMonth("");
     setSelectedCuota(null);
     setIsEditing(false);
+    fetchStudentsWithStatus();
   };
 
   const handleEditClick = (cuota) => {
@@ -111,12 +139,8 @@ const Share = () => {
     setAmount(cuota.amount);
     setDate(formatDate(cuota.paymentdate));
     setPaymentMethod(cuota.paymentmethod);
-    setSelectedMonth(months[new Date(cuota.date).getMonth()]); // Convertir el número a nombre del mes
-    setIsEditing(true); // Activar modo edición
-  };
-
-  const closeErrorMessage = () => {
-    setErrorMessage("");  // Cerrar el alert
+    setSelectedMonth(new Date(cuota.date).getMonth().toString()); // Seteamos el índice del mes
+    setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
@@ -130,179 +154,248 @@ const Share = () => {
 
   const handleDelete = (id) => {
     deleteCuota(id);
+    fetchStudentsWithStatus();
   };
 
-  // Función para formatear la fecha a YYYY-MM-DD sin desfase
-  const formatDate = (dateString) => {
-    return new Date(dateString).toISOString().split("T")[0];
-  };
+  const formatDate = (dateString) => dateString ? new Date(dateString).toISOString().split("T")[0] : "";
+  const formatMonth = (dateString) => months[new Date(dateString).getMonth()];
 
-  const formatMonth = (dateString) => {
-    const date = new Date(dateString);
-    return months[date.getMonth()];
-  };
-
-  // Calcular meses disponibles (excluir meses ya seleccionados)
   const usedMonths = filteredData.map((cuota) => new Date(cuota.date).getMonth() + 1);
   const availableMonths = months.filter((_, index) => !usedMonths.includes(index + 1));
 
-  // Filtrar estudiantes según el término de búsqueda
-  const filteredStudents = estudiantes.filter((student) => {
-    const fullName = (student.name + " " + student.lastName).toLowerCase();
-    return fullName.includes(searchTerm.toLowerCase());
+  const filteredStudents = studentsWithStatus.filter((student) => {
+    const fullName = `${student.name} ${student.lastName}`.toLowerCase();
+    const matchesSearch = fullName.includes(searchTerm.toLowerCase());
+    const matchesCuotaState = filterCuotaState === "" || student.status === filterCuotaState;
+    return matchesSearch && matchesCuotaState;
   });
 
-  // Calcular los estudiantes a mostrar en la página actual
   const indexOfLastStudent = currentPage * studentsPerPage;
   const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
   const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
 
-  // Cambiar de página
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <VerticalMenu>
-      <div className="share-container">
+    <div className="dashboard-container-share">
+      <div className={`sidebar ${isMenuOpen ? 'open' : 'closed'}`}>
+        <div className="sidebar-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <FaBars />
+        </div>
+        {menuItems.map((item, index) => (
+          <div
+            key={index}
+            className="sidebar-item"
+            onClick={() => item.action ? item.action() : navigate(item.route)}
+          >
+            <span className="icon">{item.icon}</span>
+            <span className="text">{item.name}</span>
+          </div>
+        ))}
+      </div>
+      <div className="content-share">
+        {showAlert && (
+          <Alert
+            variant="warning"
+            onClose={() => setShowAlert(false)}
+            dismissible
+            className="custom-alert"
+          >
+            <Alert.Heading>¡Atención!</Alert.Heading>
+            <p>{alertMessage}</p>
+          </Alert>
+        )}
         {!selectedStudent ? (
-          <div className="search-filter">
-            <h1 className="panel-cuota-titulo">Panel de Cuotas</h1>
-            <div className="search-input-wrapper">
-              <input type="text" placeholder="Buscar estudiante..." value={searchTerm} onChange={handleSearchChange} />
+          <div className="students-view">
+            <h1 className="title">Panel de Cuotas</h1>
+            <div className="share-header">
+            <div className="search-bar">
+              <input className="search-input"
+                type="text"
+                placeholder="Buscar estudiante..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
               <FaSearch className="search-icon" />
             </div>
-            <div className="search-results">
-              {loadingEstudiantes ? (
-                <p>Cargando estudiantes...</p>
-              ) : (
-                <>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th>Apellido</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentStudents.map((student, index) => (
-                        <tr key={index}>
-                          <td>{indexOfFirstStudent + index + 1}</td>
-                          <td>{student.name}</td>
-                          <td>{student.lastName}</td>
-                          <td>{/* Aquí puedes agregar el estado de la cuota si lo tienes disponible */}</td>
-                          <td>
-                            <Button className="boton-ver-mas" onClick={() => handleStudentSelect(student)}>Ver más</Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                  <nav aria-label="Page navigation example">
-                    <ul className="pagination">
-                      <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                        <a className="page-link" href="#" aria-label="Previous" onClick={() => currentPage > 1 && paginate(currentPage - 1)}>
-                          <span aria-hidden="true">&laquo;</span>
-                        </a>
-                      </li>
-                      {[...Array(Math.ceil(filteredStudents.length / studentsPerPage)).keys()].map(number => (
-                        <li key={number + 1} className={`page-item ${currentPage === number + 1 ? 'active' : ''}`}>
-                          <a className="page-link" href="#" onClick={() => paginate(number + 1)}>
-                            {number + 1}
-                          </a>
-                        </li>
-                      ))}
-                      <li className={`page-item ${currentPage === Math.ceil(filteredStudents.length / studentsPerPage) ? 'disabled' : ''}`}>
-                        <a className="page-link" href="#" aria-label="Next" onClick={() => currentPage < Math.ceil(filteredStudents.length / studentsPerPage) && paginate(currentPage + 1)}>
-                          <span aria-hidden="true">&raquo;</span>
-                        </a>
-                      </li>
-                    </ul>
-                  </nav>
-                </>
-              )}
+            <div className="cuota-filter">
+              <label>Estado de Cuota:</label>
+              <select
+                value={filterCuotaState}
+                onChange={(e) => setFilterCuotaState(e.target.value)}
+              >
+                <option value="">Todos</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Vencido">Vencido</option>
+                <option value="Pagado">Pagado</option>
+              </select>
             </div>
+            </div>
+            {loadingEstudiantes ? (
+              <p className="loading">Cargando estudiantes...</p>
+            ) : (
+              <>
+                <Table className="students-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nombre</th>
+                      <th>Apellido</th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentStudents.map((student, index) => (
+                      <tr key={student._id}>
+                        <td>{indexOfFirstStudent + index + 1}</td>
+                        <td>{student.name}</td>
+                        <td>{student.lastName}</td>
+                        <td>{student.status}</td>
+                        <td>
+                          <Button
+                            className="action-btn"
+                            onClick={() => handleStudentSelect(student)}
+                          >
+                            Ver Cuotas
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+                <div className="pagination">
+                  <Button
+                    disabled={currentPage === 1}
+                    onClick={() => paginate(currentPage - 1)}
+                    className="pagination-btn"
+                  >
+                    «
+                  </Button>
+                  {[...Array(Math.ceil(filteredStudents.length / studentsPerPage)).keys()].map((number) => (
+                    <Button
+                      key={number + 1}
+                      className={`pagination-btn ${currentPage === number + 1 ? 'active' : ''}`}
+                      onClick={() => paginate(number + 1)}
+                    >
+                      {number + 1}
+                    </Button>
+                  ))}
+                  <Button
+                    disabled={currentPage === Math.ceil(filteredStudents.length / studentsPerPage)}
+                    onClick={() => paginate(currentPage + 1)}
+                    className="pagination-btn"
+                  >
+                    »
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <>
-            <h1 className="detalle-cuota">Cuotas de {selectedStudent.name} {selectedStudent.lastName}</h1>
-            <div className="year-filter">
-              <label className="filtro" htmlFor="year">Filtrar por año: </label>
-              <select className="select" id="year" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))}>
-                {availableYears.map((year) => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Mes</th>
-                  <th>Monto</th>
-                  <th>Método de Pago</th>
-                  <th>Fecha de Pago</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredData.length > 0 ? (
-                  filteredData.map((cuota, index) => (
-                    <tr key={index}>
-                      <td>{formatMonth(cuota.date)}</td>
-                      <td>
-                        {new Intl.NumberFormat("es-CL", {
-                          style: "currency",
-                          currency: "CLP",
-                          minimumFractionDigits: 0,
-                        }).format(cuota.amount)}
-                      </td>
-                      <td>{cuota.paymentmethod || ""}</td>
-                      <td>{cuota.paymentdate ? formatDate(cuota.paymentdate) : ""}</td>
-                      <td>{cuota.state}</td>
-                      <td>
-                        <Button className="boton-pagar" onClick={() => handleEditClick(cuota)}>Pagar</Button>
-                        <Button className="boton-pagar" onClick={() => handleDelete(cuota._id)}>Eliminar</Button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr><td colSpan="6">No hay pagos registrados.</td></tr>
-                )}
-              </tbody>
-            </table>
-            <div className="input-group">
-              <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
-                <option value="">Seleccionar mes</option>
-                {availableMonths.map((month, index) => (
-                  <option key={index} value={months.indexOf(month)}>{month}</option>
-                ))}
-              </select>
-              <input type="number" min="0" placeholder="Ingresar dinero" value={amount} onChange={(e) => setAmount(e.target.value)} />
-              <input type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} />
-              <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-                <option value="">Seleccionar método de pago</option>
-                <option value="Efectivo">Efectivo</option>
-                <option value="Transferencia">Transferencia</option>
-              </select>
-              <button className="boton-guardar" onClick={handleSave}>Guardar</button>
-              {isEditing && (
-                <button onClick={handleCancelEdit}>Cancelar Edición</button>
-              )}
-            </div>
-            {errorMessage && (
-              <div className="alert-custom">
-                <span>{errorMessage}</span>
-                <button onClick={closeErrorMessage} className="alert-close-btn">X</button>
+            <div className="cuotas-view">
+              <div className="cuotas-header">
+                <h1 className="title">Cuotas de {selectedStudent.name} {selectedStudent.lastName}</h1>
               </div>
-            )}
+              <div className="year-filter">
+                <div className="filter">
+                <label className="label-ano">Año:</label>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                >
+                  {availableYears.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+                </div>
+                <Button className="back-btn" onClick={() => setSelectedStudent(null)}>Volver</Button>
+              </div>
+              <Table className="cuotas-table">
+                <thead>
+                  <tr>
+                    <th>Mes</th>
+                    <th>Monto</th>
+                    <th className="metodo-pago">Método de Pago</th>
+                    <th>Fecha de Pago</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.length > 0 ? (
+                    filteredData.map((cuota) => (
+                      <tr key={cuota._id} className={`state-${cuota.state.toLowerCase()}`}>
+                        <td>{formatMonth(cuota.date)}</td>
+                        <td>{new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", minimumFractionDigits: 0 }).format(cuota.amount)}</td>
+                        <td className="metodo-pago">{cuota.paymentmethod || "-"}</td>
+                        <td>{cuota.paymentdate ? formatDate(cuota.paymentdate) : "-"}</td>
+                        <td>{cuota.state}</td>
+                        <td className="botones-acciones">
+                          <Button
+                            className="action-btn edit"
+                            onClick={() => handleEditClick(cuota)}
+                          >
+                                        <span className="btn-text">{cuota.paymentmethod && cuota.paymentdate ? "Editar" : "Pagar"}</span>
+                                        <span className="btn-icon">{cuota.paymentmethod && cuota.paymentdate ? <FaEdit /> : <FaMoneyBillWave />}</span>
+                          </Button>
+                          <Button className="action-btn delete" onClick={() => handleDelete(cuota._id)}>
+                          <span className="btn-text">Eliminar</span>
+                          <span className="btn-icon"><FaTrash /></span>
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr><td colSpan="6">No hay cuotas registradas.</td></tr>
+                  )}
+                </tbody>
+              </Table>
+              <div className="cuota-form">
+                <div className="form-row">
+                  {isEditing ? (
+                    <select value={selectedMonth} disabled>
+                      <option value={selectedMonth}>{months[parseInt(selectedMonth)]}</option>
+                    </select>
+                  ) : (
+                    <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
+                      <option value="">Mes</option>
+                      {availableMonths.map((month, index) => (
+                        <option key={index} value={months.indexOf(month)}>{month}</option>
+                      ))}
+                    </select>
+                  )}
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Monto"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                  <input
+                    type="date"
+                    max={today}
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                  />
+                  <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                    <option value="">Método de Pago</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Transferencia">Transferencia</option>
+                  </select>
+                </div>
+                <div className="form-actions">
+                  <Button className="save-btn" onClick={handleSave}>Guardar</Button>
+                  {isEditing && <Button className="cancel-btn" onClick={handleCancelEdit}>Cancelar</Button>}
+                </div>
+              </div>
+              {loadingCuotas && <p className="loading">Cargando cuotas...</p>}
+            </div>
           </>
         )}
       </div>
-
-      {loadingCuotas && <p>Cargando cuotas...</p>}
-    </VerticalMenu>
+    </div>
   );
 };
 

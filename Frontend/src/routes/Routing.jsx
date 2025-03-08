@@ -11,73 +11,73 @@ import { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { LoginContext } from '../context/login/LoginContext';
 import PageShare from '../pages/share/PageShare';
-import ProtectedRoute from '../routes/ProtectedRoute'; // Importa el componente de ruta protegida
+import ProtectedRoute from '../routes/ProtectedRoute';
 import PageAttendance from '../pages/attendance/PageAttendance';
 import PageReport from '../pages/report/PageReport';
 import PageMotion from '../pages/motion/PageMotion';
-
+import Settings from '../components/settings/Settings'; // Nueva importación
+import EmailNotification from '../components/email/EmailNotification'; // Nueva importación
 const Routing = () => {
-  const { auth } = useContext(LoginContext); // Obtener el estado de autenticación
+  const { auth } = useContext(LoginContext);
 
   return (
-    <>
-      <Routes>
-        {/* Rutas públicas */}
-        <Route path="/login" element={auth ? <Navigate to="/" /> : <Login />} />
-        <Route
-          path="/attendance"
-          element={<ProtectedRoute element={<PageAttendance />} />}
-        />
-        {/* Ruta para usuarios comunes */}
-        <Route
-          path="/homeuser"
-          element={<ProtectedRoute element={<PageHomeUser />} role='user' />}
-        />
+    <Routes>
+      {/* Rutas públicas */}
+      <Route path="/login" element={auth ? <Navigate to="/" /> : <Login />} />
+      <Route
+        path="/attendance"
+        element={<ProtectedRoute element={<PageAttendance />} />}
+      />
+      <Route
+        path="/notification"
+        element={<ProtectedRoute element={<PageNotification />} />}
+      />
 
-        {/* Ruta para administradores */}
-
-        <Route
-          path="/"
-          element={<ProtectedRoute element={<PageHome />} role="admin" />}
-        />
-        <Route
-          path="/student"
-          element={<ProtectedRoute element={<PageStudent />} role="admin" />}
-        />
-        <Route
-          path="/motion"
-          element={<ProtectedRoute element={<PageMotion />} role="admin" />}
-        />
-        <Route
-          path="/notification"
-          element={<ProtectedRoute element={<PageNotification />} role="admin" />}
-        />
-        <Route
-          path="/report"
-          element={<ProtectedRoute element={<PageReport />} role="admin" />}
-        />
-        <Route
-          path="/user"
-          element={<ProtectedRoute element={<PageUser />} role="admin" />}
-        />
-        <Route
-          path="/share"
-          element={<ProtectedRoute element={<PageShare />} role="admin" />}
-        />
-        <Route
-          path="/detailstudent/:id"
-          element={<ProtectedRoute element={<PageDetail />} role="admin" />}
-        />
-        <Route
-          path="/share/:studentId"
-          element={<ProtectedRoute element={<PageShare />} role="admin" />}
-        />
-
-
-        {/* Ruta para el login */}
-
-      </Routes>
-    </>
+      {/* Ruta para usuarios comunes */}
+      <Route
+        path="/homeuser"
+        element={<ProtectedRoute element={<PageHomeUser />} role='user' />}
+      />
+      {/* Rutas para administradores */}
+      <Route
+        path="/"
+        element={<ProtectedRoute element={<PageHome />} role="admin" />}
+      />
+      <Route
+        path="/student"
+        element={<ProtectedRoute element={<PageStudent />} role="admin" />}
+      />
+      <Route
+        path="/motion"
+        element={<ProtectedRoute element={<PageMotion />} role="admin" />}
+      />
+      <Route
+        path="/report"
+        element={<ProtectedRoute element={<PageReport />} role="admin" />}
+      />
+      <Route
+        path="/user"
+        element={<ProtectedRoute element={<PageUser />} role="admin" />}
+      />
+      <Route
+        path="/share"
+        element={<ProtectedRoute element={<PageShare />} role="admin" />}
+      />
+      <Route
+        path="/detailstudent/:id"
+        element={<ProtectedRoute element={<PageDetail />} role="admin" />}
+      />
+      <Route
+        path="/share/:studentId"
+        element={<ProtectedRoute element={<PageShare />} role="admin" />}
+      />
+      <Route
+        path="/settings"
+        element={<ProtectedRoute element={<Settings />} role="admin" />}
+      />
+      <Route path="/email-notifications"
+        element={<ProtectedRoute element={<EmailNotification />} role="admin" />} />
+    </Routes>
   );
 };
 

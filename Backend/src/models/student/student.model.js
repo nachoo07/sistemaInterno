@@ -32,17 +32,14 @@ const studentSchema = new mongoose.Schema({
     },
     motherName: {
         type: String,
-        required: true,
         trim: true,
     },
     fatherName: {
         type: String,
-        required: true,
         trim: true,
     },
     motherPhone: {
         type: String,
-        required: true,
         trim: true,
         validate: {
             validator: (v) => /^\d{10,15}$/.test(v), // Acepta números de 10 a 15 dígitos
@@ -51,7 +48,6 @@ const studentSchema = new mongoose.Schema({
     },
     fatherPhone: {
         type: String,
-        required: true,
         trim: true,
         validate: {
             validator: (v) => /^\d{10,15}$/.test(v),
@@ -87,10 +83,14 @@ const studentSchema = new mongoose.Schema({
         trim: true,
     },
     profileImage: {
-        type: String, // Cambiado a String para almacenar la ruta/nombre del archivo
+        type: String,
         trim: true,
-        default: 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg',
-    }
+        default: 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg'
+    },
+    hasSiblingDiscount: { // Nuevo campo
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true, // Agrega createdAt y updatedAt automáticamente
 });

@@ -11,34 +11,25 @@ import shareRoutes from './routes/share/share.router.js'; // Rutas de cuotas
 import attendanceRoutes from './routes/attendance/attendance.routes.js'; // Rutas de asistencias
 import { errorHandler } from './middlewares/user/user.middlewares.js'; // Manejador de errores
 import './cron/cronShare.js'; // Importa el cron job para que se ejecute
-import testRouter from './routes/cron.js';
+import './cron/notification/cronNotification.js'; // Importa el cron job para que se ejecute
 import motionRoutes from './routes/motion/motion.router.js';
-import path from 'path';
-
+import configRoutes from './routes/base/config.routes.js';
+import emailRoutes from './routes/email/email.routes.js'; // Ruta de prueba
+import notificationRoutes from './routes/notification/notification.routes.js'; // Nueva ruta
 const app = express();
 
 // Middlewares
 app.use(express.json()); // Para parsear JSON
 app.use(morgan('dev')); // Logger de solicitudes
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://sistemainterno.onrender.com'],
+  origin: ['http://localhost:4000', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
   exposedHeaders: ['set-cookie']
 }));
 
-
 app.use(cookieParser()); //para parsear cookies
-
-// Habilitar la carpeta 'uploads' para servir archivos estáticos
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// Middleware para debug de cookies
-//app.use((req, res, next) => {
-  //console.log('Cookies recibidas:', req.cookies);
- //next();
-//});
-
 
 // Rutas
 app.use('/api/users', userRoutes); // Prefijo para rutas de usuarios
@@ -47,7 +38,10 @@ app.use('/api/students', studentRoutes); // Prefijo para rutas de estudiantes
 app.use('/api/shares', shareRoutes); // Prefijo para rutas de cuotas
 app.use('/api/attendance', attendanceRoutes); // Prefijo para rutas de cuotas
 app.use('/api/motions', motionRoutes)
-app.use(testRouter);
+app.use('/api/config', configRoutes); // Nueva ruta
+app.use('/api/email', emailRoutes); // Ruta de prueba
+app.use('/api/notifications', notificationRoutes); // Nueva ruta
+
 
 // Ruta base
 app.get('/', (req, res) => {
