@@ -1,15 +1,17 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from "../../models/users/user.model.js";
+import pino from 'pino';
+const logger = pino();
 
 // Generar Access Token
 const generateAccessToken = (payload) => {
-    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '2h' }); // 2 horas
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '2h' });
 };
 
 // Generar Refresh Token
 const generateRefreshToken = (payload) => {
-    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' }); // 7 días
+    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 };
 
 // Login
@@ -20,17 +22,18 @@ export const loginUser = async (req, res) => {
         return res.status(400).json({ message: 'Se requiere correo electrónico y contraseña.' });
     }
     try {
-        const user = await User.findOne({ mail });
-        if (!user) {
-            return res.status(400).json({ message: 'Credenciales inválidas' });
+        const user = await User.findOne({ mail }).select('+password');
+        if (!user || !await bcrypt.compare(password, user.password)) {
+            logger.warn({ mail }, 'Intento de login fallido');
+            return res.status(401).json({ message: 'Credenciales inválidas' });
         }
         if (!user.state) {
             return res.status(403).json({ message: 'Su cuenta está inactiva. Por favor contacte al administrador.' });
         }
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Credenciales inválidas' });
-        }
+
+        user.lastLogin = new Date();
+        await user.save();
+
         const payload = {
             userId: user._id,
             role: user.role,
@@ -41,28 +44,28 @@ export const loginUser = async (req, res) => {
         const accessToken = generateAccessToken(payload);
         const refreshToken = generateRefreshToken(payload);
 
-        // Configuración de cookies
         res.cookie('token', accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // true en producción (HTTPS)
-            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
             path: '/',
-            maxAge: 2 * 60 * 60 * 1000 // 2 horas
+            maxAge: 2 * 60 * 60 * 1000
         });
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: 'strict',
             path: '/',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+            maxAge: 7 * 24 * 60 * 60 * 1000
         });
+        logger.info({ userId: user._id }, 'Login exitoso');
         res.status(200).json({
-            message: 'Login successful',
+            message: 'Login exitoso',
             user: { name: user.name, role: user.role, mail: user.mail }
         });
     } catch (error) {
-        console.error('Error en login:', error);
-        res.status(500).json({ message: 'Error al iniciar sesión.', error: error.message });
+        logger.error({ error: error.message, mail }, 'Error en login');
+        res.status(500).json({ message: 'Error al iniciar sesión' });
     }
 };
 
@@ -71,16 +74,17 @@ export const logout = (req, res) => {
     res.clearCookie('token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'strict',
         path: '/'
     });
     res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'strict',
         path: '/'
     });
-    res.status(200).json({ message: 'User logged out successfully!' });
+    logger.info('Usuario deslogueado');
+    res.status(200).json({ message: 'Usuario deslogueado exitosamente' });
 };
 
 // Refresh Token
@@ -88,8 +92,9 @@ export const refreshAccessToken = (req, res) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-        return res.status(401).json({ message: 'Refresh token not found, please log in again.' });
+        return res.status(401).json({ message: 'Refresh token no encontrado, por favor inicie sesión nuevamente' });
     }
+
     try {
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
         const payload = {
@@ -101,20 +106,21 @@ export const refreshAccessToken = (req, res) => {
 
         const accessToken = generateAccessToken(payload);
 
-        // Actualizar la cookie del access token
         res.cookie('token', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: 'strict',
             path: '/',
-            maxAge: 2 * 60 * 60 * 1000 // 2 horas
+            maxAge: 2 * 60 * 60 * 1000
         });
-        res.status(200).json({
-            message: 'Access token refreshed',
-            accessToken // Opcional, si el frontend lo necesita
-        });
+
+        logger.info({ userId: decoded.userId }, 'Access token refrescado');
+        res.status(200).json({ message: 'Access token refrescado' });
     } catch (error) {
-        console.error('Error al refrescar token:', error.message);
-        res.status(403).json({ message: 'Invalid refresh token, please log in again.' });
+        logger.error({ error: error.message }, 'Error al refrescar token');
+        if (error.name === 'TokenExpiredError') {
+            return res.status(403).json({ message: 'Refresh token expirado, por favor inicie sesión nuevamente' });
+        }
+        return res.status(403).json({ message: 'Refresh token inválido, por favor inicie sesión nuevamente' });
     }
 };

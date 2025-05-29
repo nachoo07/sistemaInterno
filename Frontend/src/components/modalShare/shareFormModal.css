@@ -1,0 +1,31 @@
+.modal-header {
+    background-color: #E42278 !important;
+    padding: 1rem;
+}
+
+.btn-modal-cancelar {
+    background: #909090 !important;
+    color: white;
+    border: none;
+    padding: 6px !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: 18px !important;
+    height: 40px !important;
+    width: 150px;
+}
+
+.btn-modal-guardar {
+    background: #E42278 !important;
+    color: white;
+    border: none;
+    padding: 6px !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: 18px !important;
+    height: 40px !important;
+    width: 150px;
+}
+
+.btn-modal-footer {
+    display: flex !important;
+    justify-content: center !important;
+}

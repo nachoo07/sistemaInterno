@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema({
     state: {
         type: Boolean,
         default: true // Controlar si el usuario está activo o inactivo
+    },
+    lastLogin: {
+      type: Date
     }
 }, {
     timestamps: true // Agrega createdAt y updatedAt automáticamente

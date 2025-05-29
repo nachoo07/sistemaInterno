@@ -1,23 +1,203 @@
-.attendance-layout {
+
+
+/* Estilos para el header de escritorio (desktop-nav-header) */
+.desktop-nav-header {
+  background-color: var(--card-bg);
+  height: var(--header-height);
   display: flex;
-  height: 670px !important;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 25px;
+  box-shadow: var(--card-shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-.attendance-content {
+.nav-left-section {
+  flex: 1;
+}
+
+.nav-right-section {
+  display: flex;
+  align-items: center;
+}
+
+.profile-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.profile-icon {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  margin-right: 10px;
+}
+
+.profile-greeting {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.arrow-icon {
+  font-size: 0.8rem;
+  margin-left: 5px;
+  transition: transform var(--transition);
+}
+
+.arrow-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+  min-width: 200px;
+  padding: 10px 0;
+  z-index: 1000;
+}
+
+.menu-option {
+  padding: 10px 20px;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu-option:hover {
+  background-color: var(--background-alt);
+}
+
+.menu-separator {
+  height: 1px;
+  background: var(--border-color);
+  margin: 5px 0;
+}
+
+.logout-option {
+  color: var(--danger-color) !important;
+}
+
+.option-icon {
+  font-size: 1rem;
+}
+
+/* Estilos del buscador (para todos los tamaños) */
+.search-section {
+  margin: 10px 0;
+  width: 100%;
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 500px; /* Limitar el ancho en pantallas grandes */
+  margin: 0 auto; /* Centrar el buscador */
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: white;
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(244, 44, 140, 0.1);
+}
+
+.search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 0.8rem;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.search-clear:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.menu-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  padding: 10px;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.menu-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-icon {
+  font-size: 1.2rem;
+  margin-right: 15px;
+}
+
+.menu-text {
+  font-weight: 500;
+}
+
+.main-content {
   flex-grow: 1;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  overflow-y: auto !important;
-  height: 670px;
+  margin-left: 240px;
+  overflow-y: auto;
+  background-color: var(--background-color);
+  transition: margin-left var(--transition);
 }
 
-.attendance-title {
-  text-align: center;
-  font-size: 36px;
-  font-weight: bold;
+.main-content.expanded {
+  margin-left: var(--sidebar-collapsed);
+}
+
+.dashboard-welcome {
   margin-bottom: 20px;
+}
+
+.welcome-text h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .attendance-categories {
@@ -30,22 +210,23 @@
 
 .category-btn {
   padding: 15px;
-  border: 3px solid #D83D8D;
-  border-radius: 8px;
-  background-color: white;
-  color: #000;
+  border: 3px solid var(--primary-color);
+  border-radius: var(--radius-md);
+  background-color: var(--card-bg);
+  color: var(--text-color);
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   font-size: 22px;
 }
 
 .category-btn:hover {
-  background-color: #D83D8D;
+  background-color: var(--primary-color);
+  color: white;
 }
 
 .category-btn.active {
-  background-color: #D83D8D;
+  background-color: var(--primary-color);
   color: white;
 }
 
@@ -58,49 +239,57 @@
 
 .attendance-date-input {
   padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
   width: 300px;
 }
 
 .attendance-today-btn {
   padding: 8px 16px;
-  background-color: #D83D8D;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   width: 120px;
   font-size: 20px;
 }
 
 .attendance-today-btn:hover {
-  background-color: #D83D8D;
+  background-color: var(--primary-hover);
 }
 
 .attendance-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  background: var(--card-bg);
 }
 
 .attendance-table th,
 .attendance-table td {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   padding: 12px;
   text-align: left;
+  font-size: 18px;
+  color: var(--text-color);
 }
 
 .attendance-table th {
-  background-color: #f8f9fa;
+  background-color: var(--primary-light);
+  color: white;
+  font-weight: 600;
 }
 
 .attendance-table tr:nth-child(even) {
-  background-color: #f8f9fa;
+  background-color: var(--background-alt);
 }
 
 .attendance-table tr:hover {
-  background-color: #f1f1f1;
+  background-color: var(--background-color);
 }
 
 .attendance-buttons {
@@ -116,46 +305,54 @@
 .attendance-update-btn,
 .attendance-cancel-btn {
   padding: 10px 20px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   font-size: 20px;
+  border: none;
 }
 
 .attendance-save-btn {
-  background-color: #D83D8D;
+  background-color: var(--primary-color);
   color: white;
-  border: none;
 }
 
 .attendance-edit-btn {
-  background-color: #D83D8D;
-  color: #ffffff;
-  border: none;
+  background-color: var(--primary-color);
+  color: white;
 }
 
 .attendance-update-btn {
-  background-color: #D83D8D;
+  background-color: var(--primary-color);
   color: white;
-  border: none;
 }
 
 .attendance-save-btn:disabled {
-  background-color: #6c757d;
+  background-color: var(--border-color);
   cursor: not-allowed;
 }
 
 .disabled-checkbox {
-  background-color: #f1f1f1;
+  background-color: var(--background-alt);
   cursor: not-allowed;
 }
 
 .attendance-cancel-btn {
-  background-color: #D83D8D;
+  background-color: var(--primary-color);
   color: white;
-  border: none;
   margin-left: 15px;
+}
+
+.attendance-save-btn:hover,
+.attendance-edit-btn:hover,
+.attendance-update-btn:hover,
+.attendance-cancel-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.dashboard-layout{
+  margin-top: 0px;
 }
 
 @media (max-width: 576px) {
@@ -163,14 +360,74 @@
     display: none;
   }
 
+  .main-content {
+    margin-left: 0;
+    padding: 10px;
+  }
+
+  .welcome-text h1 {
+    font-size: 1.4rem;
+  }
+
   .attendance-categories {
     display: flex;
     flex-wrap: wrap;
-    padding: 0px;
+    padding: 0;
+    gap: 10px;
   }
 
   .category-btn {
     padding: 10px;
-
+    font-size: 16px;
   }
+
+  .attendance-date-picker {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .attendance-date-input {
+    width: 100%;
+  }
+
+  .attendance-table th,
+  .attendance-table td {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .attendance-buttons {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .attendance-save-btn,
+  .attendance-edit-btn,
+  .attendance-update-btn,
+  .attendance-cancel-btn {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .search-section {
+    margin: 10px 0;
+  }
+
+  .search-input {
+    font-size: 0.9rem;
+    padding: 10px 35px;
+  }
+
+  .search-icon {
+    font-size: 0.9rem;
+  }
+
+  .search-clear {
+    font-size: 0.8rem;
+  }
+
+  .dashboard-layout{
+  margin-top: 55px;
+}
 }

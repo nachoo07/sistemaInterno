@@ -4,6 +4,8 @@ const motionSchema = new mongoose.Schema({
   concept: {
     type: String,
     required: true,
+    trim: true,
+    maxlength: [100, 'Concept must not exceed 100 characters']
   },
   date: {
     type: Date,
@@ -12,6 +14,7 @@ const motionSchema = new mongoose.Schema({
   amount: {
     type: Number,
     required: true,
+    min: [0, 'Amount cannot be negative']
   },
   paymentMethod: {
     type: String,
@@ -23,10 +26,15 @@ const motionSchema = new mongoose.Schema({
     required: true,
     enum: ['ingreso', 'egreso'],
   },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
 }, {
   timestamps: true,
 });
 
+motionSchema.index({ date: 1, incomeType: 1 });
 const Motion = mongoose.model('Motion', motionSchema);
 
 export default Motion;

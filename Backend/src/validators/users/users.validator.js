@@ -1,22 +1,29 @@
-import { body, validationResult } from "express-validator";
+import { body, validationResult } from 'express-validator';
+import sanitize from 'mongo-sanitize';
 
 export const validateUser = [
-  body("name").notEmpty().withMessage("Name is required."),
-  body("mail")
+  body('name').notEmpty().withMessage('El nombre es obligatorio').trim().customSanitizer(sanitize),
+  body('mail')
     .isEmail()
-    .withMessage("Valid email is required.")
-    .normalizeEmail(),
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long."),
-  body("role")
+    .withMessage('Se requiere un correo electrónico válido')
+    .normalizeEmail()
+    .customSanitizer(sanitize),
+  body('password')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+    .withMessage('La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y caracteres especiales'),
+  body('role')
     .optional()
-    .isIn(["user", "admin"])
-    .withMessage("Invalid role."),
+    .isIn(['user', 'admin'])
+    .withMessage('El rol debe ser "user" o "admin"')
+    .customSanitizer(sanitize),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        success: false,
+        message: 'Errores de validación',
+        errors: errors.array()
+      });
     }
     next();
   },

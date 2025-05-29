@@ -5,10 +5,17 @@ const configSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    trim: true, 
   },
   value: {
-    type: mongoose.Schema.Types.Mixed, // Permite números, objetos, etc.
+    type: mongoose.Schema.Types.Mixed, 
     required: true,
+    validate: {
+      validator: (v) => {
+        return typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'object';
+      },
+      message: 'Value must be a string, number, boolean, or object'
+    }
   },
 }, { timestamps: true });
 

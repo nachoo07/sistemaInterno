@@ -1,16 +1,18 @@
-import { useState, useContext, useEffect } from 'react';
-import { StudentsContext } from "../../context/student/StudentContext";
+import { useState, useContext, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AttendanceContext } from "../../context/attendance/AttendanceContext";
+import { StudentsContext } from "../../context/student/StudentContext";
 import { LoginContext } from '../../context/login/LoginContext';
 import {
-  FaBars, FaUsers, FaBell, FaMoneyBill, FaChartBar, FaExchangeAlt,
-  FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft
+  FaBars, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt,
+  FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft,
+  FaUserCircle, FaChevronDown, FaTimes, FaSearch, FaTimes as FaTimesClear
 } from 'react-icons/fa';
 import DatePicker from "react-datepicker";
 import { format, isValid } from "date-fns";
-import { useNavigate } from 'react-router-dom'
 import "react-datepicker/dist/react-datepicker.css";
 import './attendance.css';
+import AppNavbar from '../navbar/AppNavbar';
 
 const Attendance = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -20,50 +22,53 @@ const Attendance = () => {
   const [isAttendanceSaved, setIsAttendanceSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [searchTerm, setSearchTerm] = useState('');
+  const profileRef = useRef(null);
   const { estudiantes } = useContext(StudentsContext);
-  const { auth } = useContext(LoginContext);
+  const { auth, logout, userData } = useContext(LoginContext);
   const { agregarAsistencia, actualizarAsistencia, ObtenerAsistencia, asistencias } = useContext(AttendanceContext);
   const categories = ["2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020"];
 
   const fullMenuItems = [
-    { name: 'Inicio', route: '/', icon: <FaHome /> },
-    { name: 'Alumnos', route: '/student', icon: <FaUsers /> },
-    { name: 'Notificaciones', route: '/notification', icon: <FaBell /> },
-    { name: 'Cuotas', route: '/share', icon: <FaMoneyBill /> },
-    { name: 'Reportes', route: '/report', icon: <FaChartBar /> },
-    { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt /> },
-    { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck /> },
-    { name: 'Usuarios', route: '/user', icon: <FaUserCog /> },
-    { name: 'Ajustes', route: '/settings', icon: <FaCog /> },
-    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope /> },
-    { name: 'Volver Atrás', route: null, action: () => navigate(-1), icon: <FaArrowLeft /> }
+    { name: 'Inicio', route: '/', icon: <FaHome />, category: 'principal' },
+    { name: 'Alumnos', route: '/student', icon: <FaUsers />, category: 'principal' },
+    { name: 'Cuotas', route: '/share', icon: <FaMoneyBill />, category: 'finanzas' },
+    { name: 'Reportes', route: '/report', icon: <FaChartBar />, category: 'informes' },
+    { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt />, category: 'finanzas' },
+    { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal' },
+    { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },
+    { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion' },
+    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' },
+    { name: 'Volver Atrás', route: null, action: () => navigate(-1), icon: <FaArrowLeft />, category: 'navegacion' },
   ];
 
   const userMenuItems = fullMenuItems.filter(item =>
-    ['Inicio', 'Notificaciones', 'Asistencia'].includes(item.name)
+    ['Inicio', 'Asistencia'].includes(item.name)
   );
 
   const menuItems = auth === 'admin' ? fullMenuItems : userMenuItems;
-  // Cargar estudiantes y asistencias al montar el componente
-  useEffect(() => {
-    ObtenerAsistencia();
-  }, []);
-  // Filtrar estudiantes por categoría
+
   useEffect(() => {
     if (selectedCategory) {
-      // Validar que estudiantes sea un arreglo
       const studentsArray = Array.isArray(estudiantes) ? estudiantes : [];
-      const filtered = studentsArray.filter(student => student.category === selectedCategory);
-      setFilteredStudents(filtered);
+      const filteredByCategory = studentsArray.filter(student => student.category === selectedCategory);
+      const filteredBySearch = filteredByCategory.filter(student => {
+        const searchNormalized = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const nameNormalized = student.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const lastNameNormalized = student.lastName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const fullName = `${nameNormalized} ${lastNameNormalized}`;
+        return fullName.includes(searchNormalized);
+      });
+      setFilteredStudents(filteredBySearch);
     }
-  }, [selectedCategory, estudiantes]);
+  }, [selectedCategory, estudiantes, searchTerm]);
 
-  // Obtener la asistencia cuando se selecciona una fecha y categoría
   useEffect(() => {
     if (selectedCategory && selectedDate) {
       const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-
       const asistenciaExistente = asistencias.find(
         (asistencia) => {
           const asistenciaDate = new Date(asistencia.date);
@@ -72,9 +77,33 @@ const Attendance = () => {
       );
       if (asistenciaExistente) {
         const newAttendance = {};
+
+         if (Array.isArray(asistenciaExistente.attendance)) {
         asistenciaExistente.attendance.forEach(student => {
           newAttendance[student.idStudent] = student.present ? 'present' : 'absent';
         });
+      } else {
+        
+
+        try {
+          const attendanceData = typeof asistenciaExistente.attendance === 'string' 
+            ? JSON.parse(asistenciaExistente.attendance) 
+            : asistenciaExistente.attendance;
+            
+          if (Array.isArray(attendanceData)) {
+            attendanceData.forEach(student => {
+              newAttendance[student.idStudent] = student.present ? 'present' : 'absent';
+            });
+          } else if (typeof attendanceData === 'object') {
+            // Si es un objeto, intentar procesarlo de otra manera
+            Object.keys(attendanceData).forEach(studentId => {
+              newAttendance[studentId] = attendanceData[studentId].present ? 'present' : 'absent';
+            });
+          }
+        } catch (error) {
+          console.error("Error procesando datos de asistencia:", error);
+        }
+      }
         setAttendance(newAttendance);
         setIsAttendanceSaved(true);
       } else {
@@ -84,6 +113,33 @@ const Attendance = () => {
     }
   }, [selectedCategory, selectedDate, asistencias]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const newWidth = window.innerWidth;
+      setWindowWidth(newWidth);
+      if (newWidth <= 576) {
+        setIsMenuOpen(false);
+      } else {
+        setIsMenuOpen(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleAttendanceChange = (studentId, status) => {
     setAttendance(prevState => ({
       ...prevState,
@@ -92,9 +148,8 @@ const Attendance = () => {
   };
 
   const handleAttendanceSubmit = async () => {
-
     const attendanceData = {
-      date: new Date(selectedDate.getTime() + 2 * 60 * 60 * 1000).toISOString(), // Agregamos 6 horas y convertimos a ISO
+      date: new Date(selectedDate.getTime() + 2 * 60 * 60 * 1000).toISOString(),
       category: selectedCategory,
       attendance: filteredStudents.map(student => ({
         idStudent: student._id,
@@ -104,9 +159,9 @@ const Attendance = () => {
       }))
     };
     if (isAttendanceSaved) {
-      await actualizarAsistencia(attendanceData); // Actualiza asistencia
+      await actualizarAsistencia(attendanceData);
     } else {
-      await agregarAsistencia(attendanceData); // Guarda nueva asistencia
+      await agregarAsistencia(attendanceData);
     }
     ObtenerAsistencia();
     setIsAttendanceSaved(true);
@@ -121,96 +176,215 @@ const Attendance = () => {
     setIsEditing(false);
   };
 
+  const handleLogout = async () => {
+    logout();
+    navigate('/login');
+    setIsMenuOpen(false);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
   return (
-    <div className="attendance-layout">
-      <div className={`sidebar ${isMenuOpen ? 'open' : 'closed'}`}>
-        <div className="sidebar-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          <FaBars />
-        </div>
-        {menuItems.map((item, index) => (
-          <div
-            key={index}
-            className="sidebar-item"
-            onClick={() => item.action ? item.action() : navigate(item.route)}
-          >
-            <span className="icon">{item.icon}</span>
-            <span className="text">{item.name}</span>
+    <div className={`app-container ${windowWidth <= 576 ? 'mobile-view' : ''}`}>
+      {windowWidth <= 576 && (
+        <AppNavbar
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+          searchQuery={searchTerm}
+          setSearchQuery={setSearchTerm}
+        />
+      )}
+      {windowWidth > 576 && (
+        <header className="desktop-nav-header">
+          <div className="nav-left-section"></div>
+          <div className="search-box">
+            <FaSearch className="search-symbol" />
+            <input
+              type="text"
+              placeholder="Buscar alumnos..."
+              className="search-field"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
           </div>
-        ))}
-      </div>
-      <div className="attendance-content">
-        <h2 className="attendance-title">Registro de Asistencia</h2>
-        <div className="attendance-categories">
-          {categories.map(category => (
-            <button
-              key={category}
-              className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(category)}
+          <div className="nav-right-section">
+            <div
+              className="profile-container"
+              ref={profileRef}
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
-              {category}
-            </button>
-          ))}
-        </div>
-        {selectedCategory && (
-          <>
-            <div className="attendance-date-picker">
-              <DatePicker
-                selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
-                maxDate={new Date()}
-                dateFormat="yyyy-MM-dd" // Asegúrate de que el DatePicker use el formato correcto
-                className="attendance-date-input"
-              />
-              <button className="attendance-today-btn" onClick={() => setSelectedDate(new Date())}>Hoy</button>
+              <FaUserCircle className="profile-icon" />
+              <span className="profile-greeting">
+                Hola, {userData?.name || 'Usuario'}
+              </span>
+              <FaChevronDown className={`arrow-icon ${isProfileOpen ? 'rotated' : ''}`} />
+              {isProfileOpen && (
+                <div className="profile-menu">
+                  <div
+                    className="menu-option"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/user');
+                      setIsProfileOpen(false);
+                    }}
+                  >
+                    <FaUserCog className="option-icon" /> Mi Perfil
+                  </div>
+                  <div
+                    className="menu-option"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/settings');
+                      setIsProfileOpen(false);
+                    }}
+                  >
+                    <FaCog className="option-icon" /> Configuración
+                  </div>
+                  <div className="menu-separator"></div>
+                  <div
+                    className="menu-option logout-option"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLogout();
+                      setIsProfileOpen(false);
+                    }}
+                  >
+                    <FaUserCircle className="option-icon" /> Cerrar Sesión
+                  </div>
+                </div>
+              )}
             </div>
-            <table className="attendance-table">
-              <thead>
-                <tr>
-                  <th>Nombre y Apellido</th>
-                  <th>Presente</th>
-                  <th>Ausente</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.map(student => (
-                  <tr key={student._id}>
-                    <td>{student.name} {student.lastName}</td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={attendance[student._id] === 'present'}
-                        onChange={() => handleAttendanceChange(student._id, 'present')}
-                        disabled={isAttendanceSaved && !isEditing}
-                        className={isAttendanceSaved && !isEditing ? 'disabled-checkbox' : ''}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={attendance[student._id] === 'absent'}
-                        onChange={() => handleAttendanceChange(student._id, 'absent')}
-                        disabled={isAttendanceSaved && !isEditing}
-                        className={isAttendanceSaved && !isEditing ? 'disabled-checkbox' : ''}
-                      />
-                    </td>
-                  </tr>
+          </div>
+        </header>
+      )}
+      <div className="dashboard-layout">
+        <aside className={`sidebar ${isMenuOpen ? 'open' : 'closed'}`}>
+          <nav className="sidebar-nav">
+            <div className="sidebar-section">
+              <button className="menu-toggle" onClick={toggleMenu}>
+                {isMenuOpen ? <FaTimes /> : <FaBars />}
+              </button>
+              <ul className="sidebar-menu">
+                {menuItems.map((item, index) => (
+                  <li
+                    key={index}
+                    className={`sidebar-menu-item ${item.route === '/attendance' ? 'active' : ''}`}
+                    onClick={() => item.action ? item.action() : navigate(item.route)}
+                  >
+                    <span className="menu-icon">{item.icon}</span>
+                    <span className="menu-text">{item.name}</span>
+                  </li>
                 ))}
-              </tbody>
-            </table>
-            {!isAttendanceSaved && (
-              <button className="attendance-save-btn" onClick={handleAttendanceSubmit}>Guardar Asistencia</button>
-            )}
-            {isAttendanceSaved && !isEditing && (
-              <button className="attendance-edit-btn" onClick={handleEditAttendance}>Editar Asistencia</button>
-            )}
-            {isEditing && (
-              <>
-                <button className="attendance-update-btn" onClick={handleAttendanceSubmit}>Actualizar Asistencia</button>
-                <button className="attendance-cancel-btn" onClick={handleCancelEdit}>Cancelar Edición</button>
-              </>
-            )}
-          </>
-        )}
+              </ul>
+            </div>
+          </nav>
+        </aside>
+        <main className={`main-content`}>
+          <section className="dashboard-welcome">
+            <div className="welcome-text">
+              <h1>Registro de Asistencia</h1>
+            </div>
+          </section>
+          {windowWidth <= 576 && (
+            <section className="mobile-search-section">
+              <div className="mobile-search-container">
+                <FaSearch className="mobile-search-icon" />
+                <input
+                  type="text"
+                  placeholder="Buscar alumnos..."
+                  className="mobile-search-input"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+                {searchTerm && (
+                  <button
+                    className="mobile-search-clear"
+                    onClick={() => setSearchTerm('')}
+                  >
+                    <FaTimesClear />
+                  </button>
+                )}
+              </div>
+            </section>
+          )}
+          <section className="attendance-categories">
+            {categories.map(category => (
+              <button
+                key={category}
+                className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category}
+              </button>
+            ))}
+          </section>
+          {selectedCategory && (
+            <>
+              <div className="attendance-date-picker">
+                <DatePicker
+                  selected={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
+                  maxDate={new Date()}
+                  dateFormat="yyyy-MM-dd"
+                  className="attendance-date-input"
+                />
+                <button className="attendance-today-btn" onClick={() => setSelectedDate(new Date())}>Hoy</button>
+              </div>
+              <table className="attendance-table">
+                <thead>
+                  <tr>
+                    <th>Nombre y Apellido</th>
+                    <th>Presente</th>
+                    <th>Ausente</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStudents.map(student => (
+                    <tr key={student._id}>
+                      <td>{student.name} {student.lastName}</td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={attendance[student._id] === 'present'}
+                          onChange={() => handleAttendanceChange(student._id, 'present')}
+                          disabled={isAttendanceSaved && !isEditing}
+                          className={isAttendanceSaved && !isEditing ? 'disabled-checkbox' : ''}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={attendance[student._id] === 'absent'}
+                          onChange={() => handleAttendanceChange(student._id, 'absent')}
+                          disabled={isAttendanceSaved && !isEditing}
+                          className={isAttendanceSaved && !isEditing ? 'disabled-checkbox' : ''}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="attendance-buttons">
+                {!isAttendanceSaved && (
+                  <button className="attendance-save-btn" onClick={handleAttendanceSubmit}>Guardar Asistencia</button>
+                )}
+                {isAttendanceSaved && !isEditing && (
+                  <button className="attendance-edit-btn" onClick={handleEditAttendance}>Editar Asistencia</button>
+                )}
+                {isEditing && (
+                  <>
+                    <button className="attendance-update-btn" onClick={handleAttendanceSubmit}>Actualizar Asistencia</button>
+                    <button className="attendance-cancel-btn" onClick={handleCancelEdit}>Cancelar Edición</button>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </main>
       </div>
     </div>
   );

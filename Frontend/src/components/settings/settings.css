@@ -1,21 +1,34 @@
-.settings-container {
-  display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #eef2f7 0%, #d9e2ec 100%);
+
+.menu-icon {
+  font-size: 1.2rem;
+  margin-right: 15px;
 }
 
-.settings-content {
+.menu-text {
+  font-weight: 500;
+}
+
+.main-content {
   flex-grow: 1;
   padding: 20px;
+  margin-left: 240px;
+  overflow-y: auto;
+  background-color: var(--background-color);
+  transition: margin-left var(--transition);
 }
 
-.settings-title {
-  font-size: 32px;
-  font-weight: bold;
-  color: #1e88e5;
-  text-align: center;
-  margin-bottom: 30px;
-  letter-spacing: 1px;
+.main-content.expanded {
+  margin-left: var(--sidebar-collapsed);
+}
+
+.dashboard-welcome {
+  margin-bottom: 20px;
+}
+
+.welcome-text h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .cards-setting {
@@ -26,9 +39,9 @@
 
 .info-section {
   background: #fff3e0;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--card-shadow);
   display: flex;
   align-items: flex-start;
   margin-top: 30px;
@@ -43,17 +56,17 @@
 .info-text {
   white-space: pre-wrap;
   font-size: 16px;
-  color: #555;
+  color: var(--text-color);
   margin: 0;
   line-height: 1.5;
   font-family: 'Arial', sans-serif;
 }
 
 .settings-card {
-  background: white;
-  border-radius: 12px;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
   padding: 25px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--card-shadow);
   transition: transform 0.2s ease;
   flex: 1;
 }
@@ -65,13 +78,13 @@
 .settings-card h3 {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 10px;
 }
 
 .settings-card p {
   font-size: 14px;
-  color: #777;
+  color: var(--text-light);
   margin-bottom: 15px;
 }
 
@@ -83,33 +96,34 @@
 
 .cuota-input {
   padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
   width: 220px;
   font-size: 14px;
   transition: border-color 0.3s ease;
 }
 
 .cuota-input:focus {
-  border-color: #D83D8D;
+  border-color: var(--primary-color);
   outline: none;
 }
 
 .action-button {
   padding: 12px 25px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
+  transition: var(--transition);
 }
 
 .save-button {
-  background: #D83D8D;
+  background: var(--primary-color);
   color: white;
 }
 
 .update-button {
-  background: #D83D8D;
+  background: var(--primary-color);
   color: white;
 }
 
@@ -118,17 +132,84 @@
 }
 
 .save-button:hover {
-  background: #b03275;
+  background: var(--primary-hover);
 }
 
 .update-button:hover {
-  background: #b03275;
+  background: var(--primary-hover);
 }
 
 .action-button:disabled {
-  background: #bdbdbd;
+  background: var(--border-color);
   cursor: not-allowed;
   transform: none;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.user-avatar {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  margin-right: 10px;
+}
+
+.user-name {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.dropdown-icon {
+  font-size: 0.8rem;
+  margin-left: 5px;
+  transition: transform var(--transition);
+}
+
+.dropdown-icon.open {
+  transform: rotate(180deg);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+  min-width: 200px;
+  padding: 10px 0;
+  display: none;
+}
+
+.user-profile:hover .user-dropdown {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 10px 20px;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dropdown-item:hover {
+  background-color: var(--background-alt);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 5px 0;
+}
+
+.logout {
+  color: var(--danger-color) !important;
 }
 
 @media (max-width: 576px) {
@@ -136,13 +217,30 @@
     display: none;
   }
 
+  .main-content {
+    margin-left: 0;
+    padding: 10px;
+  }
+
+  .welcome-text h1 {
+    font-size: 1.4rem;
+  }
+
   .cards-setting {
-    display: flex;
     flex-direction: column;
   }
 
   .info-section {
-    margin-bottom: 30px !important;
+    margin-bottom: 30px;
   }
-  
+
+  .cuota-input {
+    width: 100%;
+  }
+
+  .action-button {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+  }
 }

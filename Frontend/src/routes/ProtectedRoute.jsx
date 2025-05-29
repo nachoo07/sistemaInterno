@@ -1,28 +1,34 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { LoginContext } from '../context/login/LoginContext'; // Asegúrate de importar tu contexto
+import { LoginContext } from '../context/login/LoginContext';
 
-const ProtectedRoute = ({ element, role, ...rest }) => {
-  const { auth } = useContext(LoginContext); // Obtenemos el estado del rol del usuario desde el contexto
+const ProtectedRoute = ({ element, role }) => {
+    const { auth, isLoggedOut, isTokenValid } = useContext(LoginContext);
+    const location = useLocation();
+    const [isValidating, setIsValidating] = useState(isTokenValid === null);
 
-  const location = useLocation(); // Obtenemos la ubicación actual
+    useEffect(() => {
+        if (isTokenValid !== null) {
+            setIsValidating(false);
+        }
+    }, [isTokenValid]);
 
-  // Si el usuario no está autenticado, siempre redirigir a /login
-  if (!auth) {
-    if (location.pathname !== '/login') {
-      return <Navigate to="/login" />;
+    if (isValidating) {
+        return <div>Cargando...</div>;
     }
+
+    if (!auth || isLoggedOut || isTokenValid === false) {
+        if (location.pathname !== '/login') {
+            return <Navigate to="/login" replace />;
+        }
+        return element;
+    }
+
+    if (role && auth !== role) {
+        return <Navigate to="/homeuser" replace />;
+    }
+
     return element;
-  }
-
-  // Si el usuario está autenticado pero no tiene el rol correcto
-  if (role && auth !== role) {
-    return <Navigate to="/homeuser" />;
-  }
-
-  // Si todo está bien, renderiza el componente solicitado
-  return element;
 };
-
 
 export default ProtectedRoute;

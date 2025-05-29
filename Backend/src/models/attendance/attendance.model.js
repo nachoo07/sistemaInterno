@@ -8,7 +8,8 @@ const attendanceSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     attendance: [
         {
@@ -19,11 +20,13 @@ const attendanceSchema = new mongoose.Schema({
             },
             name: {
                 type: String,
-                required: true
+                required: true,
+                trim: true
             },
             lastName: {
                 type: String,
-                required: true
+                required: true,
+                trim: true
             },
             present: {
                 type: Boolean,
@@ -33,5 +36,6 @@ const attendanceSchema = new mongoose.Schema({
     ]
 }, { timestamps: true });
 
+attendanceSchema.index({ date: 1, category: 1 });
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 export default Attendance;

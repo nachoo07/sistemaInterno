@@ -4,7 +4,6 @@ import Login from '../components/login/Login';
 import PageHome from '../pages/home/PageHome';
 import PageStudent from '../pages/student/PageStudent';
 import { PageUser } from '../pages/users/PageUser';
-import PageNotification from '../pages/notification/PageNotification';
 import PageDetail from '../pages/detailStudent/PageDetail';
 import PageHomeUser from '../pages/homeUser/PageHomeUser';
 import { useContext } from 'react';
@@ -17,6 +16,9 @@ import PageReport from '../pages/report/PageReport';
 import PageMotion from '../pages/motion/PageMotion';
 import Settings from '../components/settings/Settings'; // Nueva importación
 import EmailNotification from '../components/email/EmailNotification'; // Nueva importación
+import PageDetailShare from '../pages/detailShare/PageDetailShare';
+import PagePaymentStudent from '../pages/payment/PagePaymentStudent';
+
 const Routing = () => {
   const { auth } = useContext(LoginContext);
 
@@ -28,10 +30,7 @@ const Routing = () => {
         path="/attendance"
         element={<ProtectedRoute element={<PageAttendance />} />}
       />
-      <Route
-        path="/notification"
-        element={<ProtectedRoute element={<PageNotification />} />}
-      />
+
 
       {/* Ruta para usuarios comunes */}
       <Route
@@ -68,12 +67,20 @@ const Routing = () => {
         element={<ProtectedRoute element={<PageDetail />} role="admin" />}
       />
       <Route
-        path="/share/:studentId"
+        path="/share"
         element={<ProtectedRoute element={<PageShare />} role="admin" />}
+      />
+      <Route
+        path="/share/:studentId"
+        element={<ProtectedRoute element={<PageDetailShare />} role="admin" />}
       />
       <Route
         path="/settings"
         element={<ProtectedRoute element={<Settings />} role="admin" />}
+      />
+      <Route
+        path="/paymentstudent/:id"
+        element={<ProtectedRoute element={<PagePaymentStudent />} role="admin" />}
       />
       <Route path="/email-notifications"
         element={<ProtectedRoute element={<EmailNotification />} role="admin" />} />

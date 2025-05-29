@@ -1,4 +1,7 @@
 import jwt from 'jsonwebtoken';
+import pino from 'pino';
+
+const logger = pino()
 
 export const protect = (req, res, next) => {
     const token = req.cookies.token;
@@ -11,16 +14,18 @@ export const protect = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
         next();
-    } catch (error) {
-        console.error('Error al verificar el token:', error.message);
-        return res.status(401).json({ message: 'Token is not valid' });
-    }
+      } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+          return res.status(401).json({ message: 'Token Expirado' });
+        }
+        logger.error({ error: error.message }, 'Error al verificar el token');
+        return res.status(401).json({ message: 'Token Invalido' });
+      }
 };
 
 export const admin = (req, res, next) => {
-    // Verificar si el rol del usuario es 'admin'
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Forbidden: You are not an admin' });
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden: You are not an admin' });
     }
     next();
-};
+  };

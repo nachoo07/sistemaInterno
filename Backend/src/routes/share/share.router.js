@@ -1,4 +1,5 @@
 import express from 'express';
+import { param, body, query } from 'express-validator';
 import {
     getAllShares,
     createShare,
@@ -15,18 +16,23 @@ import { protect, admin } from '../../middlewares/login/protect.js'; // Importar
 
 const router = express.Router();
 
-// Rutas protegidas (requieren autenticación)
-//router.post('/create', createPendingShares); // Crear cuotas pendientes
-router.post('/create', protect, admin, createShare); // Solo los admins pueden crear cuotas
-router.put('/update/:id', protect, admin, updateShare); // Solo los admins pueden actualizar cuotas
-router.delete('/delete/:id', protect, admin, deleteShare); // Solo los admins pueden eliminar cuotas
-router.get('/date/:date', protect, admin, getSharesByDate); // Obtener cuotas por fecha
-router.get('/date-range', protect, admin, getSharesByDateRange); // Obtener cuotas por rango de fechas
-router.get('/students-status', getStudentsWithShareStatus); // Obtener estudiantes con estado de cuota
-router.put('/update-pending', protect, admin, updatePendingShares); // Actualizar cuotas pendientes
-// Rutas públicas (sin autenticación)
-router.get('/:id', protect, admin, getShareById); // Obtener una cuota por ID
-router.get('/student/:studentId', protect, admin, getSharesByStudent); // Obtener cuotas por estudiante
-router.get('/', protect, admin, getAllShares); // Obtener todas las cuotas
+
+router.post('/create', [
+    body('student').isMongoId().withMessage('Valid student ID is required'),
+    body('date').isDate().withMessage('Valid date is required'),
+    body('amount').isNumeric().withMessage('Valid amount is required')
+  ], protect, admin, createShare);
+  router.put('/update/:id', [param('id').isMongoId()], protect, admin, updateShare);
+  router.delete('/delete/:id', [param('id').isMongoId()], protect, admin, deleteShare);
+  router.get('/date/:date', [param('date').isDate()], protect, admin, getSharesByDate);
+  router.get('/date-range', [
+    query('start').isDate().withMessage('Valid start date is required'),
+    query('end').isDate().withMessage('Valid end date is required')
+  ], protect, admin, getSharesByDateRange);
+  router.get('/students-status', protect, admin, getStudentsWithShareStatus);
+  router.put('/update-pending', protect, admin, updatePendingShares);
+  router.get('/:id', [param('id').isMongoId()], protect, admin, getShareById);
+  router.get('/student/:studentId', [param('studentId').isMongoId()], protect, admin, getSharesByStudent);
+  router.get('/', protect, admin, getAllShares);
 
 export default router;

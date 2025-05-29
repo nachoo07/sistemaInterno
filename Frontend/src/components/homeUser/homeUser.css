@@ -13,10 +13,7 @@ body {
   padding: 0;
 }
 
-.dashboard-container {
-  display: flex;
-  min-height: 100vh;
-}
+
 
 .sidebar {
   background-color: var(--primary-color);

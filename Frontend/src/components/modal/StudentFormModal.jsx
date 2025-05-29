@@ -61,11 +61,20 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <Modal show={show} onHide={handleClose} dialogClassName="student-modal">
-      <Modal.Header closeButton>
-        <Modal.Title>{formData._id ? "Editar Alumno" : "Agregar Alumno"}</Modal.Title>
+    <Modal
+      show={show}
+      onHide={handleClose}
+      dialogClassName="studentFormModal-container" /* Solo tu clase personalizada */
+      size="lg" /* Usamos size="lg" para que Bootstrap aplique el tamaño grande */
+      backdrop="static"
+      keyboard={false}
+    >
+      <Modal.Header closeButton className="studentFormModal-header">
+        <Modal.Title className="studentFormModal-title">
+          {formData._id ? "Editar Alumno" : "Agregar Alumno"}
+        </Modal.Title>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body className="studentFormModal-body">
         {showAlert && (
           <Alert
             variant="warning"
@@ -77,9 +86,8 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
             <p>{alertMessage}</p>
           </Alert>
         )}
-        <Form onSubmit={onSubmit} className="form-grid" encType="multipart/form-data">
-
-          <Form.Group controlId="formNombre">
+        <Form onSubmit={onSubmit} className="studentFormModal-form-grid" encType="multipart/form-data">
+          <Form.Group controlId="formNombre" className="studentFormModal-form-group">
             <Form.Label>Nombre</Form.Label>
             <Form.Control
               type="text"
@@ -89,9 +97,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleInputChange}
               required
               maxLength={50}
+              className="form-control-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formLastName">
+          <Form.Group controlId="formLastName" className="studentFormModal-form-group">
             <Form.Label>Apellido</Form.Label>
             <Form.Control
               type="text"
@@ -101,10 +110,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleInputChange}
               required
               maxLength={50}
+              className="form-control-custom"
             />
           </Form.Group>
-
-          <Form.Group controlId="formDNI">
+          <Form.Group controlId="formDNI" className="studentFormModal-form-group">
             <Form.Label>CUIL</Form.Label>
             <Form.Control
               type="text"
@@ -115,9 +124,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               required
               pattern="\d{10,11}"
               title="CUIL debe contener 10 u 11 dígitos."
+              className="form-control-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formBirthDate">
+          <Form.Group controlId="formBirthDate" className="studentFormModal-form-group">
             <Form.Label>Fecha de Nacimiento</Form.Label>
             <Form.Control
               type="date"
@@ -126,10 +136,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleChange}
               max={today}
               required
+              className="form-control-custom"
             />
           </Form.Group>
-
-          <Form.Group controlId="formDireccion">
+          <Form.Group controlId="formDireccion" className="studentFormModal-form-group">
             <Form.Label>Dirección</Form.Label>
             <Form.Control
               type="text"
@@ -139,9 +149,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleChange}
               required
               maxLength={100}
+              className="form-control-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formMail">
+          <Form.Group controlId="formMail" className="studentFormModal-form-group">
             <Form.Label>Email</Form.Label>
             <Form.Control
               type="email"
@@ -152,10 +163,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               required
               pattern="\S+@\S+\.\S+"
               title="Formato de email inválido."
+              className="form-control-custom"
             />
           </Form.Group>
-
-          <Form.Group controlId="formCategoria">
+          <Form.Group controlId="formCategoria" className="studentFormModal-form-group">
             <Form.Label>Categoría</Form.Label>
             <Form.Control
               type="text"
@@ -166,11 +177,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               required
               pattern="^[0-9]+$"
               maxLength={50}
+              className="form-control-custom"
             />
           </Form.Group>
-
-
-          <Form.Group controlId="formNombreMama">
+          <Form.Group controlId="formNombreMama" className="studentFormModal-form-group">
             <Form.Label>Nombre Mamá</Form.Label>
             <Form.Control
               type="text"
@@ -179,9 +189,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               value={formData.motherName || ''}
               onChange={handleChange}
               maxLength={50}
+              className="form-control-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formCelularMama">
+          <Form.Group controlId="formCelularMama" className="studentFormModal-form-group">
             <Form.Label>Celular Mamá</Form.Label>
             <Form.Control
               type="text"
@@ -191,21 +202,23 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleNumberInput}
               pattern="\d{10,15}"
               title="El número debe tener entre 10 y 15 dígitos."
+              className="form-control-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formState">
+          <Form.Group controlId="formState" className="studentFormModal-form-group">
             <Form.Label>Estado</Form.Label>
             <Form.Control
               as="select"
               name="state"
               value={formData.state}
               onChange={handleChange}
+              className="form-control-custom"
             >
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>
             </Form.Control>
           </Form.Group>
-          <Form.Group controlId="formNombrePapa">
+          <Form.Group controlId="formNombrePapa" className="studentFormModal-form-group">
             <Form.Label>Nombre Papá</Form.Label>
             <Form.Control
               type="text"
@@ -214,9 +227,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               value={formData.fatherName || ''}
               onChange={handleChange}
               maxLength={50}
+              className="form-control-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formCelularPapa">
+          <Form.Group controlId="formCelularPapa" className="studentFormModal-form-group">
             <Form.Label>Celular Papá</Form.Label>
             <Form.Control
               type="text"
@@ -226,40 +240,43 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleNumberInput}
               pattern="\d{10,15}"
               title="El número debe tener entre 10 y 15 dígitos."
+              className="form-control-custom"
             />
           </Form.Group>
-
-          <Form.Group controlId="formHasSiblingDiscount" className="full-width" >
+          <Form.Group controlId="formHasSiblingDiscount" className="studentFormModal-checkbox-group">
             <Form.Check
               type="checkbox"
               name="hasSiblingDiscount"
-              className='checkbox'
               checked={formData.hasSiblingDiscount || false}
               onChange={handleCheckboxChange}
               label="Aplicar 10% de descuento por hermanos"
+              className="studentFormModal-form-check-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formProfileImage" className="full-width form-group-with-preview">
-            <div>
+          <Form.Group controlId="formProfileImage" className="studentFormModal-full-width-img">
+            <div className="studentFormModal-image-upload-container">
               <Form.Label>Imagen de Perfil</Form.Label>
               <Form.Control
                 type="file"
                 name="profileImage"
                 onChange={handleFileChange}
                 disabled={uploading}
+                className="form-control-custom"
               />
               {uploading && <p className="uploading">Subiendo imagen...</p>}
             </div>
             {formData.profileImage && (
-              <img
-                src={formData.profileImage instanceof File ? URL.createObjectURL(formData.profileImage) : formData.profileImage}
-                alt="Vista previa"
-                className="preview-img "
-                onError={(e) => e.target.src = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg'}
-              />
+              <div className="studentFormModal-image-preview-container">
+                <img
+                  src={formData.profileImage instanceof File ? URL.createObjectURL(formData.profileImage) : formData.profileImage}
+                  alt="Vista previa"
+                  className="studentFormModal-preview-img"
+                  onError={(e) => e.target.src = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg'}
+                />
+              </div>
             )}
           </Form.Group>
-          <Form.Group controlId="formComentario" className="full-width">
+          <Form.Group controlId="formComentario" className="studentFormModal-full-width">
             <Form.Label>Comentario</Form.Label>
             <Form.Control
               as="textarea"
@@ -269,12 +286,17 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               value={formData.comment || ''}
               onChange={handleChange}
               maxLength={500}
+              className="form-control-custom"
             />
           </Form.Group>
-
-          <Button type="submit" className="save-btn full-width" disabled={uploading}>
-            {uploading ? "Guardando..." : (formData._id ? "Actualizar" : "Guardar")}
-          </Button>
+          <div className="studentFormModal-buttons-container">
+            <Button type="button" className="studentFormModal-cancel-btn" onClick={handleClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" className="studentFormModal-save-btn" disabled={uploading}>
+              {uploading ? "Guardando..." : (formData._id ? "Actualizar" : "Guardar")}
+            </Button>
+          </div>
         </Form>
       </Modal.Body>
     </Modal>

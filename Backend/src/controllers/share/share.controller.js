@@ -1,250 +1,283 @@
 import Share from '../../models/share/share.model.js';
 import Student from '../../models/student/student.model.js';
-import Config from '../../models/base/config.model.js'
-// Obtener todas las cuotas
+import Config from '../../models/base/config.model.js';
+import { calculateShareAmount } from '../../cron/share/sharesCron.js';
+import sanitize from 'mongo-sanitize';
+import pino from 'pino';
+const logger = pino();
+
 export const getAllShares = async (req, res) => {
-    try {
-        const shares = await Share.find()
-            .populate({
-                path: 'student',
-                select: 'name lastName' // Trae solo el nombre y apellido del estudiante
-            });
-        if (shares.length === 0) {
-            return res.status(200).json({ message: "No hay cuotas disponibles" });
-        }
-        res.status(200).json(shares);
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
+  const { page = 1, limit = 10 } = req.query;
+  try {
+    const shares = await Share.find()
+      .populate({ path: 'student', select: 'name lastName' })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .lean();
+    res.status(200).json(shares.length ? shares : { message: "No hay cuotas disponibles" });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al obtener cuotas');
+    res.status(500).json({ message: 'Error al obtener cuotas' });
+  }
 };
 
-// Crear una nueva cuota
 export const createShare = async (req, res) => {
-    const { student, date, amount, paymentmethod, paymentdate } = req.body;
+  const { student, date, amount, paymentmethod, paymentdate } = sanitize(req.body);
 
-    if (!student || !date || amount == null) {
-        return res.status(400).json({ message: "Faltan campos obligatorios" });
+  if (!student || !date || amount == null) {
+    return res.status(400).json({ message: "Faltan campos obligatorios" });
+  }
+
+  try {
+    const shareDate = new Date(date);
+    if (isNaN(shareDate)) {
+      return res.status(400).json({ message: "Fecha inválida" });
     }
-    try {
-        // Verificar si ya hay fecha de pago
-        const cuotaState = paymentdate ? 'Pagado' : 'Pendiente';
-        const newShare = await Share.create({
-            student,
-            date,
-            amount,
-            paymentmethod,
-            paymentdate,
-            state: cuotaState  // Establecer el estado basado en la fecha de pago
-        });
-        const savedShare = await newShare.save();
-        res.status(201).json({
-            message: "La cuota se agregó exitosamente",
-            share: savedShare
-        });
-    } catch (error) {
-        return res.status(500).json({ message: "Error al crear la cuota", error: error.message });
-    }
+
+    const cuotaState = paymentdate ? 'Pagado' : 'Pendiente';
+    const newShare = new Share({
+      student,
+      date: shareDate,
+      amount,
+      paymentmethod,
+      paymentdate: paymentdate ? new Date(paymentdate) : null,
+      state: cuotaState,
+      updatedBy: req.user.userId
+    });
+    await newShare.save();
+    logger.info({ shareId: newShare._id }, 'Cuota creada');
+    res.status(201).json({ message: "Cuota creada exitosamente", share: newShare });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al crear cuota');
+    res.status(500).json({ message: 'Error al crear cuota' });
+  }
 };
 
-// Eliminar una cuota por su ID
 export const deleteShare = async (req, res) => {
-    try {
-        const share = await Share.findByIdAndDelete(req.params.id);
-        if (!share) return res.status(404).json({ message: 'Cuota no encontrada' });
-        res.json({ message: 'Cuota eliminada' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  const { id } = sanitize(req.params);
+
+  try {
+    const share = await Share.findByIdAndDelete(id);
+    if (!share) {
+      return res.status(404).json({ message: 'Cuota no encontrada' });
     }
+    logger.info({ shareId: id }, 'Cuota eliminada');
+    res.status(200).json({ message: 'Cuota eliminada exitosamente' });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al eliminar cuota');
+    res.status(500).json({ message: 'Error al eliminar cuota' });
+  }
 };
-// Función para actualizar una cuota
+
 export const updateShare = async (req, res) => {
-    try {
-        const { id } = req.params; // ID de la cuota
-        const { paymentdate, paymentmethod } = req.body;
-        if (!paymentdate || !paymentmethod) {
-            return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
-        }
-        const share = await Share.findById(id);
-        if (!share) {
-            return res.status(404).json({ message: 'Cuota no encontrada.' });
-        }
-        const student = await Student.findById(share.student);
-        const config = await Config.findOne({ key: 'cuotaBase' });
-        const cuotaBase = config ? config.value : 30000; // Default $30,000
-        const baseAmount = student.hasSiblingDiscount ? cuotaBase * 0.9 : cuotaBase; // 10% descuento
+  const { id } = sanitize(req.params);
+  const { amount, paymentdate, paymentmethod, state } = sanitize(req.body);
 
-        const currentDate = new Date(paymentdate);
-        let adjustedAmount = baseAmount;
-
-        if (currentDate.getDate() > 20) {
-            adjustedAmount = baseAmount * 1.2; // +20%
-        } else if (currentDate.getDate() > 10) {
-            adjustedAmount = baseAmount * 1.1; // +10%
-        }
-
-        share.paymentdate = paymentdate;
-        share.amount = Math.round(adjustedAmount);
-        share.paymentmethod = paymentmethod;
-        share.state = 'Pagado';
-
-        await share.save();
-        res.status(200).json({ message: 'Cuota actualizada correctamente.', share });
-    } catch (error) {
-        console.error('Error al actualizar cuota:', error);
-        res.status(500).json({ message: 'Error interno del servidor.' });
+  try {
+    const share = await Share.findById(id);
+    if (!share) {
+      return res.status(404).json({ message: 'Cuota no encontrada' });
     }
+
+    // Validar y actualizar amount si se proporciona
+    if (amount != null) {
+      if (parseFloat(amount) < 0) {
+        return res.status(400).json({ message: 'El monto no puede ser negativo' });
+      }
+      share.amount = parseFloat(amount);
+    }
+
+    // Validar y actualizar paymentdate si se proporciona
+    if (paymentdate) {
+      const paymentDate = new Date(paymentdate);
+      if (isNaN(paymentDate)) {
+        return res.status(400).json({ message: 'Fecha de pago inválida' });
+      }
+      share.paymentdate = paymentDate;
+    }
+
+    // Validar y actualizar paymentmethod si se proporciona
+    if (paymentmethod) {
+      share.paymentmethod = paymentmethod;
+    }
+
+    // Actualizar state basado en paymentdate y paymentmethod
+    share.state = paymentdate && paymentmethod ? 'Pagado' : share.state;
+
+    // Actualizar updatedBy
+    share.updatedBy = req.user.userId;
+
+    await share.save();
+    logger.info({ shareId: id }, 'Cuota actualizada');
+    res.status(200).json({ message: 'Cuota actualizada exitosamente', share });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al actualizar cuota');
+    res.status(500).json({ message: 'Error al actualizar cuota' });
+  }
 };
-// Obtener una cuota por su ID
+
 export const getShareById = async (req, res) => {
-    try {
-        const share = await Share.findById(req.params.id)
-            .populate({
-                path: 'student',
-                select: 'name lastName' // Trae solo el nombre y apellido
-            });
-        if (!share) return res.status(404).json({ message: 'Cuota no encontrada' });
-        res.json(share);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  const { id } = sanitize(req.params);
+
+  try {
+    const share = await Share.findById(id)
+      .populate({ path: 'student', select: 'name lastName' })
+      .lean();
+    if (!share) {
+      return res.status(404).json({ message: 'Cuota no encontrada' });
     }
+    res.status(200).json(share);
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al obtener cuota');
+    res.status(500).json({ message: 'Error al obtener cuota' });
+  }
 };
-// Obtener cuotas por estudiante
+
 export const getSharesByStudent = async (req, res) => {
-    try {
-        const shares = await Share.find({ student: req.params.studentId })
-            .populate({
-                path: 'student',
-                select: 'name lastName' // Trae solo el nombre y apellido
-            });
-        if (shares.length === 0) {
-            return res.status(200).json({ message: "No hay cuotas disponibles para este estudiante" });
-        }
-        res.status(200).json(shares);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  const { studentId } = sanitize(req.params);
+  const { page = 1, limit = 10 } = req.query;
+
+  try {
+    const shares = await Share.find({ student: studentId })
+      .populate({ path: 'student', select: 'name lastName' })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .lean();
+    res.status(200).json(shares.length ? shares : { message: "No hay cuotas disponibles para este estudiante" });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al obtener cuotas por estudiante');
+    res.status(500).json({ message: 'Error al obtener cuotas' });
+  }
 };
+
 export const getSharesByDate = async (req, res) => {
-    try {
-        const { date } = req.params;
-        const startDate = new Date(date);
-        const endDate = new Date(date);
-        endDate.setDate(endDate.getDate() + 1);
+  const { date } = sanitize(req.params);
 
-        const shares = await Share.find({
-            paymentdate: {
-                $gte: startDate,
-                $lt: endDate
-            }
-        }).populate({
-            path: 'student',
-            select: 'name lastName' // Trae solo el nombre y apellido del estudiante
-        });
-
-        if (shares.length === 0) {
-            return res.status(200).json({ message: "No hay cuotas disponibles para esta fecha" });
-        }
-        res.status(200).json(shares);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const startDate = new Date(date);
+    if (isNaN(startDate)) {
+      return res.status(400).json({ message: 'Fecha inválida' });
     }
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 1);
+
+    const shares = await Share.find({
+      paymentdate: { $gte: startDate, $lt: endDate }
+    }).populate({ path: 'student', select: 'name lastName' }).lean();
+
+    res.status(200).json(shares.length ? shares : { message: "No hay cuotas disponibles para esta fecha" });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al obtener cuotas por fecha');
+    res.status(500).json({ message: 'Error al obtener cuotas' });
+  }
 };
+
 export const getSharesByDateRange = async (req, res) => {
-    try {
-        const { startDate, endDate } = req.query;
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setDate(end.getDate() + 1);
+  const { startDate, endDate } = sanitize(req.query);
 
-        const shares = await Share.find({
-            paymentdate: {
-                $gte: start,
-                $lt: end
-            }
-        }).populate({
-            path: 'student',
-            select: 'name lastName' // Trae solo el nombre y apellido del estudiante
-        });
-        if (shares.length === 0) {
-            return res.status(200).json({ message: "No hay cuotas disponibles para este rango de fechas" });
-        }
-        res.status(200).json(shares);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start) || isNaN(end)) {
+      return res.status(400).json({ message: 'Fechas inválidas' });
     }
+    end.setDate(end.getDate() + 1);
+
+    const shares = await Share.find({
+      paymentdate: { $gte: start, $lt: end }
+    }).populate({ path: 'student', select: 'name lastName' }).lean();
+
+    res.status(200).json(shares.length ? shares : { message: "No hay cuotas disponibles para este rango de fechas" });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al obtener cuotas por rango de fechas');
+    res.status(500).json({ message: 'Error al obtener cuotas' });
+  }
 };
 
-// Nuevo endpoint para obtener el estado prioritario de todos los estudiantes
 export const getStudentsWithShareStatus = async (req, res) => {
-    try {
-        const students = await Student.aggregate([
-            {
-                $lookup: {
-                    from: "shares",
-                    localField: "_id",
-                    foreignField: "student",
-                    as: "shares"
-                }
-            },
-            {
-                $project: {
-                    name: 1,
-                    lastName: 1,
-                    status: {
-                        $cond: [
-                            { $anyElementTrue: { $map: { input: "$shares", in: { $eq: ["$$this.state", "Vencido"] } } } },
-                            "Vencido",
-                            {
-                                $cond: [
-                                    { $anyElementTrue: { $map: { input: "$shares", in: { $eq: ["$$this.state", "Pendiente"] } } } },
-                                    "Pendiente",
-                                    {
-                                        $cond: [
-                                            { $anyElementTrue: { $map: { input: "$shares", in: { $eq: ["$$this.state", "Pagado"] } } } },
-                                            "Pagado",
-                                            "Sin cuotas"
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                }
-            }
-        ]);
-        res.status(200).json(students);
-    } catch (error) {
-        res.status(500).json({ message: "Error al obtener los estados de los estudiantes", error: error.message });
-    }
+  try {
+    const students = await Student.aggregate([
+      {
+        $lookup: {
+          from: "shares",
+          localField: "_id",
+          foreignField: "student",
+          as: "shares"
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          lastName: 1,
+          status: {
+            $cond: [
+              { $anyElementTrue: { $map: { input: "$shares", in: { $eq: ["$$this.state", "Vencido"] } } } },
+              "Vencido",
+              {
+                $cond: [
+                  { $anyElementTrue: { $map: { input: "$shares", in: { $eq: ["$$this.state", "Pendiente"] } } } },
+                  "Pendiente",
+                  {
+                    $cond: [
+                      { $anyElementTrue: { $map: { input: "$shares", in: { $eq: ["$$this.state", "Pagado"] } } } },
+                      "Pagado",
+                      "Sin cuotas"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]);
+    res.status(200).json(students);
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al obtener estados de cuotas');
+    res.status(500).json({ message: 'Error al obtener estados de cuotas' });
+  }
 };
 
-// Nuevo endpoint para actualizar cuotas pendientes masivamente
 export const updatePendingShares = async (req, res) => {
-    try {
-        const config = await Config.findOne({ key: 'cuotaBase' });
-        const cuotaBase = config ? config.value : 30000; // Default $30,000
-        const currentDate = new Date(); // Usamos fecha real, no simulada
-        const currentDay = currentDate.getDate();
-        if (currentDay > 10) {
-            return res.status(400).json({ message: 'No se puede actualizar cuotas después del día 10.' });
-        }
-        // Definir el rango del mes actual
-        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
-        const shares = await Share.find({
-            state: 'Pendiente',
-            date: { $gte: startOfMonth, $lte: endOfMonth } // Filtrar por rango de fechas
-        });
-        for (let share of shares) {
-            const student = await Student.findById(share.student);
-            const baseAmount = student.hasSiblingDiscount ? cuotaBase * 0.9 : cuotaBase;
+  try {
+    const config = await Config.findOne({ key: 'cuotaBase' });
+    const cuotaBase = config ? config.value : 30000;
+    const currentDate = new Date();
+    const currentDay = currentDate.getDate();
 
-            share.amount = Math.round(baseAmount); // Solo aplica baseAmount, sin incrementos (día <= 10)
-            await share.save();
-        }
-        res.status(200).json({ message: 'Cuotas pendientes actualizadas correctamente' });
-    } catch (error) {
-        console.error('Error al actualizar cuotas pendientes:', error);
-        res.status(500).json({ message: 'Error interno del servidor.' });
+    if (currentDay > 10) {
+      return res.status(400).json({ message: 'No se puede actualizar cuotas después del día 10' });
     }
+
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const shares = await Share.find({
+      state: 'Pendiente',
+      date: { $gte: startOfMonth, $lte: endOfMonth }
+    });
+
+    const bulkOps = [];
+    for (let share of shares) {
+      const student = await Student.findById(share.student);
+      const baseAmount = student.hasSiblingDiscount ? cuotaBase * 0.9 : cuotaBase;
+
+      bulkOps.push({
+        updateOne: {
+          filter: { _id: share._id },
+          update: { amount: Math.round(baseAmount), updatedBy: req.user.userId }
+        }
+      });
+    }
+
+    if (bulkOps.length > 0) {
+      await Share.bulkWrite(bulkOps);
+      logger.info({ updatedCount: bulkOps.length }, 'Cuotas pendientes actualizadas');
+    }
+
+    res.status(200).json({ message: 'Cuotas pendientes actualizadas exitosamente' });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al actualizar cuotas pendientes');
+    res.status(500).json({ message: 'Error al actualizar cuotas pendientes' });
+  }
 };

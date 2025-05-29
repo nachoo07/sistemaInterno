@@ -1,4 +1,4 @@
-import Navigate from "./components/navbar/Navigate";
+
 import Routing from "./routes/Routing";
 import UsersProvider from "./context/user/UserContext";
 import { LoginProvider } from "./context/login/LoginContext";
@@ -7,6 +7,8 @@ import StudentsProvider from "./context/student/StudentContext";
 import SharesProvider from "./context/share/ShareContext";
 import { AttendanceProvider } from "./context/attendance/AttendanceContext";
 import { MotionProvider } from "./context/motion/MotionContext";
+import EmailProvider from "./context/email/EmailContext";
+import PaymentProvider from "./context/payment/PaymentContext";
 
 function App() {
   const location = useLocation();  // Obtén la ubicación actual
@@ -18,10 +20,14 @@ function App() {
           <StudentsProvider>
             <AttendanceProvider>
               <SharesProvider>
-                <MotionProvider>  
-                  {location.pathname !== '/login' && <Navigate />}
-                  <Routing />
-                </MotionProvider>
+                <EmailProvider>
+                  <MotionProvider>
+                    <PaymentProvider>
+
+                    <Routing />
+                    </PaymentProvider>
+                  </MotionProvider>
+                </EmailProvider>
               </SharesProvider>
             </AttendanceProvider>
           </StudentsProvider>

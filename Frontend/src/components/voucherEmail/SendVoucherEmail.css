@@ -1,0 +1,89 @@
+/* Estilos generales */
+.voucher-container {
+  width: 800px; /* Aumentar el ancho */
+  height: 520px; /* Aumentar el alto */
+  background-color: #f8f9fa; /* --background-color */
+  font-family: Arial, sans-serif;
+  position: absolute;
+  top: -9999px;
+  left: 0;
+}
+
+/* Encabezado */
+.voucher-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #E42278; /* --primary-color */
+  padding: 20px 25px; /* Ajustar padding para mayor resolución */
+}
+
+.voucher-header-logo {
+  display: flex;
+  align-items: center;
+}
+
+.voucher-header-logo img {
+  width: 120px; /* Aumentar tamaño del logo */
+  height: auto;
+  margin-right: 15px; /* Ajustar margen */
+}
+
+.voucher-header-title {
+  color: #ffffff; /* Blanco para contraste con el fondo rosa */
+  font-size: 24px; /* Aumentar tamaño de fuente */
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.voucher-header-comprobante {
+  color: #ffffff; /* Blanco para contraste */
+  font-size: 38px; /* Aumentar tamaño de fuente */
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* Contenido principal */
+.voucher-content {
+  padding: 25px; /* Ajustar padding */
+  background-color: #ffffff; /* --card-bg */
+}
+
+/* Secciones */
+.voucher-section {
+  margin-bottom: 25px; /* Ajustar margen */
+}
+
+.voucher-section-title {
+  font-size: 20px; /* Aumentar tamaño de fuente */
+  color: #6c757d; /* --text-color */
+  margin: 0 0 15px 0; /* Ajustar margen */
+  text-transform: uppercase;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.voucher-text {
+  margin: 8px 0; /* Ajustar margen */
+  color: #333333; /* --text-color */
+  font-size: 18px; /* Aumentar tamaño de fuente */
+  text-align: left; /* Alinear a la izquierda */
+}
+
+.voucher-text strong {
+  font-weight: bold;
+}
+
+/* Pie de página */
+.voucher-footer {
+  background-color: #f42c8c; /* --primary-color */
+  padding: 15px 25px; /* Ajustar padding */
+  text-align: left; /* Alinear a la izquierda */
+}
+
+.voucher-footer-text {
+  color: #6c757d; /* --text-light */
+  font-size: 24px; /* Aumentar tamaño de fuente */
+  margin: 5px 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
