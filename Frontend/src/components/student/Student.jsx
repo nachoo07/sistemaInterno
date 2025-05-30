@@ -9,7 +9,7 @@ import { StudentsContext } from '../../context/student/StudentContext';
 import { LoginContext } from '../../context/login/LoginContext';
 import StudentFormModal from '../modal/StudentFormModal';
 import Swal from 'sweetalert2';
-import './Student.css';
+import './student.css';
 import AppNavbar from '../navbar/AppNavbar';
 
 const Student = () => {
