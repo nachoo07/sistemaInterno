@@ -1,4 +1,4 @@
-import {Payment, PaymentConcept } from '../../models/payment/payment.model.js';
+import { Payment, PaymentConcept } from '../../models/payment/payment.model.js';
 import Student from '../../models/student/student.model.js';
 import sanitize from 'mongo-sanitize';
 import mongoose from 'mongoose';
@@ -144,27 +144,18 @@ export const createPayment = async (req, res) => {
 export const deletePayment = async (req, res) => {
   const { id } = sanitize(req.params);
 
-  const session = await mongoose.startSession();
-
   try {
-    session.startTransaction();
-
-    const payment = await Payment.findById(id).session(session);
+    const payment = await Payment.findById(id).lean();
     if (!payment) {
-      await session.abortTransaction();
       return res.status(404).json({ message: 'Pago no encontrado' });
     }
 
-    await Payment.findByIdAndDelete(id).session(session);
-    await session.commitTransaction();
+    await Payment.findByIdAndDelete(id);
     logger.info({ paymentId: id }, 'Pago eliminado');
     res.status(200).json({ message: 'Pago eliminado exitosamente' });
   } catch (error) {
-    await session.abortTransaction();
     logger.error({ error: error.message }, 'Error al eliminar pago');
     res.status(500).json({ message: 'Error al eliminar pago' });
-  } finally {
-    session.endSession();
   }
 };
 

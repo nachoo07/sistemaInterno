@@ -22,6 +22,7 @@ import pino from 'pino';
 const logger = pino()
 
 const app = express();
+app.set('trust proxy', true); // Añade esta línea para confiar en el proxy (Nginx)
 
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? ['https://yoclaudiofutbol.com', 'https://www.yoclaudiofutbol.com']

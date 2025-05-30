@@ -18,27 +18,29 @@ export const AttendanceProvider = ({ children }) => {
 
   const ObtenerAsistencia = async () => {
     try {
-      const response = await axios.get('/api/attendance/', {
+      const response = await axios.get('http://localhost:4000/api/attendance/', {
         withCredentials: true,
       });
-      setAttendance(response.data);
+      // Asegurarse de que response.data sea un arreglo
+      const data = Array.isArray(response.data) ? response.data : [];
+      setAttendance(data);
     } catch (error) {
       console.error('Error al cargar las asistencias', error);
+      setAttendance([]); // En caso de error, establecer asistencias como un arreglo vacío
     }
   };
 
   const agregarAsistencia = async (asistencia) => {
     if (auth === 'admin' || auth === 'user') {
       try {
-        const response = await axios.post('/api/attendance/create', asistencia, {
+        const response = await axios.post('http://localhost:4000/api/attendance/create', asistencia, {
           withCredentials: true,
         });
-        // Actualiza el estado directamente en lugar de volver a llamar a ObtenerAsistencia
-        setAttendance((prev) => [...prev, response.data]);
-        Swal.fire('¡Éxito!', 'La cuota ha sido creada correctamente', 'success');
+        setAttendance((prev) => [...prev, response.data.attendance]); // Ajustamos para usar response.data.attendance
+        Swal.fire('¡Éxito!', 'La asistencia ha sido creada correctamente', 'success');
       } catch (error) {
         console.error('Error al agregar asistencia', error);
-        Swal.fire('¡Error!', 'Ha ocurrido un error al crear la cuota', 'error');
+        Swal.fire('¡Error!', 'Ha ocurrido un error al crear la asistencia', 'error');
       }
     }
   };
@@ -46,12 +48,11 @@ export const AttendanceProvider = ({ children }) => {
   const actualizarAsistencia = async ({ date, category, attendance }) => {
     if (auth === 'admin' || auth === 'user') {
       try {
-        const response = await axios.put('/api/attendance/update', {
+        const response = await axios.put('http://localhost:4000/api/attendance/update', {
           date,
           category,
           attendance,
         }, { withCredentials: true });
-        // Actualiza el estado directamente
         setAttendance((prev) =>
           prev.map((a) =>
             a.date === date && a.category === category
@@ -59,10 +60,10 @@ export const AttendanceProvider = ({ children }) => {
               : a
           )
         );
-        Swal.fire('¡Éxito!', 'La cuota ha sido actualizada correctamente', 'success');
+        Swal.fire('¡Éxito!', 'La asistencia ha sido actualizada correctamente', 'success');
       } catch (error) {
         console.error('Error al actualizar la asistencia', error);
-        Swal.fire('¡Error!', 'Ha ocurrido un error al actualizar la cuota', 'error');
+        Swal.fire('¡Error!', 'Ha ocurrido un error al actualizar la asistencia', 'error');
       }
     }
   };

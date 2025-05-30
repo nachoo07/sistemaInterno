@@ -323,67 +323,77 @@ const Attendance = () => {
             ))}
           </section>
           {selectedCategory && (
-            <>
-              <div className="attendance-date-picker">
-                <DatePicker
-                  selected={selectedDate}
-                  onChange={(date) => setSelectedDate(date)}
-                  maxDate={new Date()}
-                  dateFormat="yyyy-MM-dd"
-                  className="attendance-date-input"
+  <>
+    <div className="attendance-date-picker">
+      <DatePicker
+        selected={selectedDate}
+        onChange={(date) => setSelectedDate(date)}
+        maxDate={new Date()}
+        dateFormat="yyyy-MM-dd"
+        className="attendance-date-input"
+      />
+      <button className="attendance-today-btn" onClick={() => setSelectedDate(new Date())}>Hoy</button>
+    </div>
+    
+    {filteredStudents.length > 0 ? (
+      <table className="attendance-table">
+        <thead>
+          <tr>
+            <th>Nombre y Apellido</th>
+            <th>Presente</th>
+            <th>Ausente</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredStudents.map(student => (
+            <tr key={student._id}>
+              <td>{student.name} {student.lastName}</td>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={attendance[student._id] === 'present'}
+                  onChange={() => handleAttendanceChange(student._id, 'present')}
+                  disabled={isAttendanceSaved && !isEditing}
+                  className={isAttendanceSaved && !isEditing ? 'disabled-checkbox' : ''}
                 />
-                <button className="attendance-today-btn" onClick={() => setSelectedDate(new Date())}>Hoy</button>
-              </div>
-              <table className="attendance-table">
-                <thead>
-                  <tr>
-                    <th>Nombre y Apellido</th>
-                    <th>Presente</th>
-                    <th>Ausente</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStudents.map(student => (
-                    <tr key={student._id}>
-                      <td>{student.name} {student.lastName}</td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={attendance[student._id] === 'present'}
-                          onChange={() => handleAttendanceChange(student._id, 'present')}
-                          disabled={isAttendanceSaved && !isEditing}
-                          className={isAttendanceSaved && !isEditing ? 'disabled-checkbox' : ''}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={attendance[student._id] === 'absent'}
-                          onChange={() => handleAttendanceChange(student._id, 'absent')}
-                          disabled={isAttendanceSaved && !isEditing}
-                          className={isAttendanceSaved && !isEditing ? 'disabled-checkbox' : ''}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="attendance-buttons">
-                {!isAttendanceSaved && (
-                  <button className="attendance-save-btn" onClick={handleAttendanceSubmit}>Guardar Asistencia</button>
-                )}
-                {isAttendanceSaved && !isEditing && (
-                  <button className="attendance-edit-btn" onClick={handleEditAttendance}>Editar Asistencia</button>
-                )}
-                {isEditing && (
-                  <>
-                    <button className="attendance-update-btn" onClick={handleAttendanceSubmit}>Actualizar Asistencia</button>
-                    <button className="attendance-cancel-btn" onClick={handleCancelEdit}>Cancelar Edición</button>
-                  </>
-                )}
-              </div>
-            </>
-          )}
+              </td>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={attendance[student._id] === 'absent'}
+                  onChange={() => handleAttendanceChange(student._id, 'absent')}
+                  disabled={isAttendanceSaved && !isEditing}
+                  className={isAttendanceSaved && !isEditing ? 'disabled-checkbox' : ''}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <div className="no-students-message">
+        <p>No hay alumnos registrados en esta categoría</p>
+      </div>
+    )}
+    
+    {filteredStudents.length > 0 && (
+      <div className="attendance-buttons">
+        {!isAttendanceSaved && (
+          <button className="attendance-save-btn" onClick={handleAttendanceSubmit}>Guardar Asistencia</button>
+        )}
+        {isAttendanceSaved && !isEditing && (
+          <button className="attendance-edit-btn" onClick={handleEditAttendance}>Editar Asistencia</button>
+        )}
+        {isEditing && (
+          <>
+            <button className="attendance-update-btn" onClick={handleAttendanceSubmit}>Actualizar Asistencia</button>
+            <button className="attendance-cancel-btn" onClick={handleCancelEdit}>Cancelar Edición</button>
+          </>
+        )}
+      </div>
+    )}
+  </>
+)}
         </main>
       </div>
     </div>

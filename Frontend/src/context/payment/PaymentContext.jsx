@@ -18,7 +18,7 @@ export const PaymentProvider = ({ children }) => {
     }
     try {
       setLoadingConcepts(true);
-      const response = await axios.get('/api/payments/concepts', {
+      const response = await axios.get('http://localhost:4000/api/payments/concepts', {
         withCredentials: true,
       });
       const data = Array.isArray(response.data) 
@@ -47,7 +47,7 @@ export const PaymentProvider = ({ children }) => {
       return null;
     }
     try {
-      const response = await axios.post('/api/payments/concepts', { name }, {
+      const response = await axios.post('http://localhost:4000/api/payments/concepts', { name }, {
         withCredentials: true,
       });
       const newConcept = response.data.concept;
@@ -64,7 +64,7 @@ export const PaymentProvider = ({ children }) => {
       return;
     }
     try {
-      await axios.delete(`/api/payments/concepts/${conceptId}`, {
+      await axios.delete(`http://localhost:4000/api/payments/concepts/${conceptId}`, {
         withCredentials: true,
       });
       setConcepts((prev) => prev.filter((concept) => concept._id !== conceptId));
@@ -81,7 +81,7 @@ export const PaymentProvider = ({ children }) => {
     }
     try {
       setLoadingPayments(true);
-      const response = await axios.get(`/api/payments/student/${studentId}`, {
+      const response = await axios.get(`http://localhost:4000/api/payments/student/${studentId}`, {
         withCredentials: true,
       });
       const data = Array.isArray(response.data) 
@@ -111,7 +111,7 @@ export const PaymentProvider = ({ children }) => {
     }
     try {
       setLoadingPayments(true);
-      const response = await axios.get(`/api/payments`, {
+      const response = await axios.get(`http://localhost:4000/api/payments`, {
         withCredentials: true,
       });
       const data = Array.isArray(response.data) 
@@ -140,7 +140,7 @@ export const PaymentProvider = ({ children }) => {
       return;
     }
     try {
-      const response = await axios.post('/api/payments/create', paymentData, {
+      const response = await axios.post('http://localhost:4000/api/payments/create', paymentData, {
         withCredentials: true,
       });
       const newPayment = response.data.payment;
@@ -157,7 +157,7 @@ export const PaymentProvider = ({ children }) => {
       return;
     }
     try {
-      await axios.delete(`/api/payments/delete/${paymentId}`, {
+      await axios.delete(`http://localhost:4000/api/payments/delete/${paymentId}`, {
         withCredentials: true,
       });
       const freshPayments = await fetchPaymentsByStudent(studentId);
@@ -177,7 +177,7 @@ export const PaymentProvider = ({ children }) => {
       return;
     }
     try {
-      const response = await axios.put(`/api/payments/update/${paymentId}`, paymentData, {
+      const response = await axios.put(`http://localhost:4000/api/payments/update/${paymentId}`, paymentData, {
         withCredentials: true,
       });
       const updatedPayment = response.data.payment;

@@ -9,8 +9,8 @@ export const validateUser = [
     .normalizeEmail()
     .customSanitizer(sanitize),
   body('password')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
-    .withMessage('La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y caracteres especiales'),
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/)
+    .withMessage('La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas y números'),
   body('role')
     .optional()
     .isIn(['user', 'admin'])

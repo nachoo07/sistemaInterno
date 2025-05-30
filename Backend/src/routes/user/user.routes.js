@@ -7,7 +7,9 @@ import {
   deleteUser,
   updateUserState
 } from '../../controllers/users/user.controller.js';
-import   {validateUser}  from '../../validators/users/users.validator.js';
+import sanitize from 'mongo-sanitize';
+import { validationResult } from 'express-validator';
+import { validateUser } from '../../validators/users/users.validator.js';
 import { protect, admin } from '../../middlewares/login/protect.js';
 
 const router = express.Router();
@@ -24,7 +26,32 @@ router.post('/create', validateUser, protect, admin, createUser);
 // Actualizar un usuario existente
 router.put('/update/:id', [
   param('id').isMongoId().withMessage('Valid user ID is required'),
-  validateUser // Reutilizamos validateUser, ya que los campos son opcionales en el controlador
+  // Validación específica para update, haciendo password opcional
+  body('name').optional().notEmpty().withMessage('El nombre es obligatorio').trim().customSanitizer(sanitize),
+  body('mail').optional()
+    .isEmail()
+    .withMessage('Se requiere un correo electrónico válido')
+    .normalizeEmail()
+    .customSanitizer(sanitize),
+  body('password').optional()
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/)
+    .withMessage('La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas y números'),
+  body('role').optional()
+    .isIn(['user', 'admin'])
+    .withMessage('El rol debe ser "user" o "admin"')
+    .customSanitizer(sanitize),
+  body('state').optional().isBoolean().withMessage('State must be a boolean'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Errores de validación',
+        errors: errors.array()
+      });
+    }
+    next();
+  }
 ], protect, admin, updateUser);
 
 // Eliminar un usuario

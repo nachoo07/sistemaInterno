@@ -20,7 +20,7 @@ const StudentsProvider = ({ children }) => {
     }
     try {
       setLoading(true);
-      const response = await axios.get("/api/students", {
+      const response = await axios.get("http://localhost:4000/api/students", {
         withCredentials: true,
       });
       const data = Array.isArray(response.data) ? response.data : [];
@@ -42,7 +42,7 @@ const StudentsProvider = ({ children }) => {
     }
     try {
       setLoading(true);
-      const response = await axios.get(`/api/students/${studentId}`, {
+      const response = await axios.get(`http://localhost:4000/api/students/${studentId}`, {
         withCredentials: true,
       });
       cache.current.set(studentId, response.data);
@@ -67,7 +67,7 @@ const StudentsProvider = ({ children }) => {
           formData.append(key, estudiante[key]);
         }
       }
-      const response = await axios.post("/api/students/create", formData, {
+      const response = await axios.post("http://localhost:4000/api/students/create", formData, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -95,7 +95,7 @@ const StudentsProvider = ({ children }) => {
         cancelButtonText: "Cancelar",
       });
       if (confirmacion.isConfirmed) {
-        await axios.delete(`/api/students/delete/${id}`, {
+        await axios.delete(`http://localhost:4000/api/students/delete/${id}`, {
           withCredentials: true,
         });
         setEstudiantes((prev) => prev.filter((estudiante) => estudiante._id !== id));
@@ -120,7 +120,7 @@ const StudentsProvider = ({ children }) => {
           formData.append(key, estudiante[key]);
         }
       }
-      const response = await axios.put(`/api/students/update/${estudiante._id}`, formData, {
+      const response = await axios.put(`http://localhost:4000/api/students/update/${estudiante._id}`, formData, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
       });

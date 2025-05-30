@@ -9,9 +9,11 @@ import { UsersContext } from '../../context/user/UserContext';
 import Swal from 'sweetalert2';
 import './user.css';
 import AppNavbar from '../navbar/AppNavbar';
+import { LoginContext } from '../../context/login/LoginContext';
 
 const Users = () => {
   const { usuarios, obtenerUsuarios, addUsuarioAdmin, updateUsuarioAdmin, deleteUsuarioAdmin } = useContext(UsersContext);
+  const { userData, logout, auth } = useContext(LoginContext);
   const navigate = useNavigate();
   const profileRef = useRef(null);
   const [show, setShow] = useState(false);
@@ -180,6 +182,7 @@ const Users = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleLogout = async () => {
+    await logout();
     navigate('/login');
     setIsMenuOpen(false);
     setIsProfileOpen(false);
@@ -226,7 +229,9 @@ const Users = () => {
               onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
               <FaUserCircle className="profile-icon" />
-              <span className="profile-greeting">Hola, {'Usuario'}</span>
+              <span className="profile-greeting">
+                Hola, {userData?.name || 'Usuario'}
+                </span>
               <FaChevronDown className={`arrow-icon ${isProfileOpen ? 'rotated' : ''}`} />
               {isProfileOpen && (
                 <div className="profile-menu">

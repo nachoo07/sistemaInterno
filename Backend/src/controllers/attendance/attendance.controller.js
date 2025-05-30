@@ -5,60 +5,56 @@ const logger = pino();
 
 // Obtener todas las asistencias
 export const getAllAttendances = async (req, res) => {
-    try {
-      const attendances = await Attendance.find()
-        .select('date category attendance.idStudent attendance.name attendance.lastName attendance.present')
-        .lean();
-      if (attendances.length === 0) {
-        return res.status(200).json({ message: "No hay asistencias disponibles" });
-      }
-      res.status(200).json(attendances);
-    } catch (error) {
-      logger.error({ error: error.message }, 'Error al obtener asistencias');
-      res.status(500).json({ message: 'Error al obtener asistencias' });
-    }
-  };
+  try {
+    const attendances = await Attendance.find()
+      .select('date category attendance.idStudent attendance.name attendance.lastName attendance.present')
+      .lean();
+    res.status(200).json(attendances); // Siempre devuelve un arreglo, incluso si está vacío
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al obtener asistencias');
+    res.status(500).json({ message: 'Error al obtener asistencias' });
+  }
+};
 
 // Registrar asistencias para una categoría en una fecha
 export const createAttendance = async (req, res) => {
-    const { date, category, attendance } = sanitize(req.body);
+  const { date, category, attendance } = sanitize(req.body);
 
-    if (!date || !category || !attendance || !Array.isArray(attendance) || attendance.length === 0) {
-        return res.status(400).json({ message: "Faltan campos requeridos o la lista de asistencia está vacía" });
-      }
-      try {
-        const attendanceDate = new Date(date);
-        if (isNaN(attendanceDate)) {
-          return res.status(400).json({ message: "Fecha inválida" });
-        }
-    
-        let existingAttendance = await Attendance.findOne({ date: attendanceDate, category });
-        if (existingAttendance) {
-          existingAttendance.attendance = attendance;
-          await existingAttendance.save();
-          logger.info({ date, category }, 'Asistencia actualizada');
-          return res.status(200).json({ message: "Asistencia actualizada exitosamente", attendance: existingAttendance });
-        }
-    
-        const newAttendance = new Attendance({ date: attendanceDate, category, attendance });
-        await newAttendance.save();
-        logger.info({ date, category }, 'Asistencia creada');
-        res.status(201).json({ message: "Asistencia registrada exitosamente", attendance: newAttendance });
-      } catch (error) {
-        logger.error({ error: error.message }, 'Error al crear asistencia');
-        res.status(500).json({ message: 'Error al registrar asistencia' });
-      }
+  if (!date || !category || !attendance || !Array.isArray(attendance) || attendance.length === 0) {
+    return res.status(400).json({ message: "Faltan campos requeridos o la lista de asistencia está vacía" });
+  }
+  try {
+    const attendanceDate = new Date(date);
+    if (isNaN(attendanceDate)) {
+      return res.status(400).json({ message: "Fecha inválida" });
+    }
+
+    let existingAttendance = await Attendance.findOne({ date: attendanceDate, category });
+    if (existingAttendance) {
+      existingAttendance.attendance = attendance;
+      await existingAttendance.save();
+      logger.info({ date, category }, 'Asistencia actualizada');
+      return res.status(200).json({ message: "Asistencia actualizada exitosamente", attendance: existingAttendance });
+    }
+
+    const newAttendance = new Attendance({ date: attendanceDate, category, attendance });
+    await newAttendance.save();
+    logger.info({ date, category }, 'Asistencia creada');
+    res.status(201).json({ message: "Asistencia registrada exitosamente", attendance: newAttendance });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al crear asistencia');
+    res.status(500).json({ message: 'Error al registrar asistencia' });
+  }
 };
 
 // Actualizar una asistencia específica dentro de una categoría y fecha
 export const updateAttendance = async (req, res) => {
-    const { date, category, attendance } = sanitize(req.body);
+  const { date, category, attendance } = sanitize(req.body);
 
-    if (!date || !category || !attendance || !Array.isArray(attendance)) {
-        return res.status(400).json({ message: "Faltan campos requeridos" });
-      }
+  if (!date || !category || !attendance || !Array.isArray(attendance)) {
+    return res.status(400).json({ message: "Faltan campos requeridos" });
+  }
 
-    
   try {
     const attendanceDate = new Date(date);
     if (isNaN(attendanceDate)) {
@@ -90,13 +86,13 @@ export const updateAttendance = async (req, res) => {
 
 // Eliminar una asistencia completa por fecha y categoría
 export const deleteAttendance = async (req, res) => {
-    const { date, category } = sanitize(req.query);
+  const { date, category } = sanitize(req.query);
 
-    if (!date || !category) {
-        return res.status(400).json({ message: "Faltan fecha o categoría" });
-      }
+  if (!date || !category) {
+    return res.status(400).json({ message: "Faltan fecha o categoría" });
+  }
 
-   try {
+  try {
     const attendanceDate = new Date(date);
     if (isNaN(attendanceDate)) {
       return res.status(400).json({ message: "Fecha inválida" });

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,7 +9,7 @@ export const LoginProvider = ({ children }) => {
   const [userData, setUserData] = useState(
     localStorage.getItem('authName') ? { name: localStorage.getItem('authName') } : null
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!localStorage.getItem('authRole')); // Solo carga si no hay datos previos
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
 
@@ -31,8 +31,7 @@ export const LoginProvider = ({ children }) => {
 
       try {
         setLoading(true);
-        // Usamos /api/auth/refresh en lugar de /api/auth/verify para simplificar
-        const response = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
+        await axios.post('http://localhost:4000/api/auth/refresh', {}, { withCredentials: true });
         setAuth(authRole); // Mantenemos el rol almacenado
         setUserData({ name: authName });
       } catch (error) {
@@ -49,12 +48,12 @@ export const LoginProvider = ({ children }) => {
       }
     };
     checkAuth();
-  }, [navigate]);
+  }, []);
 
   const login = async (mail, password) => {
     try {
       const response = await axios.post(
-        '/api/auth/login',
+        'http://localhost:4000/api/auth/login',
         { mail, password },
         { withCredentials: true }
       );
@@ -79,7 +78,7 @@ export const LoginProvider = ({ children }) => {
       setUserData(null);
       localStorage.removeItem('authRole');
       localStorage.removeItem('authName');
-      await axios.post('/api/auth/logout', {}, { withCredentials: true });
+      await axios.post('http://localhost:4000/api/auth/logout', {}, { withCredentials: true });
       navigate('/login', { replace: true });
     } catch (error) {
       console.error('Error en logout:', error);
@@ -90,7 +89,7 @@ export const LoginProvider = ({ children }) => {
 
   const refreshAccessToken = async () => {
     try {
-      await axios.post('/api/auth/refresh', {}, { withCredentials: true });
+      await axios.post('http://localhost:4000/api/auth/refresh', {}, { withCredentials: true });
     } catch (error) {
       console.error('Error al renovar token:', error.response?.data || error.message);
       logout();
@@ -129,7 +128,7 @@ export const LoginProvider = ({ children }) => {
       if (auth && !isLoggingOut) {
         refreshAccessToken();
       }
-    }, 10 * 60 * 1000); // 10 minutos para mantener compatibilidad con tu sistema actual
+    }, 20 * 60 * 1000); // 20 minutos
     return () => clearInterval(interval);
   }, [auth, isLoggingOut]);
 
