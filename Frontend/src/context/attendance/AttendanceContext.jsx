@@ -7,18 +7,22 @@ export const AttendanceContext = createContext();
 
 export const AttendanceProvider = ({ children }) => {
   const [asistencias, setAttendance] = useState([]);
-  const { auth } = useContext(LoginContext);
+  const { auth, waitForAuth } = useContext(LoginContext); // Añadimos waitForAuth
 
   // Carga asistencias solo cuando auth cambia y es válido
   useEffect(() => {
-    if (auth === 'admin' || auth === 'user') {
-      ObtenerAsistencia();
-    }
-  }, [auth]);
+    const fetchData = async () => {
+      await waitForAuth(); // Espera a que la autenticación esté lista
+      if (auth === 'admin' || auth === 'user') {
+        await ObtenerAsistencia();
+      }
+    };
+    fetchData();
+  }, [auth, waitForAuth]); // Añadimos waitForAuth como dependencia
 
   const ObtenerAsistencia = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/attendance/', {
+      const response = await axios.get('/api/attendance/', {
         withCredentials: true,
       });
       // Asegurarse de que response.data sea un arreglo
@@ -33,10 +37,10 @@ export const AttendanceProvider = ({ children }) => {
   const agregarAsistencia = async (asistencia) => {
     if (auth === 'admin' || auth === 'user') {
       try {
-        const response = await axios.post('http://localhost:4000/api/attendance/create', asistencia, {
+        const response = await axios.post('/api/attendance/create', asistencia, {
           withCredentials: true,
         });
-        setAttendance((prev) => [...prev, response.data.attendance]); // Ajustamos para usar response.data.attendance
+        setAttendance((prev) => [...prev, response.data.attendance]);
         Swal.fire('¡Éxito!', 'La asistencia ha sido creada correctamente', 'success');
       } catch (error) {
         console.error('Error al agregar asistencia', error);
@@ -48,7 +52,7 @@ export const AttendanceProvider = ({ children }) => {
   const actualizarAsistencia = async ({ date, category, attendance }) => {
     if (auth === 'admin' || auth === 'user') {
       try {
-        const response = await axios.put('http://localhost:4000/api/attendance/update', {
+        const response = await axios.put('/api/attendance/update', {
           date,
           category,
           attendance,

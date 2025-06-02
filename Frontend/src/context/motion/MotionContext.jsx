@@ -8,7 +8,7 @@ export const MotionContext = createContext();
 export const MotionProvider = ({ children }) => {
   const [motions, setMotions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { auth } = useContext(LoginContext);
+  const { auth, waitForAuth } = useContext(LoginContext); // Añadimos waitForAuth
 
   const fetchMotions = useCallback(async () => {
     if (auth !== 'admin') return [];
@@ -16,7 +16,7 @@ export const MotionProvider = ({ children }) => {
       setLoading(true);
       const response = await axios.get('/api/motions/', { withCredentials: true });
       const data = Array.isArray(response.data) ? response.data : [];
-      setMotions(data); // Reemplaza el estado completo
+      setMotions(data);
       return data;
     } catch (error) {
       console.error('Error fetching motions:', error);
@@ -33,7 +33,6 @@ export const MotionProvider = ({ children }) => {
       const response = await axios.post('/api/motions/create', motion, { withCredentials: true });
       const newMotion = response.data;
       setMotions((prev) => {
-        // Evita duplicados verificando el _id
         if (prev.some((m) => m._id === newMotion._id)) {
           return prev;
         }
@@ -94,7 +93,7 @@ export const MotionProvider = ({ children }) => {
       setLoading(true);
       const response = await axios.get(`/api/motions/date/${date}`, { withCredentials: true });
       const data = Array.isArray(response.data) ? response.data : [];
-      return data; // Devuelve los datos sin modificar el estado motions
+      return data;
     } catch (error) {
       console.error('Error obteniendo movimientos por fecha:', error);
       Swal.fire('¡Error!', 'No se pudieron obtener los movimientos por fecha.', 'error');
@@ -113,7 +112,7 @@ export const MotionProvider = ({ children }) => {
         { withCredentials: true }
       );
       const data = Array.isArray(response.data) ? response.data : [];
-      return data; // Devuelve los datos sin modificar el estado motions
+      return data;
     } catch (error) {
       console.error('Error obteniendo movimientos por rango de fechas:', error);
       Swal.fire('¡Error!', 'No se pudieron obtener los movimientos por rango de fechas.', 'error');
@@ -125,12 +124,16 @@ export const MotionProvider = ({ children }) => {
 
   // Carga inicial de movimientos
   useEffect(() => {
-    if (auth === 'admin') {
-      fetchMotions();
-    } else {
-      setMotions([]); // Limpia el estado si no es admin
-    }
-  }, [auth, fetchMotions]);
+    const fetchData = async () => {
+      await waitForAuth(); // Espera a que la autenticación esté lista
+      if (auth === 'admin') {
+        await fetchMotions();
+      } else {
+        setMotions([]);
+      }
+    };
+    fetchData();
+  }, [auth, fetchMotions, waitForAuth]); // Añadimos waitForAuth como dependencia
 
   return (
     <MotionContext.Provider

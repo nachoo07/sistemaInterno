@@ -4,7 +4,9 @@ import Config from "../models/base/config.model.js";
 import nodemailer from 'nodemailer';
 import sanitizeHtml from 'sanitize-html';
 import pino from 'pino';
-const logger = pino()
+import { DateTime } from 'luxon';
+
+const logger = pino();
 
 // Configuración de Nodemailer
 const transporter = nodemailer.createTransport({
@@ -25,13 +27,15 @@ const sendCuotaEmail = async (student, cuota) => {
     logger.warn(`Correo inválido para ${student.name} ${student.lastName}`);
     return;
   }
+  // Convierte cuota.date (objeto Date) a DateTime con la zona horaria correcta
+  const cuotaDate = DateTime.fromJSDate(cuota.date).setZone('America/Argentina/Tucuman');
   const monthNames = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  const cuotaMonth = monthNames[cuota.date.getMonth()];
-  const cuotaYear = cuota.date.getFullYear();
+  const cuotaMonth = monthNames[cuotaDate.month - 1]; // luxon usa meses 1-12
+  const cuotaYear = cuotaDate.year;
   const baseAmount = cuota.amount;
   const amountWith10Percent = Math.round(baseAmount * 1.1);
 
@@ -109,8 +113,9 @@ export const createPendingShares = async () => {
   try {
     const config = await Config.findOne({ key: 'cuotaBase' });
     const cuotaBase = config ? config.value : 30000;
-    const currentDate = new Date();
-    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const currentDate = DateTime.now().setZone('America/Argentina/Tucuman');
+  logger.info(`Fecha actual en UTC-3: ${currentDate.toString()}`);
+    const monthStart = currentDate.startOf('month').toJSDate();
 
     const students = await Student.find({ state: 'Activo' }).lean();
     const studentIds = students.map(s => s._id);

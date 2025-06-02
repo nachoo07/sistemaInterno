@@ -9,51 +9,63 @@ export const LoginProvider = ({ children }) => {
   const [userData, setUserData] = useState(
     localStorage.getItem('authName') ? { name: localStorage.getItem('authName') } : null
   );
-  const [loading, setLoading] = useState(!localStorage.getItem('authRole')); // Solo carga si no hay datos previos
+  const [loading, setLoading] = useState(true); // Siempre inicia con loading true
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [authReady, setAuthReady] = useState(false); // Nuevo estado para indicar que la autenticación está lista
   const navigate = useNavigate();
 
+  // Promesa para esperar a que la autenticación esté lista
+  let authPromiseResolve;
+  const authPromise = new Promise((resolve) => {
+    authPromiseResolve = resolve;
+  });
+
   // Verificar autenticación al montar el componente
+  const checkAuth = async () => {
+    const authRole = localStorage.getItem('authRole');
+    const authName = localStorage.getItem('authName');
+
+    if (!authRole || !authName) {
+      setAuth(null);
+      setUserData(null);
+      setLoading(false);
+      setAuthReady(true);
+      authPromiseResolve();
+      if (window.location.pathname !== '/login') {
+        navigate('/login', { replace: true });
+      }
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await axios.post('/api/auth/refresh', {}, { withCredentials: true });
+      setAuth(authRole);
+      setUserData({ name: authName });
+    } catch (error) {
+      console.error('Error al verificar autenticación:', error.response?.data || error.message);
+      setAuth(null);
+      setUserData(null);
+      localStorage.removeItem('authRole');
+      localStorage.removeItem('authName');
+      if (window.location.pathname !== '/login') {
+        navigate('/login', { replace: true });
+      }
+    } finally {
+      setLoading(false);
+      setAuthReady(true);
+      authPromiseResolve();
+    }
+  };
+
   useEffect(() => {
-    const checkAuth = async () => {
-      const authRole = localStorage.getItem('authRole');
-      const authName = localStorage.getItem('authName');
-
-      if (!authRole || !authName) {
-        setAuth(null);
-        setUserData(null);
-        setLoading(false);
-        if (window.location.pathname !== '/login') {
-          navigate('/login', { replace: true });
-        }
-        return;
-      }
-
-      try {
-        setLoading(true);
-        await axios.post('http://localhost:4000/api/auth/refresh', {}, { withCredentials: true });
-        setAuth(authRole); // Mantenemos el rol almacenado
-        setUserData({ name: authName });
-      } catch (error) {
-        console.error('Error al verificar autenticación:', error.response?.data || error.message);
-        setAuth(null);
-        setUserData(null);
-        localStorage.removeItem('authRole');
-        localStorage.removeItem('authName');
-        if (window.location.pathname !== '/login') {
-          navigate('/login', { replace: true });
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
     checkAuth();
   }, []);
 
   const login = async (mail, password) => {
     try {
       const response = await axios.post(
-        'http://localhost:4000/api/auth/login',
+        '/api/auth/login',
         { mail, password },
         { withCredentials: true }
       );
@@ -78,7 +90,7 @@ export const LoginProvider = ({ children }) => {
       setUserData(null);
       localStorage.removeItem('authRole');
       localStorage.removeItem('authName');
-      await axios.post('http://localhost:4000/api/auth/logout', {}, { withCredentials: true });
+      await axios.post('/api/auth/logout', {}, { withCredentials: true });
       navigate('/login', { replace: true });
     } catch (error) {
       console.error('Error en logout:', error);
@@ -89,7 +101,7 @@ export const LoginProvider = ({ children }) => {
 
   const refreshAccessToken = async () => {
     try {
-      await axios.post('http://localhost:4000/api/auth/refresh', {}, { withCredentials: true });
+      await axios.post('/api/auth/refresh', {}, { withCredentials: true });
     } catch (error) {
       console.error('Error al renovar token:', error.response?.data || error.message);
       logout();
@@ -133,7 +145,7 @@ export const LoginProvider = ({ children }) => {
   }, [auth, isLoggingOut]);
 
   return (
-    <LoginContext.Provider value={{ auth, userData, login, logout, loading }}>
+    <LoginContext.Provider value={{ auth, userData, login, logout, loading, authReady, waitForAuth: () => authPromise }}>
       {children}
     </LoginContext.Provider>
   );

@@ -6,13 +6,13 @@ import { LoginContext } from "../login/LoginContext";
 export const UsersContext = createContext();
 
 const UsersProvider = ({ children }) => {
-  const { auth } = useContext(LoginContext);
+  const { auth, waitForAuth } = useContext(LoginContext); // Añadimos waitForAuth
   const [usuarios, setUsuarios] = useState([]);
 
   const obtenerUsuarios = async () => {
     if (auth === "admin") {
       try {
-        const response = await axios.get("http://localhost:4000/api/users", {
+        const response = await axios.get("/api/users", {
           withCredentials: true,
         });
         if (JSON.stringify(usuarios) !== JSON.stringify(response.data)) {
@@ -28,20 +28,18 @@ const UsersProvider = ({ children }) => {
   const addUsuarioAdmin = async (usuario) => {
     if (auth === "admin") {
       try {
-        // Asegúrate de que el objeto usuario tenga los campos correctos
         const usuarioData = {
           name: usuario.name,
           mail: usuario.mail,
           password: usuario.password,
           role: usuario.role,
         };
-        console.log("Datos enviados para crear usuario:", usuarioData); // Para depuración
+        console.log("Datos enviados para crear usuario:", usuarioData);
         const response = await axios.post(
-          "http://localhost:4000/api/users/create",
+          "/api/users/create",
           usuarioData,
           { withCredentials: true }
         );
-        // Verifica que la respuesta sea exitosa (201 Created)
         if (response.status === 201) {
           setUsuarios((prevUsuarios) => [...prevUsuarios, response.data.user]);
           Swal.fire("¡Éxito!", "Usuario admin creado correctamente", "success");
@@ -60,20 +58,18 @@ const UsersProvider = ({ children }) => {
   const updateUsuarioAdmin = async (id, usuarioActualizado) => {
     if (auth === "admin") {
       try {
-        // Asegúrate de que el objeto usuarioActualizado tenga los campos correctos
         const usuarioData = {
           name: usuarioActualizado.name,
           mail: usuarioActualizado.mail,
           role: usuarioActualizado.role,
           state: usuarioActualizado.state,
         };
-        console.log("Datos enviados para actualizar usuario:", usuarioData); // Para depuración
+        console.log("Datos enviados para actualizar usuario:", usuarioData);
         const response = await axios.put(
-          `http://localhost:4000/api/users/update/${id}`,
+          `/api/users/update/${id}`,
           usuarioData,
           { withCredentials: true }
         );
-        // Verifica que la respuesta sea exitosa (200 OK)
         if (response.status === 200) {
           setUsuarios((prevUsuarios) =>
             prevUsuarios.map((usuario) =>
@@ -108,7 +104,7 @@ const UsersProvider = ({ children }) => {
         });
 
         if (confirmacion.isConfirmed) {
-          await axios.delete(`http://localhost:4000/api/users/delete/${id}`, {
+          await axios.delete(`/api/users/delete/${id}`, {
             withCredentials: true,
           });
           setUsuarios((prevUsuarios) =>
@@ -124,8 +120,12 @@ const UsersProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    obtenerUsuarios();
-  }, [auth]);
+    const fetchData = async () => {
+      await waitForAuth(); // Espera a que la autenticación esté lista
+      await obtenerUsuarios();
+    };
+    fetchData();
+  }, [auth, waitForAuth]); // Añadimos waitForAuth como dependencia
 
   return (
     <UsersContext.Provider

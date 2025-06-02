@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { StudentsContext } from '../../context/student/StudentContext';
 import { SharesContext } from '../../context/share/ShareContext';
 import { EmailContext } from '../../context/email/EmailContext';
+import { LoginContext } from '../../context/login/LoginContext'; // Añadimos LoginContext
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -17,6 +18,7 @@ const EmailNotification = () => {
   const { estudiantes, obtenerEstudiantes } = useContext(StudentsContext);
   const { cuotas, obtenerCuotas } = useContext(SharesContext);
   const { sendMultipleEmails } = useContext(EmailContext);
+  const { waitForAuth } = useContext(LoginContext); // Añadimos waitForAuth
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [subject, setSubject] = useState('');
   const [displayMessage, setDisplayMessage] = useState('');
@@ -30,7 +32,7 @@ const EmailNotification = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [globalSearchTerm, setGlobalSearchTerm] = useState(''); // Nuevo estado para el buscador global
+  const [globalSearchTerm, setGlobalSearchTerm] = useState('');
 
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -51,13 +53,12 @@ const EmailNotification = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      if (newWidth <= 576) {
+      if (newWidth < 576) {
         setIsMenuOpen(false);
       } else {
         setIsMenuOpen(true);
       }
     };
-
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -67,6 +68,7 @@ const EmailNotification = () => {
     const loadData = async () => {
       setDataLoading(true);
       try {
+        await waitForAuth(); // Espera a que la autenticación esté lista
         await Promise.all([obtenerEstudiantes(), obtenerCuotas(), fetchCuotaBase()]);
       } catch (error) {
         Swal.fire('Error', 'No se pudieron cargar los datos iniciales.', 'error');
@@ -75,7 +77,7 @@ const EmailNotification = () => {
       }
     };
     loadData();
-  }, [obtenerEstudiantes, obtenerCuotas]);
+  }, [obtenerEstudiantes, obtenerCuotas, waitForAuth]); // Añadimos waitForAuth como dependencia
 
   const fetchCuotaBase = async () => {
     try {
@@ -149,40 +151,18 @@ const EmailNotification = () => {
         const cuotaDetails = studentCuotas.map(cuota => {
           const cuotaDate = new Date(cuota.date);
           return `- ${monthNames[cuotaDate.getMonth()]} ${cuotaDate.getFullYear()}: $${cuota.amount.toLocaleString('es-ES')}`;
-        }).join('<br>');
+        }).join('\n');
 
         const totalAmount = studentCuotas.reduce((sum, c) => sum + c.amount, 0);
 
         const emailContent = `
-          <!DOCTYPE html>
-          <html lang="es">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-              body { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; }
-              .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; }
-              .header { text-align: center; }
-              .header img { max-width: 100px; height: auto; }
-              h1 { color: #D83D8D; font-size: 20px; margin: 0 0 20px; }
-              p { color: #333333; font-size: 14px; line-height: 1.5; margin: 10px 0; }
-              .highlight { font-weight: bold; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1>Recordatorio de cuotas vencidas - ${student.name} ${student.lastName}</h1>
-              </div>
-              <p>Estimado/a Padre/Madre</p>
-              <p>Le informamos que las siguientes cuotas se encuentran vencidas:</p>
-              <p>${cuotaDetails}</p>
-              <p class="highlight">Total adeudado: $${totalAmount.toLocaleString('es-ES')}</p>
-              <p>Por favor, regularice la situación a la brevedad. Contáctenos si necesita más información.</p>
-              <p>Saludos cordiales,<br>Equipo Yo Claudio</p>
-            </div>
-          </body>
-          </html>
+          <h2>Recordatorio de cuotas vencidas - ${student.name} ${student.lastName}</h2>
+          <p>Estimado/a Padre/Madre</p>
+          <p>Le informamos que las siguientes cuotas se encuentran vencidas:</p>
+          <p>${cuotaDetails}</p>
+          <p>Total adeudado: $${totalAmount.toLocaleString('es-ES')}</p>
+          <p>Por favor, regularice la situación a la brevedad. Contáctenos si necesita más información.</p>
+          <p>Saludos cordiales,<br>Equipo Yo Claudio</p>
         `;
 
         emails.push({
@@ -300,7 +280,7 @@ const EmailNotification = () => {
   };
 
   return (
-    <div className={`app-container ${windowWidth <= 576 ? 'mobile-view' : ''}`}>
+    <div className="app-container">
       {windowWidth <= 576 && (
         <AppNavbar
           isMenuOpen={isMenuOpen}
@@ -393,7 +373,7 @@ const EmailNotification = () => {
                 <FaSearch className="search-icon" />
                 <input
                   type="text"
-                  placeholder="Buscar alumnos..."
+                  placeholder="Buscar estudiantes..."
                   className="search-input"
                   value={globalSearchTerm}
                   onChange={(e) => setGlobalSearchTerm(e.target.value)}
@@ -409,73 +389,72 @@ const EmailNotification = () => {
               </div>
             </section>
           )}
-          {dataLoading && <div className="loading">Cargando datos...</div>}
-          <div className="student-selection-card">
-            <h3>Seleccionar Estudiantes</h3>
-            <div className="search-container">
-              <input
-                type="text"
-                placeholder="Buscar estudiante..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="student-search-input"
-                disabled={loading || dataLoading}
-              />
-              <FaSearch className="search-icon" />
-              {searchTerm && (
-                <ul className="student-search-results">
-                  {filteredStudents.length ? (
-                    filteredStudents.map(student => (
-                      <li key={student._id} onClick={() => handleSelectStudent(student)}>
-                        <FaCheck className="check-icon" /> {student.name} {student.lastName} ({student.mail || 'Sin correo'}) {student.state === 'Inactivo' && '[Inactivo]'}
-                      </li>
-                    ))
-                  ) : (
-                    <li>No hay coincidencias</li>
-                  )}
-                </ul>
-              )}
-            </div>
+          {dataLoading && <p>Cargando datos...</p>}
+          <section className="student-selection">
+            <h2>Seleccionar Estudiantes</h2>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="student-search-input"
+              disabled={loading || dataLoading}
+              placeholder="Buscar estudiante..."
+            />
+            {searchTerm && (
+              <div className="student-dropdown">
+                {filteredStudents.length ? (
+                  filteredStudents.map(student => (
+                    <div
+                      key={student._id}
+                      className="student-option"
+                      onClick={() => handleSelectStudent(student)}
+                    >
+                      {student.name} {student.lastName} ({student.mail || 'Sin correo'}) {student.state === 'Inactivo' && '[Inactivo]'}
+                    </div>
+                  ))
+                ) : (
+                  <div className="student-option">No hay coincidencias</div>
+                )}
+              </div>
+            )}
             <div className="selected-students">
               {selectedStudents.map(student => (
-                <div key={student._id} className="selected-student-chip">
+                <div key={student._id} className="selected-student">
                   {student.name} {student.lastName}
-                  <FaTimes className="remove-icon" onClick={() => handleRemoveStudent(student._id)} />
+                  <FaTimes onClick={() => handleRemoveStudent(student._id)} />
                 </div>
               ))}
             </div>
             <div className="selection-actions">
-              <button onClick={handleSelectAll} disabled={loading || dataLoading} className="select-all-btn">Todos Activos</button>
-              <button onClick={handleSelectOverdue} disabled={loading || dataLoading} className="select-overdue-btn">Cuotas Vencidas</button>
-              <button onClick={handleCancel} disabled={loading || dataLoading} className="cancel-btn">Cancelar</button>
+              <button onClick={handleSelectAll} disabled={loading || dataLoading}>Todos Activos</button>
+              <button onClick={handleSelectOverdue} disabled={loading || dataLoading}>Cuotas Vencidas</button>
+              <button onClick={handleCancel} disabled={loading || dataLoading}>Cancelar</button>
             </div>
-          </div>
-          <div className="email-composer-card">
-            <h3>Componer Correo</h3>
+          </section>
+          <section className="email-composition">
+            <h2>Componer Correo</h2>
             <input
               type="text"
-              placeholder="Asunto"
               value={subject}
-              onChange={e => setSubject(e.target.value)}
+              onChange={(e) => setSubject(e.target.value)}
               className="email-subject"
               disabled={loading || dataLoading || isOverdueMode}
+              placeholder="Asunto..."
             />
             <textarea
-              placeholder="Selecciona 'Cuotas Vencidas' para generar un mensaje automático..."
               value={displayMessage}
-              onChange={e => setDisplayMessage(e.target.value)}
+              onChange={(e) => setDisplayMessage(e.target.value)}
               className="email-message"
               disabled={loading || dataLoading || isOverdueMode}
+              placeholder="Mensaje..."
             />
             <div className="email-actions">
-              <button onClick={handleClearEmail} disabled={loading || dataLoading || isOverdueMode} className="clear-btn">
-                <FaTrash /> Borrar
-              </button>
+              <button onClick={handleClearEmail} disabled={loading || dataLoading || isOverdueMode}>Borrar</button>
               <button onClick={handleSendToAll} disabled={loading || dataLoading}>
                 {loading ? 'Enviando...' : `Enviar a ${selectedStudents.length} Seleccionado(s)`}
               </button>
             </div>
-          </div>
+          </section>
         </main>
       </div>
     </div>

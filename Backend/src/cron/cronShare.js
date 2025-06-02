@@ -5,8 +5,8 @@ import pino from "pino";
 
 const logger = pino();
 
-// Cron job para crear cuotas pendientes el 1º de cada mes a las 00:00
-cron.schedule('0 0 1 * *', async () => {
+// Cron job para crear cuotas pendientes el 1º de cada mes a las 00:00 UTC-3
+cron.schedule('0 0 3 * *', async () => {
   logger.info('Ejecutando cron job para crear cuotas pendientes...');
   try {
     await createPendingShares();
@@ -14,9 +14,13 @@ cron.schedule('0 0 1 * *', async () => {
   } catch (error) {
     logger.error({ error: error.message }, 'Error al ejecutar el cron job');
   }
+}, {
+  timezone: 'America/Argentina/Tucuman'
 });
+// Cron job para crear cuotas pendientes el 1º de cada mes a las 00:00 UTC-3
 
-// Cron job diario para actualizar montos y estados a las 00:00
+
+// Cron job diario para actualizar montos y estados a las 00:00 UTC-3
 cron.schedule('0 0 * * *', async () => {
   logger.info('Ejecutando cron job para actualizar montos y estados de cuotas...');
   try {
@@ -25,9 +29,9 @@ cron.schedule('0 0 * * *', async () => {
   } catch (error) {
     logger.error({ error: error.message }, 'Error al ejecutar el cron job de actualización');
   }
+}, {
+  timezone: 'America/Argentina/Tucuman'
 });
 
 logger.info("Cron jobs configurados para cuotas");
-
-
 

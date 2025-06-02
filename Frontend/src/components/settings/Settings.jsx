@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { SharesContext } from '../../context/share/ShareContext';
+import { LoginContext } from '../../context/login/LoginContext'; // Añadimos LoginContext
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -13,6 +14,7 @@ import AppNavbar from '../navbar/AppNavbar';
 
 const Settings = () => {
   const { obtenerCuotas } = useContext(SharesContext);
+  const { waitForAuth } = useContext(LoginContext); // Añadimos waitForAuth
   const [cuotaBase, setCuotaBase] = useState(30000);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -50,8 +52,16 @@ const Settings = () => {
   }, []);
 
   useEffect(() => {
-    fetchCuotaBase();
-  }, []);
+    const fetchData = async () => {
+      try {
+        await waitForAuth(); // Espera a que la autenticación esté lista
+        await fetchCuotaBase();
+      } catch (error) {
+        Swal.fire('Error', 'No se pudieron cargar los datos iniciales.', 'error');
+      }
+    };
+    fetchData();
+  }, [waitForAuth]); // Añadimos waitForAuth como dependencia
 
   const fetchCuotaBase = async () => {
     try {

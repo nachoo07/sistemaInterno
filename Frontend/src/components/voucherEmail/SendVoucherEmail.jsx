@@ -3,11 +3,13 @@ import { Button } from "react-bootstrap";
 import { FaFileInvoice } from "react-icons/fa";
 import html2canvas from "html2canvas";
 import { EmailContext } from "../../context/email/EmailContext";
+import logoYoClaudio from "../../assets/logo.png"; // Importamos la imagen local
 import "./SendVoucherEmail.css";
 
-const SendVoucherEmail = ({ student, cuota }) => {
+const SendVoucherEmail = ({ student, cuota, onSendingStart, onSendingEnd }) => {
   const [loading, setLoading] = useState(false);
   const [isDataReady, setIsDataReady] = useState(false);
+  const [voucherImage, setVoucherImage] = useState(null);
   const voucherRef = useRef(null);
   const { sendVoucherEmail } = useContext(EmailContext);
 
@@ -20,81 +22,86 @@ const SendVoucherEmail = ({ student, cuota }) => {
     }
   }, [student, cuota]);
 
-  const generateVoucherImage = async () => {
-    if (!isDataReady || !voucherRef.current) {
-      console.error("Elemento voucherRef no encontrado o datos no listos.");
-      return null;
+  useEffect(() => {
+    const generateVoucherImage = async () => {
+      if (!isDataReady || !voucherRef.current) {
+        console.error("Elemento voucherRef no encontrado o datos no listos.");
+        return;
+      }
+
+      try {
+        console.time("generateVoucherImage");
+        const canvas = await html2canvas(voucherRef.current, {
+          scale: 1,
+          useCORS: true,
+          logging: true,
+          backgroundColor: "#f8f9fa",
+          width: 800,
+          height: 520,
+          windowWidth: 800,
+          windowHeight: 520,
+        });
+
+        const dataUrl = canvas.toDataURL("image/png");
+        setVoucherImage(dataUrl.split(",")[1]);
+        console.timeEnd("generateVoucherImage");
+      } catch (error) {
+        console.error("Error al generar la imagen con html2canvas:", error);
+        setVoucherImage(null);
+      }
+    };
+
+    if (isDataReady) {
+      generateVoucherImage();
     }
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const canvas = await html2canvas(voucherRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: true,
-        backgroundColor: "#f8f9fa",
-        width: 800,
-        height: 520,
-        windowWidth: 800,
-        windowHeight: 520,
-        dpi: 300,
-      });
-
-      const dataUrl = canvas.toDataURL("image/png");
-      return dataUrl.split(",")[1];
-    } catch (error) {
-      console.error("Error al generar la imagen con html2canvas:", error);
-      return null;
-    }
-  };
+  }, [isDataReady]);
 
   const handleSendVoucher = async () => {
+    if (!voucherImage) {
+      console.error("No hay imagen de comprobante disponible para enviar.");
+      return;
+    }
+
     setLoading(true);
+    onSendingStart();
     try {
-      const imageBase64 = await generateVoucherImage();
-      if (!imageBase64) {
-        throw new Error("No se pudo generar la imagen del comprobante.");
-      }
-      await sendVoucherEmail(student, cuota, imageBase64);
+      console.time("sendVoucherEmail");
+      await sendVoucherEmail(student, cuota, voucherImage);
+      console.timeEnd("sendVoucherEmail");
     } catch (error) {
       console.error("Error al enviar el correo:", error);
     } finally {
       setLoading(false);
+      onSendingEnd();
     }
   };
 
-  // Formatear fecha con zona horaria
   const formatDateWithTimezone = (date) => {
     return date.toLocaleDateString("es-ES", {
-      timeZone: "America/Santiago", // Ajustado a -03 (Chile)
+      timeZone: "America/Santiago",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
     });
   };
 
-  if (!isDataReady) return null;
-
   const formatCuil = (cuil) => {
-  if (!cuil) return "N/A";
-  // Elimina caracteres no numéricos
-  const cleanCuil = cuil.replace(/\D/g, '');
-  // Si tiene la longitud correcta, formatea como XX-XXXXXXXX-X
-  if (cleanCuil.length === 11) {
-    return `${cleanCuil.substring(0, 2)}-${cleanCuil.substring(2, 10)}-${cleanCuil.substring(10)}`;
-  }
-  // Si no tiene el formato esperado, devuelve el valor original
-  return cuil;
-};
+    if (!cuil) return "N/A";
+    const cleanCuil = cuil.replace(/\D/g, "");
+    if (cleanCuil.length === 11) {
+      return `${cleanCuil.substring(0, 2)}-${cleanCuil.substring(2, 10)}-${cleanCuil.substring(10)}`;
+    }
+    return cuil;
+  };
 
+  if (!isDataReady) return null;
 
   return (
     <>
       <Button
         className="action-btn send-voucher"
         onClick={handleSendVoucher}
-        disabled={loading}
+        disabled={loading || !voucherImage}
       >
         <span className="btn-icon">
           <FaFileInvoice />
@@ -106,9 +113,8 @@ const SendVoucherEmail = ({ student, cuota }) => {
         <div className="voucher-header">
           <div className="voucher-header-logo">
             <img
-              src="https://res.cloudinary.com/dqhb2dkgf/image/upload/v1740286370/Captura_de_pantalla_2025-02-11_a_la_s_9.29.34_p._m._bqndud.png"
+              src={logoYoClaudio} // Usamos la imagen local
               alt="Logo Escuela Yo Claudio"
-              crossOrigin="anonymous"
             />
             <h1 className="voucher-header-title">Yo Claudio</h1>
           </div>
@@ -126,9 +132,9 @@ const SendVoucherEmail = ({ student, cuota }) => {
               <strong>Nombre y Apellido:</strong> {student.name || "N/A"}{" "}
               {student.lastName || ""}
             </p>
-             <p className="voucher-text">
-  <strong>Cuil:</strong> {formatCuil(student.cuil)}
-</p>
+            <p className="voucher-text">
+              <strong>Cuil:</strong> {formatCuil(student.cuil)}
+            </p>
           </div>
 
           {/* Detalles del pago */}
@@ -138,19 +144,19 @@ const SendVoucherEmail = ({ student, cuota }) => {
               <strong>Mes:</strong>{" "}
               {cuota.date
                 ? new Date(cuota.date).toLocaleString("es-ES", {
-                  month: "long",
-                  year: "numeric",
-                }).replace(/^\w/, (c) => c.toUpperCase())
+                    month: "long",
+                    year: "numeric",
+                  }).replace(/^\w/, (c) => c.toUpperCase())
                 : "N/A"}
             </p>
             <p className="voucher-text">
               <strong>Monto:</strong>{" "}
               {cuota.amount
                 ? new Intl.NumberFormat("es-CL", {
-                  style: "currency",
-                  currency: "CLP",
-                  minimumFractionDigits: 0,
-                }).format(cuota.amount)
+                    style: "currency",
+                    currency: "CLP",
+                    minimumFractionDigits: 0,
+                  }).format(cuota.amount)
                 : "N/A"}
             </p>
             <p className="voucher-text">

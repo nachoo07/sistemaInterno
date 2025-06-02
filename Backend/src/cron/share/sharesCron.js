@@ -2,6 +2,7 @@ import Share from '../../models/share/share.model.js';
 import Student from '../../models/student/student.model.js';
 import Config from '../../models/base/config.model.js';
 import pino from 'pino';
+import { DateTime } from 'luxon';
 
 const logger = pino();
 
@@ -11,9 +12,10 @@ export const calculateShareAmount = (baseAmount, currentDay) => {
 };
 
 export const updateShares = async () => {
-  const currentDate = new Date();
-  const currentDay = currentDate.getDate();
-  logger.info(`Ejecutando actualización de cuotas con fecha: ${currentDate.toISOString().split('T')[0]}`);
+  const currentDate = DateTime.now().setZone('America/Argentina/Tucuman');
+  logger.info(`Fecha actual en UTC-3: ${currentDate.toString()}`);
+  const currentDay = currentDate.day; // Usa .day para obtener el día del mes
+  logger.info(`Ejecutando actualización de cuotas con fecha: ${currentDate.toISODate()}`); // Usa toISODate() para el formato YYYY-MM-DD
 
   try {
     const config = await Config.findOne({ key: 'cuotaBase' });
@@ -32,7 +34,7 @@ export const updateShares = async () => {
       return {
         updateOne: {
           filter: { _id: share._id },
-          update: { amount: Math.round(amount), state, updatedAt: new Date() }
+          update: { amount: Math.round(amount), state, updatedAt: DateTime.now().toJSDate() }
         }
       };
     });

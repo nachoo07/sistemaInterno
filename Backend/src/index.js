@@ -2,35 +2,36 @@ import express from 'express';
 import { PORT } from './config/config.js';
 import morgan from 'morgan';
 import cors from 'cors';
-import helmet from 'helmet'; // Seguridad
-import rateLimit from 'express-rate-limit'; // Limitar la cantidad de peticiones
-import './db/db.connection.js'; // Conexión a la base de datos
-import cookieParser from 'cookie-parser'; //para parsear cookies
-import userRoutes from './routes/user/user.routes.js'; // Rutas de usuarios
-import authRoutes from './routes/login/login.router.js'; // Rutas de autenticación
-import studentRoutes from './routes/student/student.router.js'; // Rutas de estudiantes
-import shareRoutes from './routes/share/share.router.js'; // Rutas de cuotas
-import attendanceRoutes from './routes/attendance/attendance.routes.js'; // Rutas de asistencias
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import './db/db.connection.js';
+import cookieParser from 'cookie-parser';
+import userRoutes from './routes/user/user.routes.js';
+import authRoutes from './routes/login/login.router.js';
+import studentRoutes from './routes/student/student.router.js';
+import shareRoutes from './routes/share/share.router.js';
+import attendanceRoutes from './routes/attendance/attendance.routes.js';
 import motionRoutes from './routes/motion/motion.router.js';
 import configRoutes from './routes/base/config.routes.js';
-import paymentRoutes from './routes/payment/payment.route.js'; // Rutas de pagos
-import emailRoutes from './routes/email/email.routes.js'; // Ruta de prueba
-import { errorHandler } from './middlewares/user/user.middlewares.js'; // Middleware de manejo de errores
-import './cron/cronShare.js'
+import paymentRoutes from './routes/payment/payment.route.js';
+import emailRoutes from './routes/email/email.routes.js';
+import { errorHandler } from './middlewares/user/user.middlewares.js';
+import './cron/cronShare.js';
 import pino from 'pino';
 
-const logger = pino()
+const logger = pino();
 
 const app = express();
-app.set('trust proxy', true); // Añade esta línea para confiar en el proxy (Nginx)
+// Configura trust proxy para confiar en 1 proxy (Nginx en producción)
+app.set('trust proxy', 1); // Cambia de 'true' a 1
 
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? ['https://yoclaudiofutbol.com', 'https://www.yoclaudiofutbol.com']
   : ['http://localhost:4000', 'http://localhost:5173'];
 
 app.use(helmet());
-app.use(express.json({ limit: '20mb' })); // Aumentar el límite a 20 MB
-app.use(express.urlencoded({ extended: true, limit: '20mb' })); // Para formularios
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use(morgan('dev'));
 app.use(cors({
   origin: (origin, callback) => {
@@ -46,26 +47,30 @@ app.use(cors({
   exposedHeaders: ['set-cookie']
 }));
 app.use(cookieParser());
-app.use('/api/auth/login', rateLimit({
+
+// Configura rateLimit con trustProxy explícito
+const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: process.env.NODE_ENV === 'production' ? 10 : 50, // 10 en producción, 50 en desarrollo
   message: async (req) => {
-      const retryAfter = Math.ceil((req.rateLimit.resetTime - Date.now()) / 1000);
-      return `Demasiados intentos. Por favor, intenta de nuevo en ${retryAfter} segundos.`;
-  }
-}));
+    const retryAfter = Math.ceil((req.rateLimit.resetTime - Date.now()) / 1000);
+    return `Demasiados intentos. Por favor, intenta de nuevo en ${retryAfter} segundos.`;
+  },
+  trustProxy: process.env.NODE_ENV === 'production' ? 1 : 0 // Confía en 1 proxy en producción, 0 en desarrollo
+});
+
+app.use('/api/auth/login', limiter);
 
 // Rutas
-app.use('/api/users', userRoutes); // Prefijo para rutas de usuarios
-app.use("/api/auth", authRoutes); // Prefijo para rutas de autenticación
-app.use('/api/students', studentRoutes); // Prefijo para rutas de estudiantes
-app.use('/api/shares', shareRoutes); // Prefijo para rutas de cuotas
-app.use('/api/attendance', attendanceRoutes); // Prefijo para rutas de cuotas
-app.use('/api/motions', motionRoutes)
-app.use('/api/config', configRoutes); // Nueva ruta
-app.use('/api/email', emailRoutes); // Ruta de prueba
-app.use('/api/payments', paymentRoutes); // Prefijo para rutas de pagos
-
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/shares', shareRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/motions', motionRoutes);
+app.use('/api/config', configRoutes);
+app.use('/api/email', emailRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Ruta base
 app.get('/', (req, res) => {
@@ -77,5 +82,5 @@ app.use(errorHandler);
 
 // Servidor escuchando
 app.listen(PORT, () => {
-  console.log(`La aplicación está escuchando en el puerto ${PORT}`);
+  logger.info(`La aplicación está escuchando en el puerto ${PORT}`);
 });

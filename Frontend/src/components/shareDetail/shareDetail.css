@@ -345,6 +345,28 @@
   margin-bottom: 20px;
 }
 
+/* Estilo para el botón deshabilitado */
+.action-btn.send-voucher.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* Estilo para el spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Animación de rotación para el spinner */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 576px) {
   .dashboard-container .sidebar {
     display: none;

@@ -2,7 +2,7 @@ import { useState, useEffect, useContext, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FaSearch, FaBars, FaTimes, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt,
-  FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle, FaChevronDown, FaEdit, FaTrash, FaMoneyBillWave, FaPlus
+  FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle, FaChevronDown, FaEdit, FaTrash, FaMoneyBillWave, FaPlus, FaSpinner
 } from "react-icons/fa";
 import { StudentsContext } from "../../context/student/StudentContext";
 import { SharesContext } from "../../context/share/ShareContext";
@@ -30,6 +30,7 @@ const ShareDetail = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [sendingCuotaId, setSendingCuotaId] = useState(null); // Nuevo estado para rastrear qué cuota se está enviando
   const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   const availableYears = ["2025", "2026", "2027"];
 
@@ -46,16 +47,15 @@ const ShareDetail = () => {
     { name: "Volver Atrás", route: null, action: () => navigate(-1), icon: <FaArrowLeft />, category: "navegacion" },
   ];
 
-useEffect(() => {
-  if (studentId && !hasFetched.current) {
-    hasFetched.current = true;
-    if (!selectedStudent || selectedStudent._id !== studentId) {
-      obtenerEstudiantePorId(studentId);
+  useEffect(() => {
+    if (studentId && !hasFetched.current) {
+      hasFetched.current = true;
+      if (!selectedStudent || selectedStudent._id !== studentId) {
+        obtenerEstudiantePorId(studentId);
+      }
+      obtenerCuotasPorEstudiante(studentId);
     }
-    // Llama a obtenerCuotasPorEstudiante solo una vez al montar el componente o cuando cambie studentId
-    obtenerCuotasPorEstudiante(studentId);
-  }
-}, [studentId, obtenerEstudiantePorId, obtenerCuotasPorEstudiante]); // Elimina cuotas y selectedStudent de las dependencias
+  }, [studentId, obtenerEstudiantePorId, obtenerCuotasPorEstudiante]);
 
   useEffect(() => {
     filterData();
@@ -128,6 +128,14 @@ useEffect(() => {
       setShowAlert(true);
       console.error("Error en handleDelete:", error);
     }
+  };
+
+  const handleSendingStart = (cuotaId) => {
+    setSendingCuotaId(cuotaId);
+  };
+
+  const handleSendingEnd = () => {
+    setSendingCuotaId(null);
   };
 
   const formatDate = (dateString) => (dateString ? new Date(dateString).toISOString().split("T")[0] : "");
@@ -296,7 +304,7 @@ useEffect(() => {
                     <button className="add-btn" onClick={handleCreateClick}>
                       <FaPlus /> Crear Cuota
                     </button>
-                    <button className="back-btn" onClick={() => navigate("/share")}>
+                    <button className="back-btn" onClick={() => navigate(-1)}>
                       Volver
                     </button>
                   </div>
@@ -352,11 +360,21 @@ useEffect(() => {
                                 </button>
                                 {selectedStudent.mail ? (
                                   <button
-                                    className="action-btn send-voucher"
-                                    title="Enviar"
-                                    aria-label="Enviar comprobante por correo"
+                                    className={`action-btn send-voucher ${cuota.state !== "Pagado" ? "disabled" : ""}`}
+                                    title={cuota.state === "Pagado" ? "Enviar" : "Cuota no pagada"}
+                                    aria-label={cuota.state === "Pagado" ? "Enviar comprobante por correo" : "Cuota no pagada"}
+                                    disabled={cuota.state !== "Pagado" || sendingCuotaId === cuota._id}
                                   >
-                                    <SendVoucherEmail student={selectedStudent} cuota={cuota} />
+                                    {sendingCuotaId === cuota._id ? (
+                                      <FaSpinner className="spinner" />
+                                    ) : (
+                                      <SendVoucherEmail
+                                        student={selectedStudent}
+                                        cuota={cuota}
+                                        onSendingStart={() => handleSendingStart(cuota._id)}
+                                        onSendingEnd={handleSendingEnd}
+                                      />
+                                    )}
                                   </button>
                                 ) : (
                                   <span className="error-text">Sin correo</span>

@@ -8,7 +8,7 @@ export const SharesContext = createContext();
 const SharesProvider = ({ children }) => {
   const [cuotas, setCuotas] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { auth } = useContext(LoginContext);
+  const { auth, waitForAuth } = useContext(LoginContext); // Añadimos waitForAuth
 
   const obtenerCuotas = useCallback(async () => {
     if (auth !== "admin") return;
@@ -136,10 +136,14 @@ const SharesProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (auth === "admin") {
-      obtenerCuotas();
-    }
-  }, [auth, obtenerCuotas]);
+    const fetchData = async () => {
+      await waitForAuth(); // Espera a que la autenticación esté lista
+      if (auth === "admin") {
+        await obtenerCuotas();
+      }
+    };
+    fetchData();
+  }, [auth, obtenerCuotas, waitForAuth]); // Añadimos waitForAuth como dependencia
 
   return (
     <SharesContext.Provider
