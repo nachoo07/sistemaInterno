@@ -8,8 +8,10 @@ import {
 import { StudentsContext } from '../../context/student/StudentContext';
 import { PaymentContext } from '../../context/payment/PaymentContext';
 import { LoginContext } from '../../context/login/LoginContext';
+import SendPaymentVoucherEmail from '../voucherPayment/SendPaymentVoucherEmail';
 import Swal from 'sweetalert2';
 import './paymentStudent.css';
+import logo from '../../assets/logo.png';
 import AppNavbar from '../navbar/AppNavbar';
 
 const PaymentStudent = () => {
@@ -243,14 +245,16 @@ const PaymentStudent = () => {
   return (
     <div className={`app-container ${windowWidth <= 576 ? 'mobile-view' : ''}`}>
       {windowWidth <= 576 && (
-        <AppNavbar 
-          isMenuOpen={isMenuOpen} 
+        <AppNavbar
+          isMenuOpen={isMenuOpen}
           setIsMenuOpen={setIsMenuOpen}
         />
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="nav-left-section"></div>
+          <div className="header-logo" onClick={() => navigate('/')}>
+            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
+          </div>
           <div className="nav-right-section">
             <div
               className="profile-container"
@@ -330,81 +334,60 @@ const PaymentStudent = () => {
                   <h1>Pagos de {student.name} {student.lastName}</h1>
                 </div>
               </section>
-              {windowWidth > 576 && (
-                <section className="search-section">
-                  <div className="search-container">
-                    <FaSearch className="search-icon" />
-                    <input
-                      type="text"
-                      placeholder="Buscar pagos..."
-                      className="search-input"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    {searchQuery && (
-                      <button
-                        className="search-clear"
-                        onClick={() => setSearchQuery('')}
-                      >
-                        <FaTimesClear />
-                      </button>
-                    )}
-                  </div>
-                </section>
-              )}
               <section className="payment-table-container">
                 <h2 className="section-title">Historial de Pagos</h2>
-                {loadingPayments ? (
-                  <p>Cargando...</p>
-                ) : payments.length === 0 ? (
-                  <p className="no-data">No hay pagos registrados.</p>
-                ) : (
-                  <table className="payment-table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Concepto</th>
-                        <th>Monto</th>
-                        <th>Fecha</th>
-                        <th>Método</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payments
-                        .filter(payment => 
-                          payment.concept.toLowerCase().includes(searchQuery.toLowerCase())
-                        )
-                        .map((payment, index) => (
-                          <tr key={payment._id}>
-                            <td>{index + 1}</td>
-                            <td>{payment.concept.charAt(0).toUpperCase() + payment.concept.slice(1)}</td>
-                            <td>${payment.amount.toLocaleString('es-ES')}</td>
-                            <td>{formatDate(payment.paymentDate)}</td>
-                            <td>{payment.paymentMethod}</td>
-                            <td>
-                              <div className="btn-action-container">
-                                <button
-                                  className="btn-edit"
-                                  onClick={() => handleEdit(payment)}
-                                  aria-label="Editar pago"
-                                >
-                                  <FaEdit />
-                                </button>
-                                <button
-                                  className="btn-delete"
-                                  onClick={() => handleDelete(payment._id)}
-                                  aria-label="Eliminar pago"
-                                >
-                                  <FaTrash />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                )}
+                <table className="payment-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Concepto</th>
+                      <th>Monto</th>
+                      <th>Fecha</th>
+                      <th>Método</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments
+                      .filter(payment =>
+                        payment.concept.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                      .map((payment, index) => (
+                        <tr key={payment._id}>
+                          <td>{index + 1}</td>
+                          <td>{payment.concept.charAt(0).toUpperCase() + payment.concept.slice(1)}</td>
+                          <td>${payment.amount.toLocaleString('es-ES')}</td>
+                          <td>{formatDate(payment.paymentDate)}</td>
+                          <td>{payment.paymentMethod}</td>
+                          <td>
+                            <div className="btn-action-container">
+                              <button
+                                className="action-btn-student"
+                                onClick={() => handleEdit(payment)}
+                                aria-label="Editar pago"
+                              >
+                                <FaEdit />
+                              </button>
+                              <button
+                                className="action-btn-student"
+                                onClick={() => handleDelete(payment._id)}
+                                aria-label="Eliminar pago"
+                              >
+                                <FaTrash />
+                              </button>
+                              <SendPaymentVoucherEmail
+                                student={student}
+                                payment={payment}
+                                onSendingStart={() => { }}
+                                onSendingEnd={() => { }}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+
               </section>
             </div>
             <div className="sidebar-column">
@@ -553,37 +536,29 @@ const PaymentStudent = () => {
                   </button>
                 </div>
               </form>
-              <h3>Conceptos Existentes</h3>
-              {loadingConcepts ? (
-                <p>Cargando conceptos...</p>
-              ) : concepts.length === 0 ? (
-                <p className="no-data">No hay conceptos registrados.</p>
-              ) : (
-                <table className="concept-table">
-                  <thead>
-                    <tr>
-                      <th>Nombre</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {concepts.map((concept) => (
-                      <tr key={concept._id}>
-                        <td>{concept.name.charAt(0).toUpperCase() + concept.name.slice(1)}</td>
-                        <td>
-                          <button
-                            className="btn-delete"
-                            onClick={() => handleDeleteConcept(concept._id, concept.name.charAt(0).toUpperCase() + concept.name.slice(1))}
-                            aria-label="Eliminar concepto"
-                          >
-                            <FaTrash />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              <h3 className="titulo-concepto">Conceptos Existentes</h3>
+              <div className="concept-list">
+                {loadingConcepts ? (
+                  <p className="no-data">Cargando conceptos...</p>
+                ) : concepts.length === 0 ? (
+                  <p className="no-data">No hay conceptos registrados.</p>
+                ) : (
+                  concepts.map((concept) => (
+                    <div key={concept._id} className="concept-item">
+                      <span className="concept-name">
+                        {concept.name.charAt(0).toUpperCase() + concept.name.slice(1)}
+                      </span>
+                      <button
+                        className="concept-delete-btn"
+                        onClick={() => handleDeleteConcept(concept._id, concept.name.charAt(0).toUpperCase() + concept.name.slice(1))}
+                        aria-label={`Eliminar concepto ${concept.name}`}
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
             <div className="modal-footer">
               <button className="btn-cancel" onClick={handleCloseConceptModal}>

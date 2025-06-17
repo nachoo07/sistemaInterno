@@ -1,23 +1,3 @@
-:root {
-  --primary-color: #f42c8c;
-  --primary-hover: #d12273;
-  --primary-light: #E42278;
-  --text-color: #333333;
-  --text-light: #6c757d;
-  --background-color: #f8f9fa;
-  --background-alt: #f0f2f5;
-  --card-bg: #ffffff;
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --border-color: #e9ecef;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --transition: all 0.25s ease;
-  --header-height: 70px;
-  --sidebar-collapsed: 60px;
-}
-
-/* Estilos para el header de escritorio (desktop-nav-header) */
 .desktop-nav-header {
   background-color: var(--card-bg);
   height: var(--header-height);
@@ -40,76 +20,8 @@
   align-items: center;
 }
 
-.profile-container {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
-}
-
-.profile-icon {
-  font-size: 1.5rem;
-  color: var(--primary-color);
-  margin-right: 10px;
-}
-
-.profile-greeting {
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.arrow-icon {
-  font-size: 0.8rem;
-  margin-left: 5px;
-  transition: transform var(--transition);
-}
-
-.arrow-icon.rotated {
-  transform: rotate(180deg);
-}
-
-.profile-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--card-shadow);
-  min-width: 200px;
-  padding: 10px 0;
-  z-index: 1000;
-}
-
-.menu-option {
-  padding: 10px 20px;
-  color: var(--text-color);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.menu-option:hover {
-  background-color: var(--background-alt);
-}
-
-.menu-separator {
-  height: 1px;
-  background: var(--border-color);
-  margin: 5px 0;
-}
-
-.logout-option {
-  color: var(--danger-color) !important;
-}
-
-.option-icon {
-  font-size: 1rem;
-}
-
-/* Estilos del buscador (solo para pantallas grandes) */
 .search-section {
-  display: none; /* Oculto por defecto */
+  display: none; 
 }
 
 .search-container {
@@ -287,6 +199,17 @@
   min-height: 30px;
 }
 
+.selected-student{
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #e0e6e0;
+  border-radius: 25px;
+  padding: 8px 12px;
+  margin-bottom: 8px ;
+  transition: all 0.3s ease;
+}
+
 .selected-student-chip {
   display: flex;
   align-items: center;
@@ -311,6 +234,7 @@
 .selection-actions {
   display: flex;
   gap: 10px;
+  margin-bottom: 10px;
 }
 
 .select-all-btn,
@@ -339,20 +263,21 @@
   color: var(--text-color);
 }
 
-.select-all-btn:hover,
-.select-overdue-btn:hover {
-  background: var(--primary-hover);
+
+.select-all-btn.active,
+.select-overdue-btn.active {
+  background: #e0e6e0 !important; /* Gris claro para botón activo */
+  color: var(--text-color);
+  transition: none; /* Evita transiciones en hover */
 }
 
 .cancel-btn:hover {
   background: #ccc;
 }
 
-.select-all-btn:disabled,
-.select-overdue-btn:disabled,
-.cancel-btn:disabled {
-  background: var(--border-color);
-  cursor: not-allowed;
+.select-all-btn.active:hover,
+.select-overdue-btn.active:hover {
+  background: #e0e6e0 !important; /* Mantiene el mismo gris claro al pasar el mouse */
 }
 
 .email-subject {
@@ -398,7 +323,7 @@
   padding: 10px 20px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--primary-color);
+  background: #E42278;
   color: white;
   font-size: 14px;
   cursor: pointer;
@@ -408,6 +333,7 @@
 .email-actions button:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
+  
 }
 
 .email-actions button:disabled {
@@ -424,6 +350,16 @@
 .clear-btn:hover {
   background: #ccc;
 }
+
+ .email{
+  background: #E42278 !important;
+  color: white !important;
+  }
+
+  .email:hover {
+    background: #d12273 !important;
+    
+  }
 
 @media (max-width: 576px) {
   .sidebar {
@@ -444,9 +380,11 @@
   }
 
   .selection-actions {
-    flex-direction: column;
-    gap: 5px;
+   font-size: 14px;
+   justify-content: space-between;
   }
+
+ 
 
   .select-all-btn,
   .select-overdue-btn,
@@ -473,4 +411,15 @@
   .search-section {
     display: none; /* Ocultar buscador en pantallas móviles */
   }
+
+  .selected-student{
+  padding: 8px 12px;
+  font-size: 11px;
+  margin-bottom: 0px;
+}
+
+.remove-icon {
+  font-size: 12px;
+  
+}
 }

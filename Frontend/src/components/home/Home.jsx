@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import { LoginContext } from '../../context/login/LoginContext';
 import "./home.css";
+import logo from '../../assets/logo.png';
 import AppNavbar from '../navbar/AppNavbar';
 
 const Home = () => {
@@ -105,7 +106,9 @@ const Home = () => {
       )}
       {window.innerWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="nav-left-section"></div>
+          <div className="header-logo" onClick={() => navigate('/')}>
+            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
+          </div>
           <div className="search-box">
             <FaSearch className="search-symbol" />
             <input

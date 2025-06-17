@@ -3,6 +3,14 @@
   position: relative;
 }
 
+.profile-container:hover {
+  background-color: #E42278 !important;
+}
+
+.app-navbar{
+  background-color: #E42278;
+}
+
 .profile-container-inner {
   cursor: pointer;
   padding: 8px 12px;
@@ -13,7 +21,7 @@
 }
 
 .profile-container-inner:hover {
-  background-color: #f0f2f5;
+  background-color: #E42278;
 }
 
 .profile-icon {
@@ -23,8 +31,9 @@
 }
 
 .profile-greeting {
-  font-weight: 500;
+  font-size: 20px ;
   margin-right: 5px;
+  color: #000000 !important;
 }
 
 .arrow-icon {
@@ -73,7 +82,7 @@
 }
 
 .menu-option:hover {
-  background-color: #f0f2f5;
+  background-color: #104ba5;
   color: #f42c8c;
 }
 

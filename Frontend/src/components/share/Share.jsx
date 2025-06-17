@@ -9,6 +9,7 @@ import { StudentsContext } from "../../context/student/StudentContext";
 import { SharesContext } from "../../context/share/ShareContext";
 import { LoginContext } from "../../context/login/LoginContext";
 import { debounce } from "lodash";
+import logo from '../../assets/logo.png';
 import "./share.css";
 import AppNavbar from "../navbar/AppNavbar";
 
@@ -83,9 +84,9 @@ const Share = () => {
       const studentCuotas = cuotas.filter((cuota) => cuota.student?._id === student._id);
       const lastCuota = studentCuotas.length > 0
         ? studentCuotas.reduce((latest, current) =>
-            new Date(current.date) > new Date(latest.date) ? current : latest,
-            studentCuotas[0]
-          )
+          new Date(current.date) > new Date(latest.date) ? current : latest,
+          studentCuotas[0]
+        )
         : null;
       const matchesStatus =
         statusFilter === "todos" ||
@@ -134,7 +135,13 @@ const Share = () => {
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="nav-left-section"></div>
+          <div className="header-logo" onClick={() => navigate("/")}>
+            <img
+              src={logo}
+              alt="Valladares Fútbol"
+              className="logo-image"
+            />
+          </div>
           <div className="search-box">
             <FaSearch className="search-symbol" />
             <input
@@ -246,7 +253,7 @@ const Share = () => {
             </section>
           )}
           <section className="cuotas-filter">
-            <div className="filter-actions">
+            <div className="filter-actions-share">
               <div className="checkbox-filters">
                 <label className="checkbox-label">
                   <input
@@ -312,86 +319,86 @@ const Share = () => {
                       <th>Acciones</th>
                     </tr>
                   </thead>
-                 <tbody>
-  {currentItems.length > 0 ? (
-    currentItems.map((student, index) => {
-      const studentCuotas = cuotas.filter(
-        (cuota) => cuota.student?._id === student._id
-      );
-      const lastCuota = studentCuotas.length > 0
-        ? studentCuotas.reduce((latest, current) =>
-            new Date(current.date) > new Date(latest.date)
-              ? current
-              : latest,
-            studentCuotas[0]
-          )
-        : null;
-      const cuotaStatus = lastCuota ? lastCuota.state : "Sin cuotas";
+                  <tbody>
+                    {currentItems.length > 0 ? (
+                      currentItems.map((student, index) => {
+                        const studentCuotas = cuotas.filter(
+                          (cuota) => cuota.student?._id === student._id
+                        );
+                        const lastCuota = studentCuotas.length > 0
+                          ? studentCuotas.reduce((latest, current) =>
+                            new Date(current.date) > new Date(latest.date)
+                              ? current
+                              : latest,
+                            studentCuotas[0]
+                          )
+                          : null;
+                        const cuotaStatus = lastCuota ? lastCuota.state : "Sin cuotas";
 
-      return (
-        <tr key={student._id}>
-          <td>{indexOfFirstItem + index + 1}</td>
-          <td>{student.name}</td>
-          <td className="student-name">{student.lastName}</td>
-          <td>{student.cuil}</td>
-          <td>{cuotaStatus}</td>
-          <td className="action-buttons">
-            <button
-              className="action-btn view-btn"
-              onClick={() => handleViewCuotas(student._id)}
-            >
-              <FaUserCircle />
-            </button>
-          </td>
-        </tr>
-      );
-    })
-  ) : (
-    <tr>
-      <td colSpan="6" className="empty-table-message">
-        {searchTerm ? (
-          `No hay cuotas que coincidan con "${searchTerm}"`
-        ) : statusFilter !== 'todos' ? (
-          `No hay cuotas con estado "${statusFilter === 'sin cuotas' ? 'Sin cuotas' : statusFilter}"`
-        ) : (
-          "No hay cuotas registradas en el sistema"
-        )}
-      </td>
-    </tr>
-  )}
-</tbody>
+                        return (
+                          <tr key={student._id}>
+                            <td>{indexOfFirstItem + index + 1}</td>
+                            <td>{student.name}</td>
+                            <td className="student-name">{student.lastName}</td>
+                            <td>{student.cuil}</td>
+                            <td>{cuotaStatus}</td>
+                            <td className="action-buttons">
+                              <button
+                                className="action-btn view-btn"
+                                onClick={() => handleViewCuotas(student._id)}
+                              >
+                                <FaUserCircle />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="empty-table-message">
+                          {searchTerm ? (
+                            `No hay cuotas que coincidan con "${searchTerm}"`
+                          ) : statusFilter !== 'todos' ? (
+                            `No hay cuotas con estado "${statusFilter === 'sin cuotas' ? 'Sin cuotas' : statusFilter}"`
+                          ) : (
+                            "No hay cuotas registradas en el sistema"
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
                 </table>
               </div>
             )}
-            
-           
-              <div className="pagination">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => paginate(currentPage - 1)}
-                  className="pagination-btn"
-                >
-                  «
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
-                  <button
-                    key={number}
-                    className={`pagination-btn ${currentPage === number ? 'active' : ''}`}
-                    onClick={() => paginate(number)}
-                  >
-                    {number}
-                  </button>
-                ))}
-                <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => paginate(currentPage + 1)}
-                  className="pagination-btn"
-                >
-                  »
-                </button>
-              </div>
 
-           
+
+            <div className="pagination">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => paginate(currentPage - 1)}
+                className="pagination-btn"
+              >
+                «
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                <button
+                  key={number}
+                  className={`pagination-btn ${currentPage === number ? 'active' : ''}`}
+                  onClick={() => paginate(number)}
+                >
+                  {number}
+                </button>
+              ))}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => paginate(currentPage + 1)}
+                className="pagination-btn"
+              >
+                »
+              </button>
+            </div>
+
+
 
           </section>
         </main>

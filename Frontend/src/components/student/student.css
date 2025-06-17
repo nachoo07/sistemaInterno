@@ -75,8 +75,8 @@
   margin: 0px 10px;
 }
 
-.add-btn {
-  background: var(--primary-color);
+.add-btn-student {
+  background: #f42c8c;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -88,8 +88,8 @@
   transition: var(--transition);
 }
 
-.add-btn:hover {
-  background: var(--primary-hover);
+.add-btn-student:hover {
+  background: #E42278;
 }
 
 .students-table-section {
@@ -120,7 +120,7 @@
 }
 
 .students-table th {
-  background: #E42278;
+  background: #f42c8c;
   color: white;
   font-weight: 600;
 }
@@ -148,64 +148,17 @@
   gap: 8px;
 }
 
-.action-btn {
-  background: #d12273 !important;
+.action-btn-student {
+  background: #f42c8c !important;
   color: white;
   border: none;
   padding: 6px;
   border-radius: var(--radius-sm);
-  font-size: 18px !important;
+  font-size: 24px !important;
   transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.action-btn:hover {
-  background: var(--primary-hover);
-}
-
-.view-btn {
-  background: var(--primary-color);
-}
-
-.custom-alert {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1050;
-  max-width: 400px;
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--card-shadow);
-  padding: 15px;
-  border-left: 4px solid var(--warning-color);
-}
-
-.alert-content h4 {
-  font-size: 16px;
-  color: var(--warning-color);
-  margin-bottom: 10px;
-}
-
-.alert-content p {
-  font-size: 14px;
-  color: var(--text-color);
-  margin-bottom: 10px;
-}
-
-.alert-content button {
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  transition: var(--transition);
-}
-
-.alert-content button:hover {
-  background: var(--primary-hover);
 }
 
 .pagination {
@@ -302,6 +255,20 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
+.search-box {
+  margin: 0px ;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logo-image {
+  height: 55px;
+  /* Ajusta la altura según necesites */
+}
 
 @media (max-width: 576px) {
   .students-table th,
@@ -310,9 +277,9 @@
     padding: 6px;
   }
 
-  .action-btn {
+  .action-btn-student {
     padding: 3px;
-    font-size: 10px;
+    font-size: 13px !important;
   }
 
   .pagination-btn {
@@ -325,14 +292,20 @@
     flex-direction: row !important;
   }
 
+  .state-student{
+    display: none;
+  }
+
   .filter-actions {
     display: flex;
     flex-direction: row !important;
     margin-top: 10px !important;
   }
 
-  .add-btn {
-    font-size: 12px !important;
+  .add-btn-student {
+    font-size: 10px !important;
+    margin: 0px !important;
+    padding: 8px 10px !important;
   }
 
   .checkbox-custom {

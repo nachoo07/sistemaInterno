@@ -31,28 +31,16 @@ const studentSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  motherName: {
+  guardianName: {
     type: String,
     trim: true,
   },
-  fatherName: {
-    type: String,
-    trim: true,
-  },
-  motherPhone: {
+  guardianPhone: {
     type: String,
     trim: true,
     validate: {
-      validator: (v) => /^\d{10,15}$/.test(v),
-      message: "Mother's phone number must be between 10 and 15 digits.",
-    },
-  },
-  fatherPhone: {
-    type: String,
-    trim: true,
-    validate: {
-      validator: (v) => /^\d{10,15}$/.test(v),
-      message: "Father's phone number must be between 10 and 15 digits.",
+      validator: (v) => !v || /^\d{10,15}$/.test(v),
+      message: 'Guardian phone number must have between 10 and 15 digits.',
     },
   },
   category: {

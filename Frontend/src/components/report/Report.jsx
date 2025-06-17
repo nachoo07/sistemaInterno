@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaSearch, FaBars, FaTimes, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt, FaCalendarCheck,
+import {
+  FaSearch, FaBars, FaTimes, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt, FaCalendarCheck,
   FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle, FaChevronDown, FaTimes as FaTimesClear
 } from 'react-icons/fa';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -14,6 +15,7 @@ import { StudentsContext } from '../../context/student/StudentContext';
 import { SharesContext } from '../../context/share/ShareContext';
 import { MotionContext } from '../../context/motion/MotionContext';
 import { LoginContext } from '../../context/login/LoginContext';
+import logo from '../../assets/logo.png';
 import './report.css';
 import AppNavbar from '../navbar/AppNavbar';
 
@@ -227,7 +229,13 @@ const Report = () => {
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="nav-left-section"></div>
+          <div className="header-logo" onClick={() => navigate("/")}>
+            <img
+              src={logo}
+              alt="Valladares Fútbol"
+              className="logo-image"
+            />
+          </div>
           <div className="nav-right-section">
             <div
               className="profile-container"
@@ -303,28 +311,6 @@ const Report = () => {
           <div className="welcome-text">
             <h1>Panel de Reporte</h1>
           </div>
-          {windowWidth > 576 && (
-            <div className="search-section">
-              <div className="search-container">
-                <FaSearch className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Buscar reportes..."
-                  className="search-input"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-                {searchQuery && (
-                  <button
-                    className="search-clear"
-                    onClick={() => setSearchQuery('')}
-                  >
-                    <FaTimesClear />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
           <div className="stats-grid">
             <div className="stat-card">
               <h3 className="titulo-card color-activos">Alumnos Activos</h3>

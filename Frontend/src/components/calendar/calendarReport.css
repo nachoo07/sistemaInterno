@@ -3,8 +3,8 @@
 }
 
 .calendar-toggle {
-  background: #D83D8D;
-  border: 1px solid #D83D8D;
+  background: #E42278;
+  border: 1px solid #E42278;
   color: white;
   padding: 10px 15px;
   display: flex;
@@ -59,7 +59,7 @@
 }
 
 .month-btn.selected {
-  background: #D83D8D;
+  background: #E42278;
   color: white;
   border-radius: 5px;
 }
@@ -77,12 +77,13 @@
 
 .today-btn,
 .close-btn {
-  background: #D83D8D;
+  background: #E42278;
   color: white;
   border: none;
   padding: 8px 12px;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 14px ;
 }
 
 .today-btn:hover,

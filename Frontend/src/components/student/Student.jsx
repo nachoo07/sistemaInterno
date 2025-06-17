@@ -10,6 +10,7 @@ import { LoginContext } from '../../context/login/LoginContext';
 import StudentFormModal from '../modal/StudentFormModal';
 import Swal from 'sweetalert2';
 import './student.css';
+import logo from '../../assets/logo.png';
 import AppNavbar from '../navbar/AppNavbar';
 
 const Student = () => {
@@ -22,9 +23,8 @@ const Student = () => {
   const [editStudent, setEditStudent] = useState(null);
   const [filterState, setFilterState] = useState('todos');
   const [formData, setFormData] = useState({
-    name: '', lastName: '', cuil: '', birthDate: '', address: '', mail: '', category: '',
-    motherName: '', motherPhone: '', fatherName: '', fatherPhone: '', profileImage: null,
-    comment: '', state: 'Activo', fee: 'pendiente', hasSiblingDiscount: false
+    name: '', lastName: '', cuil: '', birthDate: '', address: '', mail: '', category: '', guardianName: '',
+    guardianPhone: '', profileImage: null, comment: '', state: 'Activo', fee: 'pendiente', hasSiblingDiscount: false
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -120,8 +120,7 @@ const Student = () => {
     } else {
       setEditStudent(null);
       setFormData({
-        name: '', lastName: '', cuil: '', birthDate: '', address: '', mail: '', category: '',
-        motherName: '', motherPhone: '', fatherName: '', fatherPhone: '', profileImage: null,
+        name: '', lastName: '', cuil: '', birthDate: '', address: '', mail: '', category: '',guardianName: '', guardianPhone: '', profileImage: null,
         comment: '', state: 'Activo', fee: 'pendiente', hasSiblingDiscount: false
       });
     }
@@ -191,7 +190,13 @@ const Student = () => {
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="nav-left-section"></div>
+              <div className="header-logo" onClick={() => navigate("/")}>
+            <img
+              src={logo}
+              alt="Valladares Fútbol"
+              className="logo-image"
+            />
+          </div>
           <div className="search-box">
             <FaSearch className="search-symbol" />
             <input
@@ -333,21 +338,12 @@ const Student = () => {
                   <span className="checkbox-custom">Inactivo</span>
                 </label>
               </div>
-              <button className="add-btn" onClick={() => handleShow()}>
+              <button className="add-btn-student" onClick={() => handleShow()}>
                 <FaPlus /> Agregar Alumno
               </button>
             </div>
           </section>
           <section className="students-table-section">
-            {showAlert && (
-              <div className="custom-alert">
-                <div className="alert-content">
-                  <h4>¡Atención!</h4>
-                  <p>{alertMessage}</p>
-                  <button onClick={() => setShowAlert(false)}>Cerrar</button>
-                </div>
-              </div>
-            )}
             <div className="table-wrapper">
               <table className="students-table">
                 <thead>
@@ -355,8 +351,8 @@ const Student = () => {
                     <th>#</th>
                     <th>Nombre</th>
                     <th>Apellido</th>
-                    <th>CUIL</th>
-                    <th>Estado</th>
+                    <th>Cuil</th>
+                    <th className='state-student'>Estado</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -368,24 +364,24 @@ const Student = () => {
                         <td>{estudiante.name}</td>
                         <td>{estudiante.lastName}</td>
                         <td>{estudiante.cuil}</td>
-                        <td>{estudiante.state}</td>
+                        <td className='state-student'>{estudiante.state}</td>
                         <td className="action-buttons">
                           <button
-                            className="action-btn view-btn"
+                            className="action-btn-student"
                             onClick={() => navigate(`/detailstudent/${estudiante._id}`)}
                             title="Ver Detalle"
                           >
                             <FaUserCircle />
                           </button>
                           <button
-                            className="action-btn edit-btn"
+                            className="action-btn-student"
                             onClick={() => handleShow(estudiante)}
                             title="Editar"
                           >
                             <FaEdit />
                           </button>
                           <button
-                            className="action-btn delete-btn"
+                            className="action-btn-student"
                             onClick={() => handleDelete(estudiante._id)}
                             title="Eliminar"
                           >

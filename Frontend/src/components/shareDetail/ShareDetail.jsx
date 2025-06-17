@@ -1,8 +1,25 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  FaSearch, FaBars, FaTimes, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt,
-  FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle, FaChevronDown, FaEdit, FaTrash, FaMoneyBillWave, FaPlus, FaSpinner
+  FaSearch,
+  FaBars,
+  FaTimes,
+  FaUsers,
+  FaMoneyBill,
+  FaChartBar,
+  FaExchangeAlt,
+  FaCalendarCheck,
+  FaUserCog,
+  FaCog,
+  FaEnvelope,
+  FaHome,
+  FaArrowLeft,
+  FaUserCircle,
+  FaChevronDown,
+  FaEdit,
+  FaTrash,
+  FaMoneyBillWave,
+  FaPlus,
 } from "react-icons/fa";
 import { StudentsContext } from "../../context/student/StudentContext";
 import { SharesContext } from "../../context/share/ShareContext";
@@ -10,6 +27,7 @@ import { LoginContext } from "../../context/login/LoginContext";
 import SendVoucherEmail from "../voucherEmail/SendVoucherEmail";
 import ShareFormModal from "../modalShare/ShareFormModal";
 import AppNavbar from "../navbar/AppNavbar";
+import logo from '../../assets/logo.png';
 import "./shareDetail.css";
 
 const ShareDetail = () => {
@@ -30,7 +48,8 @@ const ShareDetail = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [sendingCuotaId, setSendingCuotaId] = useState(null); // Nuevo estado para rastrear qué cuota se está enviando
+  const [sendingCuotaId, setSendingCuotaId] = useState(null);
+  const [loading, setLoading] = useState(true);
   const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   const availableYears = ["2025", "2026", "2027"];
 
@@ -55,7 +74,11 @@ const ShareDetail = () => {
       }
       obtenerCuotasPorEstudiante(studentId);
     }
-  }, [studentId, obtenerEstudiantePorId, obtenerCuotasPorEstudiante]);
+  }, [studentId, obtenerEstudiantePorId, obtenerCuotasPorEstudiante, selectedStudent]);
+
+  useEffect(() => {
+    setLoading(loadingStudent || loadingCuotas);
+  }, [loadingStudent, loadingCuotas]);
 
   useEffect(() => {
     filterData();
@@ -162,26 +185,35 @@ const ShareDetail = () => {
     setIsProfileOpen(false);
   };
 
+  if (loading) {
+    return <div className="app-container">Cargando datos del estudiante y cuotas...</div>;
+  }
+
+  if (!selectedStudent) {
+    return <div className="app-container">No se encontró el estudiante. Verifica el ID o los datos en StudentsContext.</div>;
+  }
+
   return (
     <div className="app-container">
       {windowWidth <= 576 && (
-        <AppNavbar
-          isMenuOpen={isMenuOpen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <AppNavbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="nav-left-section"></div>
+          <div className="header-logo" onClick={() => navigate("/")}>
+            <img
+              src={logo}
+              alt="Valladares Fútbol"
+              className="logo-image"
+            />
+          </div>
           <div className="nav-right-section">
             <div
               className="profile-container"
               onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
               <FaUserCircle className="profile-icon" />
-              <span className="profile-greeting">
-                Hola, {userData?.name || "Usuario"}
-              </span>
+              <span className="profile-greeting">Hola, {userData?.name || "Usuario"}</span>
               <FaChevronDown className={`arrow-icon ${isProfileOpen ? "rotated" : ""}`} />
               {isProfileOpen && (
                 <div className="profile-menu">
@@ -245,168 +277,123 @@ const ShareDetail = () => {
           </nav>
         </aside>
         <div className="content-container">
-          {windowWidth > 576 && (
-            <div className="search-section">
-              <div className="search-container">
-                <FaSearch className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Buscar cuotas..."
-                  className="search-input"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-                {searchQuery && (
-                  <button
-                    className="search-clear"
-                    onClick={() => setSearchQuery("")}
-                  >
-                    <FaTimes />
-                  </button>
-                )}
+          <section className="dashboard-welcome">
+            <div className="welcome-text">
+              <h1>Cuotas de {selectedStudent.name} {selectedStudent.lastName}</h1>
+            </div>
+          </section>
+          <section className="cuotas-filter">
+            <div className="filter-actions-detail">
+              <div className="checkbox-filters">
+                {availableYears.map((year) => (
+                  <label key={year} className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      name={year}
+                      checked={selectedYear === year}
+                      onChange={handleFilterChange}
+                    />
+                    <span className="checkbox-custom-share">{year}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="action-buttons-detail">
+                <button className="add-btn-detail" onClick={handleCreateClick}>
+                  <FaPlus /> Crear Cuota
+                </button>
+                <button className="add-btn-detail" onClick={() => navigate(-1)}>
+                  Volver
+                </button>
               </div>
             </div>
-          )}
-          {showAlert && (
-            <div className="custom-alert">
-              <div className="alert-content">
-                <h4>¡Atención!</h4>
-                <p>{alertMessage}</p>
-                <button onClick={() => setShowAlert(false)}>Cerrar</button>
-              </div>
+          </section>
+          <section className="cuotas-table-section">
+            <div className="table-wrapper">
+              <table className="cuotas-table">
+                <thead>
+                  <tr>
+                    <th>Mes</th>
+                    <th>Monto</th>
+                    <th>Método de Pago</th>
+                    <th>Fecha de Pago</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.length > 0 ? (
+                    filteredData.map((cuota) => (
+                      <tr key={cuota._id}>
+                        <td>{formatMonth(cuota.date)}</td>
+                        <td>
+                          {new Intl.NumberFormat("es-CL", {
+                            style: "currency",
+                            currency: "CLP",
+                            minimumFractionDigits: 0,
+                          }).format(cuota.amount)}
+                        </td>
+                        <td>{cuota.paymentmethod || "-"}</td>
+                        <td>{cuota.paymentdate ? formatDate(cuota.paymentdate) : "-"}</td>
+                        <td>{cuota.state}</td>
+                        <td className="action-buttons">
+                          <button
+                            className="action-btn-share-detail"
+                            onClick={() => handleEditClick(cuota)}
+                            title={cuota.paymentmethod && cuota.paymentdate ? "Editar" : "Pagar"}
+                            aria-label={cuota.paymentmethod && cuota.paymentdate ? "Editar cuota" : "Pagar cuota"}
+                          >
+                            {cuota.paymentmethod && cuota.paymentdate ? <FaEdit /> : <FaMoneyBillWave />}
+                          </button>
+                          <button
+                            className="action-btn-share-detail"
+                            onClick={() => handleDelete(cuota._id)}
+                            title="Eliminar"
+                            aria-label="Eliminar cuota"
+                          >
+                            <FaTrash />
+                          </button>
+                          {selectedStudent.mail ? (
+                            <button
+                              className={`action-btn-share-detail send-voucher ${cuota.state !== "Pagado" ? "disabled" : ""}`}
+                              title={cuota.state === "Pagado" ? "Enviar comprobante" : "Cuota no pagada"}
+                              aria-label={cuota.state === "Pagado" ? "Enviar comprobante por correo" : "Cuota no pagada"}
+                              disabled={cuota.state !== "Pagado" || sendingCuotaId === cuota._id}
+                            >
+                              <SendVoucherEmail
+                                student={selectedStudent}
+                                cuota={cuota}
+                                onSendingStart={() => handleSendingStart(cuota._id)}
+                                onSendingEnd={handleSendingEnd}
+                              />
+                            </button>
+                          ) : (
+                            <span className="error-text">Sin correo</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="no-data-row">
+                        No hay cuotas registradas para el año seleccionado.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-          )}
-          {loadingStudent || !selectedStudent ? (
-            <p className="no-data">Cargando datos del estudiante...</p>
-          ) : (
-            <>
-              <section className="dashboard-welcome">
-                <div className="welcome-text">
-                  <h1>Cuotas de {selectedStudent.name} {selectedStudent.lastName}</h1>
-                </div>
-              </section>
-              <section className="cuotas-filter">
-                <div className="filter-actions">
-                  <div className="checkbox-filters">
-                    {availableYears.map((year) => (
-                      <label key={year} className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          name={year}
-                          checked={selectedYear === year}
-                          onChange={handleFilterChange}
-                        />
-                        <span className="checkbox-custom-share">{year}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="action-buttons">
-                    <button className="add-btn" onClick={handleCreateClick}>
-                      <FaPlus /> Crear Cuota
-                    </button>
-                    <button className="back-btn" onClick={() => navigate(-1)}>
-                      Volver
-                    </button>
-                  </div>
-                </div>
-              </section>
-              <section className="cuotas-table-section">
-                {loadingCuotas ? (
-                  <p className="no-data">Cargando cuotas...</p>
-                ) : (
-                  <div className="table-wrapper">
-                    <table className="cuotas-table">
-                      <thead>
-                        <tr>
-                          <th>Mes</th>
-                          <th>Monto</th>
-                          <th>Método de Pago</th>
-                          <th>Fecha de Pago</th>
-                          <th>Estado</th>
-                          <th>Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredData.length > 0 ? (
-                          filteredData.map((cuota) => (
-                            <tr key={cuota._id}>
-                              <td>{formatMonth(cuota.date)}</td>
-                              <td>
-                                {new Intl.NumberFormat("es-CL", {
-                                  style: "currency",
-                                  currency: "CLP",
-                                  minimumFractionDigits: 0,
-                                }).format(cuota.amount)}
-                              </td>
-                              <td>{cuota.paymentmethod || "-"}</td>
-                              <td>{cuota.paymentdate ? formatDate(cuota.paymentdate) : "-"}</td>
-                              <td>{cuota.state}</td>
-                              <td className="action-buttons">
-                                <button
-                                  className="action-btn edit-btn"
-                                  onClick={() => handleEditClick(cuota)}
-                                  title={cuota.paymentmethod && cuota.paymentdate ? "Editar" : "Pagar"}
-                                  aria-label={cuota.paymentmethod && cuota.paymentdate ? "Editar cuota" : "Pagar cuota"}
-                                >
-                                  {cuota.paymentmethod && cuota.paymentdate ? <FaEdit /> : <FaMoneyBillWave />}
-                                </button>
-                                <button
-                                  className="action-btn delete-btn"
-                                  onClick={() => handleDelete(cuota._id)}
-                                  title="Eliminar"
-                                  aria-label="Eliminar cuota"
-                                >
-                                  <FaTrash />
-                                </button>
-                                {selectedStudent.mail ? (
-                                  <button
-                                    className={`action-btn send-voucher ${cuota.state !== "Pagado" ? "disabled" : ""}`}
-                                    title={cuota.state === "Pagado" ? "Enviar" : "Cuota no pagada"}
-                                    aria-label={cuota.state === "Pagado" ? "Enviar comprobante por correo" : "Cuota no pagada"}
-                                    disabled={cuota.state !== "Pagado" || sendingCuotaId === cuota._id}
-                                  >
-                                    {sendingCuotaId === cuota._id ? (
-                                      <FaSpinner className="spinner" />
-                                    ) : (
-                                      <SendVoucherEmail
-                                        student={selectedStudent}
-                                        cuota={cuota}
-                                        onSendingStart={() => handleSendingStart(cuota._id)}
-                                        onSendingEnd={handleSendingEnd}
-                                      />
-                                    )}
-                                  </button>
-                                ) : (
-                                  <span className="error-text">Sin correo</span>
-                                )}
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan="6" className="no-data-row">
-                              No hay cuotas registradas para el año seleccionado.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
-              <ShareFormModal
-                show={showModal}
-                onHide={() => setShowModal(false)}
-                selectedStudent={selectedStudent}
-                selectedCuota={selectedCuota}
-                availableMonths={availableMonths}
-                months={months}
-                onSave={handleSave}
-                isEditing={isEditing}
-                today={today}
-              />
-            </>
-          )}
+          </section>
+          <ShareFormModal
+            show={showModal}
+            onHide={() => setShowModal(false)}
+            selectedStudent={selectedStudent}
+            selectedCuota={selectedCuota}
+            availableMonths={availableMonths}
+            months={months}
+            onSave={handleSave}
+            isEditing={isEditing}
+            today={today}
+          />
         </div>
       </div>
     </div>

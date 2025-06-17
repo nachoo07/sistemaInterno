@@ -41,8 +41,7 @@ export const createStudent = async (req, res) => {
     }
 
     const {
-      name, lastName, cuil, birthDate, address, motherName, fatherName,
-      motherPhone, fatherPhone, category, mail, state, fee, comment, hasSiblingDiscount
+      name, lastName, cuil, birthDate, address, guardianName, guardianPhone, category, mail, state, fee, comment, hasSiblingDiscount
     } = sanitize(req.body);
 
     if (!name || !cuil || !birthDate || !address || !category || !mail) {
@@ -60,8 +59,7 @@ export const createStudent = async (req, res) => {
       }
 
       const newStudent = await Student.create({
-        name, lastName, cuil, birthDate: new Date(birthDate), address, motherName, fatherName,
-        motherPhone, fatherPhone, category, mail, state, fee, comment,
+        name, lastName, cuil, birthDate: new Date(birthDate), address, guardianName, guardianPhone, category, mail, state, fee, comment,
         profileImage, hasSiblingDiscount: hasSiblingDiscount || false
       });
 

@@ -1,147 +1,4 @@
-:root {
-  --primary-color: #f42c8c;
-  --primary-hover: #d12273;
-  --primary-light: #E42278;
-  --text-color: #333333;
-  --text-light: #6c757d;
-  --background-color: #f8f9fa;
-  --background-alt: #f0f2f5;
-  --card-bg: #ffffff;
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --border-color: #e9ecef;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --transition: all 0.25s ease;
-  --header-height: 70px;
-  --sidebar-width: 240px;
-  --sidebar-collapsed: 60px;
-  --success-color: #28a745;
-  --danger-color: #dc3545;
-}
 
-/* Estilos para el header de escritorio (desktop-nav-header) */
-.desktop-nav-header {
-  background-color: var(--card-bg);
-  height: var(--header-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 25px;
-  box-shadow: var(--card-shadow);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.nav-left-section {
-  flex: 1;
-}
-
-.nav-right-section {
-  display: flex;
-  align-items: center;
-}
-
-.profile-container {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
-}
-
-.profile-icon {
-  font-size: 1.5rem;
-  color: var(--primary-color);
-  margin-right: 10px;
-}
-
-.profile-greeting {
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.arrow-icon {
-  font-size: 0.8rem;
-  margin-left: 5px;
-  transition: transform var(--transition);
-}
-
-.arrow-icon.rotated {
-  transform: rotate(180deg);
-}
-
-.profile-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--card-shadow);
-  min-width: 200px;
-  padding: 10px 0;
-  z-index: 1000;
-}
-
-.menu-option {
-  padding: 10px 20px;
-  color: var(--text-color);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.menu-option:hover {
-  background-color: var(--background-alt);
-}
-
-.menu-separator {
-  height: 1px;
-  background: var(--border-color);
-  margin: 5px 0;
-}
-
-.logout-option {
-  color: var(--danger-color) !important;
-}
-
-.option-icon {
-  font-size: 1rem;
-}
-
-/* Estilos del buscador (solo para pantallas grandes) */
-.search-section {
-  display: none; /* Oculto por defecto */
-}
-
-.search-container {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-  margin: 10px auto;
-}
-
-.search-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-light);
-  font-size: 1rem;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 40px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  background-color: var(--card-bg);
-  color: var(--text-color);
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
 
 .search-input:focus {
   outline: none;
@@ -171,20 +28,6 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-/* Resto de los estilos */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  transition: var(--transition);
-}
-
 .app-container {
   min-height: 100vh;
   width: 100%;
@@ -195,26 +38,6 @@ body {
 .header-left {
   display: flex;
   align-items: center;
-}
-
-.menu-toggle {
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  color: white;
-  cursor: pointer;
-  padding: 10px;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition);
-}
-
-.menu-toggle:hover {
-  background-color: var(--background-alt);
 }
 
 .header-actions {
@@ -242,166 +65,15 @@ body {
   background-color: var(--background-alt);
 }
 
-.notification-badge {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: var(--primary-color);
-  color: white;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 5px 15px;
-  border-radius: var(--radius-md);
-  transition: var(--transition);
-}
-
-.user-profile:hover {
-  background-color: var(--background-alt);
-}
-
-.user-avatar {
-  font-size: 1.6rem;
-  color: var(--primary-color);
-  margin-right: 10px;
-}
-
-.user-name {
-  font-weight: 500;
-  margin-right: 10px;
-}
-
-.dropdown-icon {
-  font-size: 0.7rem;
-  color: var(--text-light);
-}
-
-.dropdown-icon.open {
-  transform: rotate(180deg);
-}
-
-.user-dropdown {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  min-width: 200px;
-  background-color: var(--card-bg);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  z-index: 1000;
-  animation: dropdown-fade 0.2s ease;
-}
-
 @keyframes dropdown-fade {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.dropdown-item {
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  transition: var(--transition);
-  color: var(--text-color);
-}
-
-.dropdown-item:hover {
-  background-color: var(--background-alt);
-  color: var(--primary-color);
-}
-
-.dropdown-icon-item {
-  margin-right: 12px;
-  font-size: 1rem;
-}
-
-.dropdown-divider {
-  height: 1px;
-  background-color: var(--border-color);
-  margin: 4px 0;
-}
-
-.dropdown-item.logout {
-  color: var(--danger-color);
-}
-
-.dropdown-item.logout:hover {
-  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .dashboard-layout {
   display: flex;
   height: calc(100vh - var(--header-height));
   transition: var(--transition);
-}
-
-.sidebar {
-  background-color: #30343b;
-  width: var(--sidebar-width);
-  overflow-y: auto;
-  height: 100%;
-  transition: var(--transition);
-}
-
-.sidebar.closed {
-  width: var(--sidebar-collapsed);
-}
-
-.sidebar-nav {
-  padding: 20px;
-}
-
-.sidebar-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar-menu-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  margin-bottom: 5px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition);
-  color: white;
-  font-weight: 500;
-}
-
-.sidebar-menu-item:hover {
-  background-color: var(--primary-light);
-  color: var(--primary-color);
-}
-
-.sidebar-menu-item.active {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.sidebar.closed .sidebar-menu-item {
-  justify-content: center;
-  padding: 10px;
-}
-
-.sidebar.closed .menu-text {
-  display: none;
-}
-
-.sidebar.closed .menu-icon {
-  margin-right: 0;
 }
 
 .menu-icon {
@@ -499,31 +171,40 @@ body {
 .btn-action-container {
   display: flex;
   gap: 10px;
+  justify-content: center;
 }
 
-.btn-edit, .btn-delete {
+.btn-edit, .btn-delete, .send-voucher-payment {
   background: none;
   border: none;
   cursor: pointer;
   padding: 8px;
   border-radius: var(--radius-sm);
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
 }
 
 .btn-edit {
-  color: var(--success-color);
+  color: #04a45c;
 }
 
 .btn-edit:hover {
-  background-color: rgba(40, 167, 69, 0.1);
+  background-color: rgba(4, 164, 92, 0.1);
+  color: #1b5930;
 }
 
 .btn-delete {
-  color: var(--danger-color);
+  color: #dc3545;
 }
 
 .btn-delete:hover {
   background-color: rgba(220, 53, 69, 0.1);
+  color: #c82333;
 }
 
 .no-data {
@@ -750,6 +431,63 @@ body {
 .modal-footer {
   margin-top: 20px;
   text-align: right;
+}
+
+.concept-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+  padding-right: 8px;
+}
+
+.concept-item {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #e0e6e0;
+  border-radius: 25px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  transition: var(--transition);
+}
+
+.concept-item:hover {
+  background-color: var(--background-alt);
+}
+
+.concept-name {
+  font-size: 14px;
+  font-weight: normal;
+  color: #333;
+}
+
+.concept-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background-color: #04a45c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-left: 10px;
+}
+
+.concept-delete-btn:hover {
+  background-color: #1b5930;
+}
+
+.concept-delete-btn svg {
+  font-size: 10px;
+}
+
+.titulo-concepto {
+  margin-bottom: 10px;
+  margin-top: 20px;
 }
 
 @media (max-width: 1200px) {

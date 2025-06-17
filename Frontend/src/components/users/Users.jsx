@@ -9,6 +9,7 @@ import { UsersContext } from '../../context/user/UserContext';
 import Swal from 'sweetalert2';
 import './user.css';
 import AppNavbar from '../navbar/AppNavbar';
+import logo from '../../assets/logo.png';
 import { LoginContext } from '../../context/login/LoginContext';
 
 const Users = () => {
@@ -211,7 +212,9 @@ const Users = () => {
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="nav-left-section"></div>
+          <div className="header-logo" onClick={() => navigate('/')}>
+            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
+          </div>
           <div className="search-box">
             <FaSearch className="search-symbol" />
             <input
@@ -231,7 +234,7 @@ const Users = () => {
               <FaUserCircle className="profile-icon" />
               <span className="profile-greeting">
                 Hola, {userData?.name || 'Usuario'}
-                </span>
+              </span>
               <FaChevronDown className={`arrow-icon ${isProfileOpen ? 'rotated' : ''}`} />
               {isProfileOpen && (
                 <div className="profile-menu">

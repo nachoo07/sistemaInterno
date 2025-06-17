@@ -28,34 +28,9 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
     handleChange({ target: { name: 'hasSiblingDiscount', value: e.target.checked } });
   };
 
-  const validateParentFields = () => {
-    const fields = ['motherName', 'motherPhone', 'fatherName', 'fatherPhone'].map(field => formData[field]?.trim() || '');
-    const filledCount = fields.filter(Boolean).length;
-
-    if (filledCount > 0 && filledCount < 2) {
-      setAlertMessage('Debe completar al menos 2 de los 4 campos de información de los padres.');
-      setShowAlert(true);
-      setTimeout(() => setShowAlert(false), 3000);
-      return false;
-    }
-
-    const motherComplete = fields[0] && fields[1];
-    const fatherComplete = fields[2] && fields[3];
-    if (filledCount >= 2 && !motherComplete && !fatherComplete) {
-      setAlertMessage('Complete ambos campos (nombre y teléfono) de la madre o del padre.');
-      setShowAlert(true);
-      setTimeout(() => setShowAlert(false), 3000);
-      return false;
-    }
-
-    return true;
-  };
-
   const onSubmit = (e) => {
     e.preventDefault();
-    if (validateParentFields()) {
       handleSubmit(e);
-    }
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -114,7 +89,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
             />
           </Form.Group>
           <Form.Group controlId="formDNI" className="studentFormModal-form-group">
-            <Form.Label>CUIL</Form.Label>
+            <Form.Label>Cuil</Form.Label>
             <Form.Control
               type="text"
               placeholder="CUIL"
@@ -181,24 +156,24 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
             />
           </Form.Group>
           <Form.Group controlId="formNombreMama" className="studentFormModal-form-group">
-            <Form.Label>Nombre Mamá</Form.Label>
+            <Form.Label>Nombre del Tutor/a</Form.Label>
             <Form.Control
               type="text"
               placeholder="Nombre Mamá"
-              name="motherName"
-              value={formData.motherName || ''}
+              name="guardianName"
+              value={formData.guardianName || ''}
               onChange={handleChange}
               maxLength={50}
               className="form-control-custom"
             />
           </Form.Group>
           <Form.Group controlId="formCelularMama" className="studentFormModal-form-group">
-            <Form.Label>Celular Mamá</Form.Label>
+            <Form.Label>Celular del Tutor/a</Form.Label>
             <Form.Control
               type="text"
               placeholder="Celular Mamá"
-              name="motherPhone"
-              value={formData.motherPhone || ''}
+              name="guardianPhone"
+              value={formData.guardianPhone || ''}
               onChange={handleNumberInput}
               pattern="\d{10,15}"
               title="El número debe tener entre 10 y 15 dígitos."
@@ -217,31 +192,6 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>
             </Form.Control>
-          </Form.Group>
-          <Form.Group controlId="formNombrePapa" className="studentFormModal-form-group">
-            <Form.Label>Nombre Papá</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Nombre Papá"
-              name="fatherName"
-              value={formData.fatherName || ''}
-              onChange={handleChange}
-              maxLength={50}
-              className="form-control-custom"
-            />
-          </Form.Group>
-          <Form.Group controlId="formCelularPapa" className="studentFormModal-form-group">
-            <Form.Label>Celular Papá</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Celular Papá"
-              name="fatherPhone"
-              value={formData.fatherPhone || ''}
-              onChange={handleNumberInput}
-              pattern="\d{10,15}"
-              title="El número debe tener entre 10 y 15 dígitos."
-              className="form-control-custom"
-            />
           </Form.Group>
           <Form.Group controlId="formHasSiblingDiscount" className="studentFormModal-checkbox-group">
             <Form.Check

@@ -3,13 +3,14 @@ import { SharesContext } from '../../context/share/ShareContext';
 import { LoginContext } from '../../context/login/LoginContext'; // Añadimos LoginContext
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaBars, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt, FaCalendarCheck, 
-  FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaInfoCircle, FaUserCircle, 
+import {
+  FaBars, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt, FaCalendarCheck,
+  FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaInfoCircle, FaUserCircle,
   FaChevronDown, FaTimes, FaSearch, FaTimes as FaTimesClear
 } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import './settings.css';
+import logo from '../../assets/logo.png';
 import AppNavbar from '../navbar/AppNavbar';
 
 const Settings = () => {
@@ -127,7 +128,9 @@ const Settings = () => {
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="nav-left-section"></div>
+          <div className="header-logo" onClick={() => navigate('/')}>
+            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
+          </div>
           <div className="nav-right-section">
             <div
               className="profile-container"

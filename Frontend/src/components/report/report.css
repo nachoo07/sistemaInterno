@@ -18,157 +18,6 @@
   --sidebar-collapsed: 60px;
 }
 
-/* Estilos para el header de escritorio (desktop-nav-header) */
-.desktop-nav-header {
-  background-color: var(--card-bg);
-  height: var(--header-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 25px;
-  box-shadow: var(--card-shadow);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.nav-left-section {
-  flex: 1;
-}
-
-.nav-right-section {
-  display: flex;
-  align-items: center;
-}
-
-.profile-container {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
-}
-
-.profile-icon {
-  font-size: 1.5rem;
-  color: var(--primary-color);
-  margin-right: 10px;
-}
-
-.profile-greeting {
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.arrow-icon {
-  font-size: 0.8rem;
-  margin-left: 5px;
-  transition: transform var(--transition);
-}
-
-.arrow-icon.rotated {
-  transform: rotate(180deg);
-}
-
-.profile-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--card-shadow);
-  min-width: 200px;
-  padding: 10px 0;
-  z-index: 1000;
-}
-
-.menu-option {
-  padding: 10px 20px;
-  color: var(--text-color);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.menu-option:hover {
-  background-color: var(--background-alt);
-}
-
-.menu-separator {
-  height: 1px;
-  background: var(--border-color);
-  margin: 5px 0;
-}
-
-.logout-option {
-  color: #dc3545 !important;
-}
-
-.option-icon {
-  font-size: 1rem;
-}
-
-/* Estilos del buscador (solo para pantallas grandes) */
-.search-section {
-  display: none; /* Oculto por defecto */
-}
-
-.search-container {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-  margin: 10px auto;
-}
-
-.search-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-light);
-  font-size: 1rem;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 40px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  background-color: var(--card-bg);
-  color: var(--text-color);
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(246, 62, 157, 0.1);
-}
-
-.search-clear {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--text-light);
-  font-size: 0.8rem;
-  cursor: pointer;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-
-.search-clear:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
 /* Resto de los estilos */
 body {
   font-family: 'Arial', sans-serif;
@@ -218,28 +67,6 @@ body {
   margin: 0;
   width: 100%;
 }
-
-.sidebar-menu-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  margin-bottom: 5px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition);
-  color: white;
-  font-weight: 500;
-}
-
-.sidebar-menu-item:hover {
-  background-color: var(--primary-light);
-}
-
-.sidebar-menu-item.active {
-  background-color: var(--primary-color) !important;
-  color: white;
-}
-
 .dashboard-container .sidebar.closed .sidebar-menu-item {
   justify-content: center;
   padding: 10px 0px;
@@ -438,19 +265,19 @@ body {
 }
 
 .color-activos {
-  background-color: var(--primary-color);
+  background-color: #E42278;
 }
 
 .color-inactivo {
-  background-color: var(--primary-color);
+  background-color: #E42278;
 }
 
 .color-pendiente {
-  background-color: var(--primary-color);
+  background-color: #E42278;
 }
 
 .color-vencida {
-  background-color: var(--primary-color);
+  background-color: #E42278;
 }
 
 @media (max-width: 576px) {
