@@ -1,5 +1,5 @@
 .send-voucher-payment {
-  background: #04a45c !important;
+  background: #e31fa8 !important;
   color: white;
   border: none;
   padding: 6px;
@@ -12,5 +12,5 @@
 }
 
 .send-voucher-payment:hover {
-  background: #1b5930;
+  background: #a21a87 !important;
 }

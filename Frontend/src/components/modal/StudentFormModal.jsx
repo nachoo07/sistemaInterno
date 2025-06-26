@@ -1,17 +1,33 @@
-import React, { useState } from 'react';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import React, { useState, useContext } from 'react';
+import { Modal, Button, Form, Alert, Spinner } from 'react-bootstrap';
+import { StudentsContext } from '../../context/student/StudentContext';
 import './studentModal.css';
 
 const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formData }) => {
-  const [uploading, setUploading] = useState(false);
+  const { loading } = useContext(StudentsContext);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
 
-  const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  const capitalizeWords = (str) => {
+    if (!str || typeof str !== 'string') return str;
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    handleChange({ target: { name, value: name === 'name' || name === 'lastName' ? capitalize(value) : value } });
+    handleChange({
+      target: {
+        name,
+        value:
+          name === 'name' || name === 'lastName' || name === 'guardianName'
+            ? capitalizeWords(value)
+            : value,
+      },
+    });
   };
 
   const handleNumberInput = (e) => {
@@ -24,13 +40,9 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
     handleChange({ target: { name: 'profileImage', value: file } });
   };
 
-  const handleCheckboxChange = (e) => {
-    handleChange({ target: { name: 'hasSiblingDiscount', value: e.target.checked } });
-  };
-
   const onSubmit = (e) => {
     e.preventDefault();
-      handleSubmit(e);
+    handleSubmit(e);
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -39,14 +51,14 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
     <Modal
       show={show}
       onHide={handleClose}
-      dialogClassName="studentFormModal-container" /* Solo tu clase personalizada */
-      size="lg" /* Usamos size="lg" para que Bootstrap aplique el tamaño grande */
+      dialogClassName="studentFormModal-container"
+      size="lg"
       backdrop="static"
       keyboard={false}
     >
       <Modal.Header closeButton className="studentFormModal-header">
         <Modal.Title className="studentFormModal-title">
-          {formData._id ? "Editar Alumno" : "Agregar Alumno"}
+          {formData._id ? 'Editar Alumno' : 'Agregar Alumno'}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="studentFormModal-body">
@@ -68,7 +80,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               type="text"
               placeholder="Ej: Juan"
               name="name"
-              value={formData.name}
+              value={formData.name || ''}
               onChange={handleInputChange}
               required
               maxLength={50}
@@ -81,24 +93,24 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               type="text"
               placeholder="Ej: Pérez"
               name="lastName"
-              value={formData.lastName}
+              value={formData.lastName || ''}
               onChange={handleInputChange}
               required
               maxLength={50}
               className="form-control-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formDNI" className="studentFormModal-form-group">
+          <Form.Group controlId="formCUIL" className="studentFormModal-form-group">
             <Form.Label>Cuil</Form.Label>
             <Form.Control
               type="text"
-              placeholder="CUIL"
+              placeholder="Cuil"
               name="cuil"
-              value={formData.cuil}
+              value={formData.cuil || ''}
               onChange={handleNumberInput}
               required
-              pattern="\d{10,11}"
-              title="CUIL debe contener 10 u 11 dígitos."
+              pattern="\d{11}"
+              title="CUIL debe contener 11 dígitos."
               className="form-control-custom"
             />
           </Form.Group>
@@ -106,8 +118,8 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
             <Form.Label>Fecha de Nacimiento</Form.Label>
             <Form.Control
               type="date"
-              name="birthDate"
-              value={formData.birthDate}
+              name="dateInputValue"
+              value={formData.dateInputValue || ''}
               onChange={handleChange}
               max={today}
               required
@@ -120,7 +132,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               type="text"
               placeholder="Dirección"
               name="address"
-              value={formData.address}
+              value={formData.address || ''}
               onChange={handleChange}
               required
               maxLength={100}
@@ -133,9 +145,8 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               type="email"
               placeholder="Email"
               name="mail"
-              value={formData.mail}
+              value={formData.mail || ''}
               onChange={handleChange}
-              required
               pattern="\S+@\S+\.\S+"
               title="Formato de email inválido."
               className="form-control-custom"
@@ -147,31 +158,30 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               type="text"
               placeholder="Categoría"
               name="category"
-              value={formData.category}
-              onChange={handleNumberInput}
+              value={formData.category || ''}
+              onChange={handleInputChange}
               required
-              pattern="^[0-9]+$"
               maxLength={50}
               className="form-control-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formNombreMama" className="studentFormModal-form-group">
-            <Form.Label>Nombre del Tutor/a</Form.Label>
+          <Form.Group controlId="formGuardianName" className="studentFormModal-form-group">
+            <Form.Label>Nombre del Tutor</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Nombre Mamá"
+              placeholder="Nombre del Tutor"
               name="guardianName"
               value={formData.guardianName || ''}
-              onChange={handleChange}
+              onChange={handleInputChange}
               maxLength={50}
               className="form-control-custom"
             />
           </Form.Group>
-          <Form.Group controlId="formCelularMama" className="studentFormModal-form-group">
-            <Form.Label>Celular del Tutor/a</Form.Label>
+          <Form.Group controlId="formGuardianPhone" className="studentFormModal-form-group">
+            <Form.Label>Teléfono del Tutor</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Celular Mamá"
+              placeholder="Teléfono del Tutor"
               name="guardianPhone"
               value={formData.guardianPhone || ''}
               onChange={handleNumberInput}
@@ -185,7 +195,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
             <Form.Control
               as="select"
               name="state"
-              value={formData.state}
+              value={formData.state || 'Activo'}
               onChange={handleChange}
               className="form-control-custom"
             >
@@ -198,7 +208,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               type="checkbox"
               name="hasSiblingDiscount"
               checked={formData.hasSiblingDiscount || false}
-              onChange={handleCheckboxChange}
+              onChange={(e) => handleChange({ target: { name: e.target.name, value: e.target.checked } })}
               label="Aplicar 10% de descuento por hermanos"
               className="studentFormModal-form-check-custom"
             />
@@ -210,10 +220,9 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
                 type="file"
                 name="profileImage"
                 onChange={handleFileChange}
-                disabled={uploading}
+                disabled={loading}
                 className="form-control-custom"
               />
-              {uploading && <p className="uploading">Subiendo imagen...</p>}
             </div>
             {formData.profileImage && (
               <div className="studentFormModal-image-preview-container">
@@ -221,30 +230,24 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
                   src={formData.profileImage instanceof File ? URL.createObjectURL(formData.profileImage) : formData.profileImage}
                   alt="Vista previa"
                   className="studentFormModal-preview-img"
-                  onError={(e) => e.target.src = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg'}
+                  onError={(e) => (e.target.src = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg')}
                 />
               </div>
             )}
-          </Form.Group>
-          <Form.Group controlId="formComentario" className="studentFormModal-full-width">
-            <Form.Label>Comentario</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="Comentario"
-              name="comment"
-              value={formData.comment || ''}
-              onChange={handleChange}
-              maxLength={500}
-              className="form-control-custom"
-            />
           </Form.Group>
           <div className="studentFormModal-buttons-container">
             <Button type="button" className="studentFormModal-cancel-btn" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button type="submit" className="studentFormModal-save-btn" disabled={uploading}>
-              {uploading ? "Guardando..." : (formData._id ? "Actualizar" : "Guardar")}
+            <Button type="submit" className="studentFormModal-save-btn" disabled={loading}>
+              {loading ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Guardando...
+                </>
+              ) : (
+                formData._id ? 'Actualizar' : 'Guardar'
+              )}
             </Button>
           </div>
         </Form>

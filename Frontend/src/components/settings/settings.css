@@ -111,19 +111,18 @@
 .action-button {
   padding: 12px 25px;
   border: none;
-  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
   transition: var(--transition);
 }
 
 .save-button {
-  background: var(--primary-color);
+  background: #ea268f;
   color: white;
 }
 
 .update-button {
-  background: var(--primary-color);
+  background: #ea268f;
   color: white;
 }
 
@@ -132,11 +131,11 @@
 }
 
 .save-button:hover {
-  background: var(--primary-hover);
+  background: #b71b6e;
 }
 
 .update-button:hover {
-  background: var(--primary-hover);
+  background: #b71b6e;
 }
 
 .action-button:disabled {
@@ -210,6 +209,20 @@
 
 .logout {
   color: var(--danger-color) !important;
+}
+
+/* Estilos para el mensaje de carga */
+.loading-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 300px; /* Altura mínima para abarcar el área principal */
+  width: 100%;
+  font-size: 16px;
+  color: #666;
+  text-align: center;
+  padding: 20px;
 }
 
 @media (max-width: 576px) {

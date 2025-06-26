@@ -6,20 +6,24 @@ import { LoginContext } from "../login/LoginContext";
 export const UsersContext = createContext();
 
 const UsersProvider = ({ children }) => {
-  const { auth, waitForAuth } = useContext(LoginContext); // Añadimos waitForAuth
+  const { auth, waitForAuth } = useContext(LoginContext);
   const [usuarios, setUsuarios] = useState([]);
 
   const obtenerUsuarios = async () => {
     if (auth === "admin") {
       try {
-        const response = await axios.get("/api/users", {
+        const response = await axios.get("http://localhost:4000/api/users", {
           withCredentials: true,
         });
         if (JSON.stringify(usuarios) !== JSON.stringify(response.data)) {
           setUsuarios(response.data);
         }
       } catch (error) {
-        console.error("Error al obtener usuarios:", error);
+        console.error("Error al obtener usuarios:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
         Swal.fire("¡Error!", "No se pudieron cargar los usuarios", "error");
       }
     }
@@ -34,23 +38,34 @@ const UsersProvider = ({ children }) => {
           password: usuario.password,
           role: usuario.role,
         };
-        console.log("Datos enviados para crear usuario:", usuarioData);
         const response = await axios.post(
-          "/api/users/create",
+          "http://localhost:4000/api/users/create",
           usuarioData,
           { withCredentials: true }
         );
-        if (response.status === 201) {
+        if (response.status === 201 && response.data.user) {
           setUsuarios((prevUsuarios) => [...prevUsuarios, response.data.user]);
           Swal.fire("¡Éxito!", "Usuario admin creado correctamente", "success");
+        } else {
+          throw new Error(response.data.message || "No se pudo crear el usuario admin");
         }
       } catch (error) {
-        console.error("Error al crear usuario admin:", error.response?.data || error.message);
-        Swal.fire(
-          "¡Error!",
-          error.response?.data?.message || "No se pudo crear el usuario admin",
-          "error"
-        );
+        console.error("Error al crear usuario admin:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+        let errorMessage = "No se pudo crear el usuario admin.";
+        if (error.response?.status === 400) {
+          errorMessage = error.response.data.message || "Datos inválidos. Verifica los campos.";
+        } else if (error.response?.status === 409) {
+          errorMessage = "El correo ya está registrado.";
+        } else if (error.response?.status === 401) {
+          errorMessage = "Sesión expirada. Inicia sesión nuevamente.";
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        Swal.fire("¡Error!", errorMessage, "error");
       }
     }
   };
@@ -64,27 +79,40 @@ const UsersProvider = ({ children }) => {
           role: usuarioActualizado.role,
           state: usuarioActualizado.state,
         };
-        console.log("Datos enviados para actualizar usuario:", usuarioData);
         const response = await axios.put(
-          `/api/users/update/${id}`,
+          `http://localhost:4000/api/users/update/${id}`,
           usuarioData,
           { withCredentials: true }
         );
-        if (response.status === 200) {
+        if (response.status === 200 && response.data.user) {
           setUsuarios((prevUsuarios) =>
             prevUsuarios.map((usuario) =>
               usuario._id === id ? response.data.user : usuario
             )
           );
           Swal.fire("¡Éxito!", "Usuario actualizado correctamente", "success");
+        } else {
+          throw new Error(response.data.message || "No se pudo actualizar el usuario");
         }
       } catch (error) {
-        console.error("Error al actualizar usuario:", error.response?.data || error.message);
-        Swal.fire(
-          "¡Error!",
-          error.response?.data?.message || "No se pudo actualizar el usuario",
-          "error"
-        );
+        console.error("Error al actualizar usuario:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+        let errorMessage = "No se pudo actualizar el usuario.";
+        if (error.response?.status === 400) {
+          errorMessage = error.response.data.message || "Datos inválidos. Verifica los campos.";
+        } else if (error.response?.status === 404) {
+          errorMessage = "Usuario no encontrado.";
+        } else if (error.response?.status === 409) {
+          errorMessage = "El correo ya está registrado.";
+        } else if (error.response?.status === 401) {
+          errorMessage = "Sesión expirada. Inicia sesión nuevamente.";
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        Swal.fire("¡Error!", errorMessage, "error");
       }
     }
   };
@@ -104,7 +132,7 @@ const UsersProvider = ({ children }) => {
         });
 
         if (confirmacion.isConfirmed) {
-          await axios.delete(`/api/users/delete/${id}`, {
+          await axios.delete(`http://localhost:4000/api/users/delete/${id}`, {
             withCredentials: true,
           });
           setUsuarios((prevUsuarios) =>
@@ -113,7 +141,11 @@ const UsersProvider = ({ children }) => {
           Swal.fire("¡Eliminado!", "Usuario eliminado correctamente", "success");
         }
       } catch (error) {
-        console.error("Error al eliminar usuario:", error);
+        console.error("Error al eliminar usuario:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
         Swal.fire("¡Error!", "No se pudo eliminar el usuario", "error");
       }
     }
@@ -121,11 +153,11 @@ const UsersProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await waitForAuth(); // Espera a que la autenticación esté lista
+      await waitForAuth();
       await obtenerUsuarios();
     };
     fetchData();
-  }, [auth, waitForAuth]); // Añadimos waitForAuth como dependencia
+  }, [auth, waitForAuth]);
 
   return (
     <UsersContext.Provider

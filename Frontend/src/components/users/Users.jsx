@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaSearch, FaBars, FaTimes, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt,
+  FaSearch, FaBars, FaList, FaTimes, FaUsers, FaClipboardList, FaMoneyBill, FaChartBar, FaExchangeAlt,
   FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle,
   FaChevronDown, FaPlus, FaEdit, FaTrash, FaTimes as FaTimesClear
 } from 'react-icons/fa';
@@ -9,8 +9,8 @@ import { UsersContext } from '../../context/user/UserContext';
 import Swal from 'sweetalert2';
 import './user.css';
 import AppNavbar from '../navbar/AppNavbar';
-import logo from '../../assets/logo.png';
 import { LoginContext } from '../../context/login/LoginContext';
+import logo from '../../assets/logo.png';
 
 const Users = () => {
   const { usuarios, obtenerUsuarios, addUsuarioAdmin, updateUsuarioAdmin, deleteUsuarioAdmin } = useContext(UsersContext);
@@ -42,7 +42,8 @@ const Users = () => {
     { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },
     { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion' },
     { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' },
-    { name: 'Volver Atrás', route: null, action: () => navigate(-1), icon: <FaArrowLeft />, category: 'navegacion' }
+    { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes' },
+    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
   ];
 
   useEffect(() => {
@@ -85,23 +86,43 @@ const Users = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.name.trim() || !formData.mail.trim()) {
+      Swal.fire('Error', 'El nombre y el correo son obligatorios.', 'error');
+      return;
+    }
+    if (!formData._id && !formData.password.trim()) {
+      Swal.fire('Error', 'La contraseña es obligatoria para nuevos usuarios.', 'error');
+      return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(formData.mail)) {
+      Swal.fire('Error', 'El correo no es válido.', 'error');
+      return;
+    }
     try {
       if (formData._id) {
         await updateUsuarioAdmin(formData._id, {
-          ...formData,
+          name: formData.name,
+          mail: formData.mail,
+          role: formData.role,
           state: formData.state === 'Activo'
         });
-        Swal.fire('¡Éxito!', 'El usuario ha sido actualizado.', 'success');
       } else {
         await addUsuarioAdmin({
-          ...formData,
+          name: formData.name,
+          mail: formData.mail,
+          password: formData.password,
+          role: formData.role,
           state: formData.state === 'Activo'
         });
-        Swal.fire('¡Éxito!', 'El usuario ha sido agregado.', 'success');
       }
+      await obtenerUsuarios(); // Refrescar la lista
       handleClose();
     } catch (error) {
-      Swal.fire('Error', 'Hubo un problema al procesar la solicitud.', 'error');
+      console.error('Error en handleSubmit:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
     }
   };
 
@@ -138,28 +159,15 @@ const Users = () => {
   };
 
   const handleDelete = async (id) => {
-    const usuario = usuarios.find((usuario) => usuario._id === id);
-    if (usuario.fixed) {
-      Swal.fire('Restricción', 'Este usuario no puede ser eliminado.', 'warning');
-      return;
-    }
-    const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'No podrás recuperar este usuario después de eliminarlo.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#f42c8c',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    });
-    if (result.isConfirmed) {
-      try {
-        await deleteUsuarioAdmin(id);
-        Swal.fire('¡Eliminado!', 'El usuario ha sido eliminado.', 'success');
-      } catch (error) {
-        Swal.fire('Error', 'Hubo un problema al eliminar el usuario.', 'error');
-      }
+    try {
+      await deleteUsuarioAdmin(id);
+      await obtenerUsuarios(); // Refrescar la lista
+    } catch (error) {
+      console.error('Error en handleDelete:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
     }
   };
 
@@ -298,9 +306,14 @@ const Users = () => {
           </nav>
         </aside>
         <main className="main-content">
-          <section className="dashboard-welcome">
+          <section className="dashboard-welcome-user">
             <div className="welcome-text">
               <h1>Panel de Usuarios</h1>
+            </div>
+            <div className="filter-actions">
+              <button className="add-btn" onClick={handleShowAddUser}>
+                <FaPlus /> Agregar Usuario
+              </button>
             </div>
           </section>
           {windowWidth <= 576 && (
@@ -325,13 +338,6 @@ const Users = () => {
               </div>
             </section>
           )}
-          <section className="users-controls">
-            <div className="filter-actions">
-              <button className="add-btn" onClick={handleShowAddUser}>
-                <FaPlus /> Agregar Usuario
-              </button>
-            </div>
-          </section>
           <section className="users-table-section">
             <div className="table-wrapper">
               <table className="users-table">
@@ -356,7 +362,7 @@ const Users = () => {
                         <td>{usuario.state ? 'Activo' : 'Inactivo'}</td>
                         <td className="action-buttons">
                           <button
-                            className="action-btn edit-btn"
+                            className="action-btn-user"
                             onClick={() => handleEdit(usuario._id)}
                             disabled={usuario.fixed}
                             title="Editar"
@@ -364,7 +370,7 @@ const Users = () => {
                             <FaEdit />
                           </button>
                           <button
-                            className="action-btn delete-btn"
+                            className="action-btn-user"
                             onClick={() => handleDelete(usuario._id)}
                             disabled={usuario.fixed}
                             title="Eliminar"
@@ -413,13 +419,13 @@ const Users = () => {
           {show && (
             <div className="custom-modal">
               <div className="modal-content">
-                <div className="modal-header">
+                <div className="modal-header-user">
                   <h2>{formData._id ? 'Editar Usuario' : 'Agregar Usuario'}</h2>
                   <button className="modal-close" onClick={handleClose}>
                     <FaTimes />
                   </button>
                 </div>
-                <div className="modal-body">
+                <div className="modal-body-user">
                   <form onSubmit={handleSubmit}>
                     <div className="form-group">
                       <label>Nombre</label>
@@ -486,7 +492,8 @@ const Users = () => {
                       </select>
                     </div>
                     <div className="modal-actions">
-                      <button type="submit" className="save-btn">Guardar</button>
+                      <button type="button" className="btn-modal-cancelar" onClick={handleClose}>Cancelar</button>
+                      <button type="submit" className="btn-modal-guardar">Guardar</button>
                     </div>
                   </form>
                 </div>

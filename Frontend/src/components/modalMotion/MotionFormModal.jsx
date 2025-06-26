@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-
+import "./modalFormModal.css";
 dayjs.extend(utc);
 
 const MotionFormModal = ({
@@ -91,12 +91,12 @@ const MotionFormModal = ({
 
   return (
     <Modal show={show} onHide={handleCancel} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>
+      <Modal.Header className="modal-header-motion" closeButton>
+        <Modal.Title className="modal-title-motion">
           {isEditing ? "Editar Movimiento" : "Agregar Movimiento"}
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body className="modal-body-motion">
         {alertMessage && (
           <div className="alert alert-warning" role="alert">
             {alertMessage}
@@ -163,11 +163,11 @@ const MotionFormModal = ({
           </Form.Group>
         </Form>
       </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleCancel}>
+      <Modal.Footer className="modal-footer-motion">
+        <Button className="btn-modal-cancelar" onClick={handleCancel}>
           Cancelar
         </Button>
-        <Button variant="primary" onClick={handleSave}>
+        <Button className="btn-modal-guardar" onClick={handleSave}>
           Guardar
         </Button>
       </Modal.Footer>

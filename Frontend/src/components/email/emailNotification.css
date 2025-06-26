@@ -323,7 +323,7 @@
   padding: 10px 20px;
   border: none;
   border-radius: var(--radius-sm);
-  background: #E42278;
+  background: #ea268f;
   color: white;
   font-size: 14px;
   cursor: pointer;
@@ -333,7 +333,6 @@
 .email-actions button:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
-  
 }
 
 .email-actions button:disabled {
@@ -352,12 +351,12 @@
 }
 
  .email{
-  background: #E42278 !important;
+  background: #ea268f !important;
   color: white !important;
   }
 
   .email:hover {
-    background: #d12273 !important;
+    background: #ea268f !important;
     
   }
 

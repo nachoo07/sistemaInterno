@@ -1,18 +1,95 @@
-.empty-table-message {
-  text-align: center;
-  color: #6c757d;
-  font-size: 18px;
-  font-weight: 500;
+
+/* Estilos para el header de escritorio (desktop-nav-header) */
+.desktop-nav-header {
+  background-color: var(--card-bg);
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 25px;
+  box-shadow: var(--card-shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-.empty-table-message p {
-  margin: 0;
+.search-section {
+  display: none; /* Oculto por defecto */
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 10px auto;
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(244, 44, 140, 0.1);
+}
+
+.search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 0.8rem;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.search-clear:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .welcome-text h1 {
     font-size: 1.8rem;
     font-weight: 600;
     margin-bottom: 5px;
+}
+
+.loading {
+    text-align: center;
+    color: #666;
+    height: 20px;
+    margin: 10px 0;
+}
+
+.no-data {
+    text-align: center;
+    color: #666;
+    margin: 20px 0;
 }
 
 .motion-date-filter {
@@ -46,6 +123,7 @@
 }
 
 .filter-label {
+    font-size: 20px;
     font-weight: 500;
     color: #333;
 }
@@ -82,7 +160,7 @@
     position: relative;
     padding-left: 25px;
     margin-bottom: 0;
-    font-size: 15px;
+    font-size: 18px;
     color: #333;
     user-select: none;
 }
@@ -95,7 +173,7 @@
     transform: translateY(-50%);
     width: 18px;
     height: 18px;
-    border: 2px solid #E42278;
+    border: 2px solid #ea268f;
     border-radius: 4px;
     background-color: #fff;
 }
@@ -124,7 +202,7 @@
 }
 
 .checkbox-label input:checked+.checkbox-custom-motion::before {
-    background-color: #E42278;
+    background-color: #ea268f;
 }
 
 .motion-button-container {
@@ -135,7 +213,7 @@
 }
 
 .motion-save-btn {
-  background: var(--primary-color);
+  background: #ea268f;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -146,7 +224,11 @@
 }
 
 .motion-save-btn:hover {
-    background-color: #d12273;
+    background-color: #b71b6e;
+}
+
+.motion-save-btn:active {
+    background-color: #b71b6e !important;
 }
 
 .motion-table {
@@ -165,7 +247,7 @@
 }
 
 .motion-table th {
-    background: #E42278;
+    background: #ea268f;
     color: white;
     font-weight: bold;
 }
@@ -187,23 +269,34 @@
 
 .motion-edit-btn,
 .motion-delete-btn {
-    background: #E42278;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+  background: #ea268f !important;
+  color: white;
+  border: none;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  font-size: 25px !important;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .motion-edit-btn:hover,
 .motion-delete-btn:hover {
-    background: #d12273;
+    background: #b71b6e;
 }
 
 .icon-btn {
-    display: inline;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #ea268f;
+    color: white;
+    font-size: 20px;
+    transition: background-color 0.3s ease;
 }
 
 .text-btn {
@@ -227,6 +320,8 @@
     .motion-date-filter {
         flex-direction: column;
         gap: 15px;
+        margin-bottom: 0px;
+        padding: 0px;
     }
 
     .motion-filter-section {
@@ -243,6 +338,7 @@
         gap: 10px;
         flex-wrap: wrap;
         margin: 0px !important;
+        margin-bottom: 10px !important;
     }
 
     .motion-filter-item {
@@ -268,6 +364,8 @@
 
     .motion-save-btn {
         padding: 5px 8px;
+        font-size: 16px;
+        
     }
 
     .motion-actions {
@@ -293,12 +391,23 @@
 
     .motion-table th,
     .motion-table td {
-        font-size: 16px;
+    font-size: 13px;
+    padding: 6px;
     }
 
     .motion-edit-btn,
     .motion-delete-btn {
-        padding: 4px 10px;
+    font-size: 20px !important;
+    padding: 4px !important;
     }
 
+    .search-section {
+        display: none; /* Ocultar buscador en pantallas móviles */
+    }
+
+    .icon-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
+    }
 }

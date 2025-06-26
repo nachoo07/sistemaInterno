@@ -1,3 +1,4 @@
+
 import Student from '../../models/student/student.model.js';
 import Share from '../../models/share/share.model.js';
 import Attendance from '../../models/attendance/attendance.model.js';
@@ -6,26 +7,147 @@ import multer from 'multer';
 import cloudinary from 'cloudinary';
 import sanitize from 'mongo-sanitize';
 import pino from 'pino';
-const logger = pino();
+import xlsx from 'xlsx';
+import pLimit from 'p-limit';
+import { parse, isValid, format } from 'date-fns';
+import axios from 'axios';
+import { Parser } from 'json2csv';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const logDir = path.join(__dirname, '../../logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
+
+const logger = pino({
+  level: 'info',
+  transport: {
+    target: 'pino/file',
+    options: { destination: path.join(logDir, 'import.log') },
+  },
+});
 
 const cloudinaryV2 = cloudinary.v2;
 
 cloudinaryV2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-export const getAllStudents = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+const normalizeDate = (dateInput) => {
+  if (!dateInput) {
+    logger.warn('Fecha de nacimiento vacía');
+    return '';
+  }
+  const dateStr = String(dateInput).trim();
+  let parsedDate;
+  const formats = [
+    'dd/MM/yyyy', 'd/MM/yyyy', 'dd/M/yyyy', 'd/M/yyyy',
+    'dd-MM-yyyy', 'd-MM-yyyy', 'dd-M-yyyy', 'd-M-yyyy',
+    'yyyy-MM-dd', 'dd/MM/yy', 'd/MM/yy', 'dd/M/yy', 'd/M/yy',
+    'MM/dd/yyyy', 'M/d/yyyy', 'MM/d/yyyy', 'M/dd/yyyy', 'MM/dd/yy', 'M/d/yy',
+  ];
+  for (const fmt of formats) {
+    parsedDate = parse(dateStr, fmt, new Date());
+    if (isValid(parsedDate)) {
+      const year = parsedDate.getFullYear();
+      const currentYear = new Date().getFullYear();
+      if (year >= 1900 && year <= currentYear + 1) {
+        logger.info(`Fecha parseada: ${dateStr} como ${fmt} -> ${format(parsedDate, 'yyyy-MM-dd')}`);
+        break;
+      }
+    }
+  }
+  if (!isValid(parsedDate)) {
+    logger.warn(`Fecha inválida: ${dateStr}`);
+    return '';
+  }
+  return format(parsedDate, 'yyyy-MM-dd');
+};
+const createUTCDate = (dateStr) => {
+  if (!dateStr) return null;
+  // Validar formato yyyy-MM-dd
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    logger.warn(`Formato de fecha inválido: ${dateStr}`);
+    return null;
+  }
+  // Crear fecha en UTC directamente desde yyyy-MM-dd
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const utcDate = new Date(Date.UTC(year, month - 1, day));
+  if (!isValid(utcDate)) {
+    logger.warn(`Fecha UTC inválida: ${dateStr}`);
+    return null;
+  }
+  return utcDate;
+};
+
+const capitalizeWords = (str) => {
+  if (!str) return '';
+  return str
+    .trim()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+const downloadImage = async (url) => {
   try {
-    const students = await Student.find()
-      
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit))
-      .lean();
+    if (url.includes('drive.google.com')) {
+      const fileId = url.match(/[-\w]{25,}/);
+      if (!fileId) throw new Error('URL de Google Drive inválida');
+      url = `https://drive.google.com/uc?export=download&id=${fileId[0]}`;
+    }
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+      timeout: 5000,
+    });
+    const mimeType = response.headers['content-type'];
+    if (!['image/jpeg', 'image/png'].includes(mimeType)) {
+      throw new Error('Formato de imagen no válido');
+    }
+    return { buffer: Buffer.from(response.data), mimetype: mimeType };
+  } catch (error) {
+    logger.error(`Error al descargar imagen: ${error.message}`);
+    throw error;
+  }
+};
+
+const uploadToCloudinary = async (file, folder, publicId) => {
+  try {
+    const result = await cloudinaryV2.uploader.upload(
+      `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+      { folder, public_id: publicId, resource_type: 'image', overwrite: true }
+    );
+    return result.secure_url;
+  } catch (error) {
+    logger.error(`Error al subir imagen a Cloudinary: ${error.message}`);
+    throw new Error(`Error al subir imagen: ${error.message}`);
+  }
+};
+
+const extractPublicId = (url) => {
+  try {
+    if (!url || typeof url !== 'string') return '';
+    const parts = url.split('/');
+    const fileName = parts[parts.length - 1];
+    const publicId = `students/${fileName.split('.')[0]}`; // Ejemplo: 'students/student_12345678'
+    return publicId;
+  } catch (error) {
+    logger.error(`Error al extraer el ID público de la URL: ${error.message}`);
+    return '';
+  }
+};
+
+export const getAllStudents = async (req, res) => {
+  try {
+    const students = await Student.find().lean();
     res.status(200).json(students.length ? students : { message: "No hay estudiantes disponibles" });
   } catch (error) {
     logger.error({ error: error.message }, 'Error al obtener estudiantes');
@@ -34,125 +156,211 @@ export const getAllStudents = async (req, res) => {
 };
 
 export const createStudent = async (req, res) => {
-  upload.single('profileImage')(req, res, async (err) => {
-    if (err) {
-      logger.error({ error: err.message }, 'Error al subir imagen');
-      return res.status(500).json({ message: 'Error al subir la imagen' });
-    }
-
+  try {
     const {
-      name, lastName, cuil, birthDate, address, guardianName, guardianPhone, category, mail, state, fee, comment, hasSiblingDiscount
+      name, lastName, cuil, birthDate, address, guardianName, guardianPhone,
+      category, mail, state, hasSiblingDiscount, profileImage,
     } = sanitize(req.body);
 
-    if (!name || !cuil || !birthDate || !address || !category || !mail) {
-      return res.status(400).json({ message: "Faltan campos obligatorios" });
-    }
-
-    try {
-      let profileImage = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg';
-      if (req.file) {
-        const result = await cloudinaryV2.uploader.upload(
-          `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`,
-          { folder: 'students' }
+    let finalProfileImage = profileImage || 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg';
+    if (req.file) {
+      try {
+        finalProfileImage = await uploadToCloudinary(
+          { buffer: req.file.buffer, mimetype: req.file.mimetype },
+          'students',
+          `student_${cuil}`
         );
-        profileImage = result.secure_url;
+        logger.info(`Imagen subida a Cloudinary para estudiante con CUIL ${cuil}: ${finalProfileImage}`);
+      } catch (error) {
+        logger.error(`Error al subir imagen para estudiante con CUIL ${cuil}: ${error.message}`);
+        return res.status(400).json({ error: `Error al procesar imagen: ${error.message}` });
       }
-
-      const newStudent = await Student.create({
-        name, lastName, cuil, birthDate: new Date(birthDate), address, guardianName, guardianPhone, category, mail, state, fee, comment,
-        profileImage, hasSiblingDiscount: hasSiblingDiscount || false
-      });
-
-      logger.info({ studentId: newStudent._id }, 'Estudiante creado');
-      res.status(201).json({ message: "Estudiante creado exitosamente", student: newStudent });
-    } catch (error) {
-      logger.error({ error: error.message }, 'Error al crear estudiante');
-      res.status(500).json({ message: 'Error al crear estudiante' });
+    } else if (profileImage) {
+      try {
+        new URL(profileImage);
+        const { buffer, mimetype } = await downloadImage(profileImage);
+        finalProfileImage = await uploadToCloudinary(
+          { buffer, mimetype },
+          'students',
+          `student_${cuil}`
+        );
+        logger.info(`Imagen subida a Cloudinary para estudiante con CUIL ${cuil}: ${finalProfileImage}`);
+      } catch (error) {
+        logger.error(`Error al procesar imagen para estudiante con CUIL ${cuil}: ${error.message}`);
+        return res.status(400).json({ error: `Error al procesar imagen: ${error.message}` });
+      }
     }
-  });
+
+    if (!name || !lastName || !cuil || !birthDate || !address || !category ) {
+      const missingFields = [];
+      if (!name) missingFields.push('Nombre');
+      if (!lastName) missingFields.push('Apellido');
+      if (!cuil) missingFields.push('CUIL');
+      if (!birthDate) missingFields.push('Fecha de Nacimiento');
+      if (!address) missingFields.push('Dirección');
+      if (!category) missingFields.push('Categoría');
+      return res.status(400).json({ error: `Faltan datos obligatorios: ${missingFields.join(', ')}` });
+    }
+
+    if (!/^\d{9,11}$/.test(cuil)) {
+      return res.status(400).json({ error: 'CUIL debe contener entre 9 y 11 dígitos' });
+    }
+
+    const normalizedDate = normalizeDate(birthDate);
+    if (!normalizedDate) {
+      return res.status(400).json({ error: 'Formato de fecha de nacimiento inválido' });
+    }
+
+    const newStudent = new Student({
+      name,
+      lastName,
+      cuil,
+      birthDate: createUTCDate(normalizedDate),
+      address,
+      guardianName,
+      guardianPhone,
+      category,
+      mail,
+      state: state || 'Activo',
+      profileImage: finalProfileImage,
+      hasSiblingDiscount,
+    });
+
+    const savedStudent = await newStudent.save();
+
+    logger.info({ studentId: savedStudent._id }, 'Estudiante creado con éxito');
+    res.status(201).json({ message: 'Estudiante creado exitosamente', student: savedStudent });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al crear estudiante');
+    res.status(500).json({ error: 'Error al crear estudiante' });
+  }
+
 };
 
 export const deleteStudent = async (req, res) => {
   const { id } = sanitize(req.params);
-  const session = await mongoose.startSession();
-
   try {
-    session.startTransaction();
-
-    const student = await Student.findById(id).session(session);
+    const student = await Student.findById(id);
     if (!student) {
-      await session.abortTransaction();
       return res.status(404).json({ message: 'Estudiante no encontrado' });
     }
-
     if (student.profileImage && student.profileImage !== 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg') {
-      const publicId = student.profileImage.split('/').pop().split('.')[0];
-      await cloudinaryV2.uploader.destroy(`students/${publicId}`);
+      try {
+        const publicId = extractPublicId(student.profileImage);
+        if (publicId) {
+          await cloudinaryV2.uploader.destroy(publicId);
+          logger.info(`Imagen eliminada de Cloudinary para estudiante con ID ${id}: ${publicId}`);
+        }
+      } catch (error) {
+        logger.error(`Error al eliminar imagen de Cloudinary para estudiante con ID ${id}: ${error.message}`);
+      }
     }
 
-    await Share.deleteMany({ student: id }).session(session);
+    await Share.deleteMany({ student: id });
     await Attendance.updateMany(
-      { 'attendance.idStudent': id },
-      { $pull: { attendance: { idStudent: id } } }
-    ).session(session);
-    await Attendance.deleteMany({ attendance: { $size: 0 } }).session(session);
-    await Student.findByIdAndDelete(id).session(session);
-
-    await session.commitTransaction();
+      { 'attendance.studentId': id },
+      { $pull: { attendance: { studentId: id } } }
+    );
+    await Attendance.deleteMany({ attendance: [] });
+    await Student.findByIdAndDelete(id);
     logger.info({ studentId: id }, 'Estudiante eliminado');
     res.status(200).json({ message: 'Estudiante eliminado exitosamente' });
   } catch (error) {
-    await session.abortTransaction();
-    logger.error({ error: error.message }, 'Error al eliminar estudiante');
-    res.status(500).json({ message: 'Error al eliminar estudiante' });
-  } finally {
-    session.endSession();
+    logger.error('Error al eliminar estudiante:', error);
+    res.status(500).json({ message: 'Error al eliminar estudiante', error: error.message });
   }
 };
 
 export const updateStudent = async (req, res) => {
-  upload.single('profileImage')(req, res, async (err) => {
-    if (err) {
-      logger.error({ error: err.message }, 'Error al subir imagen');
-      return res.status(500).json({ message: 'Error al subir la imagen' });
-    }
-
+  try {
     const { id } = sanitize(req.params);
-    const updates = sanitize(req.body);
+    const {
+      name, lastName, cuil, birthDate, address, guardianName, guardianPhone,
+      category, mail, state, hasSiblingDiscount, profileImage,
+    } = sanitize(req.body);
 
-    try {
-      let profileImage = updates.profileImage;
-      if (req.file) {
-        const result = await cloudinaryV2.uploader.upload(
-          `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`,
-          { folder: 'students' }
-        );
-        profileImage = result.secure_url;
-
-        const oldStudent = await Student.findById(id);
-        if (oldStudent.profileImage && oldStudent.profileImage !== 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg') {
-          const publicId = oldStudent.profileImage.split('/').pop().split('.')[0];
-          await cloudinaryV2.uploader.destroy(`students/${publicId}`);
-        }
-      }
-
-      const student = await Student.findByIdAndUpdate(
-        id,
-        { ...updates, profileImage, hasSiblingDiscount: updates.hasSiblingDiscount || false },
-        { new: true }
-      ).lean();
-
-      if (!student) {
-        return res.status(404).json({ message: 'Estudiante no encontrado' });
-      }
-
-      logger.info({ studentId: id }, 'Estudiante actualizado');
-      res.status(200).json({ message: "Estudiante actualizado exitosamente", student });
-    } catch (error) {
-      logger.error({ error: error.message }, 'Error al actualizar estudiante');
-      res.status(500).json({ message: 'Error al actualizar estudiante' });
+    if (!name || !lastName || !cuil || !address || !category ) {
+      return res.status(400).json({ error: 'Faltan datos obligatorios' });
     }
-  });
+
+    if (!/^\d{9,11}$/.test(cuil)) {
+      return res.status(400).json({ error: 'El CUIL debe contener entre 9 y 11 dígitos' });
+    }
+
+    const existingStudent = await Student.findById(id);
+    if (!existingStudent) {
+      return res.status(404).json({ error: 'Estudiante no encontrado' });
+    }
+
+    let finalProfileImage = existingStudent.profileImage || 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg';
+    if (req.file || (profileImage && profileImage !== existingStudent.profileImage)) {
+      try {
+        if (existingStudent.profileImage && existingStudent.profileImage !== 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg') {
+          const publicId = extractPublicId(existingStudent.profileImage);
+          if (publicId) {
+            await cloudinaryV2.uploader.destroy(publicId);
+            logger.info(`Imagen antigua eliminada de Cloudinary para ID ${id}: ${publicId}`);
+          }
+        }
+
+        if (req.file) {
+          finalProfileImage = await uploadToCloudinary(
+            { buffer: req.file.buffer, mimetype: req.file.mimetype },
+            'students',
+            `student_${cuil}`
+          );
+          logger.info(`Nueva imagen subida desde archivo para ID ${id}: ${finalProfileImage}`);
+        } else if (profileImage) {
+          try {
+            new URL(profileImage);
+            const { buffer, mimetype } = await downloadImage(profileImage);
+            finalProfileImage = await uploadToCloudinary(
+              { buffer, mimetype },
+              'students',
+              `student_${cuil}`
+            );
+            logger.info(`Nueva imagen subida desde URL para ID ${id}: ${finalProfileImage}`);
+          } catch (error) {
+            logger.error(`Error al procesar imagen URL para CUIL ${cuil}: ${error.message}`);
+            return res.status(400).json({ error: `Error al procesar imagen: ${error.message}` });
+          }
+        }
+      } catch (error) {
+        logger.error(`Error al procesar imagen para ID ${id}: ${error.message}`);
+        return res.status(400).json({ error: `Error al procesar imagen: ${error.message}` });
+      }
+    }
+
+    const updates = {
+      name,
+      lastName,
+      cuil,
+      address,
+      guardianName,
+      guardianPhone,
+      category,
+      mail,
+      state,
+      profileImage: finalProfileImage,
+      hasSiblingDiscount,
+    };
+
+    if (birthDate && birthDate !== format(existingStudent.birthDate, 'yyyy-MM-dd')) {
+      const normalizedDate = normalizeDate(birthDate);
+      if (!normalizedDate) {
+        return res.status(400).json({ error: 'Formato de fecha de nacimiento inválido' });
+      }
+      updates.birthDate = createUTCDate(normalizedDate);
+    }
+
+    const student = await Student.findByIdAndUpdate(id, { $set: updates }, { new: true }).lean();
+
+    logger.info({ studentId: id }, 'Estudiante actualizado con éxito');
+    res.status(200).json({ message: 'Estudiante actualizado exitosamente', student });
+  } catch (error) {
+    logger.error({ error: error.message }, 'Error al actualizar estudiante');
+    res.status(500).json({ error: 'Error al actualizar estudiante' });
+  }
 };
 
 export const getStudentById = async (req, res) => {
@@ -167,5 +375,141 @@ export const getStudentById = async (req, res) => {
   } catch (error) {
     logger.error({ error: error.message }, 'Error al obtener estudiante');
     res.status(500).json({ message: 'Error al obtener estudiante' });
+  }
+};
+
+export const generateCloudinarySignature = async (req, res) => {
+  try {
+    if (!process.env.CLOUDINARY_API_SECRET) {
+      throw new Error('Falta la configuración de Cloudinary');
+    }
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const signature = cloudinary.utils.api_sign_request(
+      { timestamp, folder: 'students' },
+      process.env.CLOUDINARY_API_SECRET
+    );
+    res.status(200).json({
+      signature,
+      timestamp,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+    });
+  } catch (error) {
+    logger.error({ error: error.message, stack: error.stack }, 'Error al generar la firma de Cloudinary');
+    res.status(500).json({ message: 'Error al generar la firma de Cloudinary', error: error.message });
+  }
+};
+
+export const importStudents = async (req, res) => {
+  try {
+    const { students } = sanitize(req.body);
+
+    if (!students || !Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({ message: 'Debe proporcionar una lista de estudiantes válida', success: false });
+    }
+
+    const errors = [];
+    const importedStudents = [];
+    const limit = pLimit(5);
+
+    const processStudent = async (studentData) => {
+      const {
+        name, lastName, cuil, birthDate, address, guardianName, guardianPhone,
+        category, mail, state, hasSiblingDiscount, profileImage, rowNumber,
+      } = sanitize(studentData);
+
+      const row = rowNumber || 'Desconocida';
+
+      // Validaciones iniciales
+      if (!name || !lastName || !cuil || !birthDate || !address || !category ) {
+        errors.push(`Fila ${row}, CUIL ${cuil || 'desconocido'}: Faltan campos obligatorios`);
+        return;
+      }
+
+     if (!/^\d{9,11}$/.test(cuil)) {
+        errors.push(`Fila ${row}, CUIL ${cuil}: CUIL debe contener 9 a 11 dígitos`);
+        return;
+      }
+
+      const normalizedDate = normalizeDate(birthDate);
+      if (!normalizedDate) {
+        errors.push(`Fila ${row}, CUIL ${cuil}: Formato de fecha de nacimiento inválido`);
+        return;
+      }
+
+      // Verificar si el CUIL ya existe
+      const existingStudent = await Student.findOne({ cuil });
+      if (existingStudent) {
+        errors.push(`Fila ${row}, CUIL ${cuil}: CUIL ya existe`);
+        return;
+      }
+
+      // Solo si todas las validaciones pasan, procesar la imagen
+      let finalProfileImage = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg';
+      if (profileImage) {
+        try {
+          new URL(profileImage);
+          logger.info(`Procesando imagen para CUIL ${cuil}, Fila ${row}: ${profileImage}`);
+          const { buffer, mimetype } = await downloadImage(profileImage);
+          finalProfileImage = await uploadToCloudinary(
+            { buffer, mimetype },
+            'students',
+            `student_${cuil}`
+          );
+          logger.info(`Imagen subida a Cloudinary para CUIL ${cuil}, Fila ${row}: ${finalProfileImage}`);
+        } catch (error) {
+          logger.error(`Error al procesar imagen para CUIL ${cuil}, Fila ${row}: ${error.message}`);
+          errors.push(`Fila ${row}, CUIL ${cuil}: Error al procesar la imagen - ${error.message}`);
+          return;
+        }
+      }
+
+      try {
+        const newStudent = new Student({
+          name,
+          lastName,
+          cuil,
+          birthDate: new Date(normalizedDate),
+          address,
+          guardianName,
+          guardianPhone,
+          category,
+          mail,
+          state: state || 'Activo',
+          profileImage: finalProfileImage,
+          hasSiblingDiscount,
+        });
+
+        const savedStudent = await newStudent.save();
+        importedStudents.push(savedStudent);
+      } catch (error) {
+        errors.push(`Fila ${row}, CUIL ${cuil}: ${error.message}`);
+      }
+    };
+
+    await Promise.all(students.map(student => limit(() => processStudent(student))));
+
+    const importedCount = importedStudents.length;
+    const success = importedCount > 0;
+
+    logger.info({ importedCount, errors }, 'Importación de estudiantes procesada');
+
+    if (success) {
+      res.status(200).json({
+        message: `Se importaron ${importedCount} estudiantes correctamente`,
+        success: true,
+        students: importedStudents,
+        errors,
+      });
+    } else {
+      res.status(400).json({
+        message: 'No se importaron estudiantes debido a errores',
+        success: false,
+        errors,
+      });
+    }
+  } catch (error) {
+    logger.error({ error: error.message, stack: error.stack }, 'Error al importar estudiantes');
+    res.status(500).json({ message: 'Error al importar estudiantes', error: error.message, success: false });
   }
 };

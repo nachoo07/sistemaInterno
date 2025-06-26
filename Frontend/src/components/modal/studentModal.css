@@ -1,4 +1,3 @@
-/* Estilos para el modal completo */
 .studentFormModal-container {
   width: 100% !important;
   margin: 1.75rem auto;
@@ -6,22 +5,26 @@
 
 /* Asegura que el modal-dialog tenga el ancho deseado */
 .studentFormModal-container.modal-dialog {
-  max-width: 1000px !important; /* Ancho fijo deseado */
-  width: 90% !important; /* Ajuste responsivo */
-  margin: 1.75rem auto !important; /* Centrado */
+  max-width: 1000px !important;
+  width: 90% !important;
+  margin: 1.75rem auto !important;
 }
 
 /* Asegura que el modal-content no tenga restricciones de ancho */
 .studentFormModal-container .modal-content {
-  max-width: 90% !important; /* Elimina el max-width predeterminado de Bootstrap */
+  max-width: 90% !important;
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   padding: 0;
   overflow: hidden;
 }
 
+.modal-content {
+  background: none !important;
+}
+
 .studentFormModal-header {
-  background: linear-gradient(90deg, #D83D8D, #E42278);
+  background: #ea268f !important;
   color: white;
   border-bottom: none;
   padding: 15px 20px;
@@ -39,35 +42,34 @@
   background: #f9f9f9;
 }
 
-/* Estilos del formulario */
 .studentFormModal-form-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  max-width: 100%; /* Asegura que no desborde */
+  max-width: 100%;
 }
 
 .studentFormModal-form-group {
-  margin-bottom: 15px;
+  margin-bottom: 0px;
 }
 
-/* Estilos para campos específicos */
 .studentFormModal-full-width {
   grid-column: span 3 !important;
 }
 
 .studentFormModal-full-width-img {
-  grid-column: span 2 !important;
+  grid-column: span 3 !important;
+  display: flex;
 }
 
-/* Estilos para preview de imagen */
 .studentFormModal-image-upload-container {
-  margin-bottom: 15px;
+  margin-bottom: 0px;
+  width: 100%;
+  max-width: 600px;
 }
 
 .studentFormModal-image-preview-container {
-  display: flex;
-  justify-content: center;
+  margin-left: 90px;
 }
 
 .studentFormModal-preview-img {
@@ -75,10 +77,9 @@
   height: 100px;
   object-fit: cover;
   border-radius: 5px;
-  border: 2px solid #E42278;
+  border: 2px solid #ea268f;
 }
 
-/* Estilos para los botones */
 .studentFormModal-buttons-container {
   grid-column: span 3 !important;
   display: flex;
@@ -101,34 +102,51 @@
 .studentFormModal-cancel-btn {
   background: #f1f1f1;
   color: #333;
-  border: 1px solid #ddd;
+  border: 1px solid #ddd !important;
 }
 
 .studentFormModal-cancel-btn:hover {
   background: #e5e5e5;
 }
 
+.studentFormModal-cancel-btn:focus {
+  background: #e5e5e5 !important;
+}
+
 .studentFormModal-save-btn {
-  background: #E42278;
+  background: #ea268f;
   color: white;
   border: none;
 }
 
 .studentFormModal-save-btn:hover {
-  background: #c01e67;
+  background: #b71b6e;
 }
 
-/* Estilos para checkbox */
+.studentFormModal-save-btn:focus {
+  background: #b71b6e !important;
+}
+
 .studentFormModal-checkbox-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.studentFormModal-checkbox-grou {
   display: flex;
   align-items: center;
   margin-top: 15px;
+  grid-column: span 2 !important;
+}
+
+.studentFormModal-section-header {
+  grid-column: span 3 !important;
+  text-align: center;
 }
 
 .studentFormModal-form-check-custom {
   display: flex;
   align-items: center;
- 
 }
 
 .studentFormModal-form-check-custom label {
@@ -141,28 +159,61 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #E42278; /* Cambia el color del checkbox */
+  accent-color: #ea268f;
 }
+
+.studentFormModal-checkbox-pair {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.studentFormModal-buttons-container {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.studentFormModal-cancel-btn {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.studentFormModal-cancel-btn:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.studentFormModal-save-btn {
+  background-color: #ea268f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.studentFormModal-save-btn:hover {
+  background-color: #b71b6e;
+}
+
+.studentFormModal-save-btn:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.custom-alert {
+  margin-bottom: 15px;
+}
+
+
 /* Responsive */
 @media (max-width: 1200px) {
   .studentFormModal-container.modal-dialog {
     max-width: 90% !important;
     width: 90% !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .studentFormModal-container.modal-dialog {
-    max-width: 95% !important;
-    width: 95% !important;
-  }
-
-  .studentFormModal-form-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .studentFormModal-full-width {
-    grid-column: span 2 !important;
   }
 }
 
@@ -174,7 +225,8 @@
   }
 
   .studentFormModal-form-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 15px;
   }
 
@@ -190,5 +242,27 @@
 
   .studentFormModal-title {
     font-size: 20px;
+  }
+
+  /* Ajuste para la ficha médica en dos columnas */
+  .studentFormModal-checkbox-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas en móvil */
+    gap: 10px;
+    align-items: start;
+  }
+
+  .studentFormModal-checkbox-pair {
+    flex-direction: row; /* Apilar "Sí" y "No" verticalmente en cada columna */
+    gap: 5px;
+  }
+
+  .studentFormModal-form-check-custom {
+    margin: 0; /* Eliminar márgenes adicionales */
+  }
+
+  .studentFormModal-form-check-custom label {
+    font-size: 16px; /* Reducir tamaño de fuente en móvil */
+    margin-left: 5px;
   }
 }

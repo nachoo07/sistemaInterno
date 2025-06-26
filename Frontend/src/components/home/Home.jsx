@@ -1,14 +1,13 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt, FaCalendarCheck,
-  FaUserCog, FaCog, FaEnvelope, FaBars, FaTimes, FaSearch, FaUserCircle, FaChevronDown, FaEllipsisH
+  FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt, FaCalendarCheck, FaList,
+  FaUserCog, FaCog, FaEnvelope, FaBars, FaTimes, FaSearch, FaUserCircle, FaChevronDown, FaEllipsisH, FaClipboardList 
 } from 'react-icons/fa';
 import { LoginContext } from '../../context/login/LoginContext';
 import "./home.css";
-import logo from '../../assets/logo.png';
 import AppNavbar from '../navbar/AppNavbar';
-
+import logo from '../../assets/logo.png';
 const Home = () => {
   const { auth, logout, userData } = useContext(LoginContext);
   const navigate = useNavigate();
@@ -62,7 +61,9 @@ const Home = () => {
     { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal' },
     { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },
     { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion' },
-    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' }
+    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' },
+    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' },
+    { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList  />, category: 'informes' }
   ];
 
   const categories = [
@@ -106,9 +107,10 @@ const Home = () => {
       )}
       {window.innerWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="header-logo" onClick={() => navigate('/')}>
-            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
-          </div>
+            <div className="header-logo" onClick={() => navigate('/')}>
+              <img src={logo} alt="Valladares Fútbol" className="logo-image" />
+            </div>
+    
           <div className="search-box">
             <FaSearch className="search-symbol" />
             <input
@@ -168,122 +170,123 @@ const Home = () => {
             </div>
           </div>
         </header>
-      )}
-      <div className="dashboard-layout">
-        <aside className={`sidebar ${isMenuOpen ? 'open' : 'closed'}`}>
-          <nav className="sidebar-nav">
-            <div className="sidebar-section">
-              <button className="menu-toggle" onClick={toggleMenu}>
-                {isMenuOpen ? <FaTimes /> : <FaBars />}
+  )
+}
+<div className="dashboard-layout">
+  <aside className={`sidebar ${isMenuOpen ? 'open' : 'closed'}`}>
+    <nav className="sidebar-nav">
+      <div className="sidebar-section">
+        <button className="menu-toggle" onClick={toggleMenu}>
+          {isMenuOpen ? <FaTimes /> : <FaBars />}
+        </button>
+        <ul className="sidebar-menu">
+          {menuItems.map((item, index) => (
+            <li
+              key={index}
+              className={`sidebar-menu-item `}
+              onClick={() => item.action ? item.action() : navigate(item.route)}
+            >
+              <span className="menu-icon">{item.icon}</span>
+              <span className="menu-text">{item.name}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  </aside>
+  <main className="main-content">
+    <div className="content-columns">
+      <div className="main-column">
+        <section className="dashboard-welcome">
+          <div className="welcome-text">
+            <h1>Bienvenido al Sistema</h1>
+            <p>Panel de control | <span className="current-date">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
+          </div>
+        </section>
+        <section className="module-categories">
+          <div className="categories-tabs">
+            {categories.map(category => (
+              <button
+                key={category.id}
+                className={`category-tab ${activeCategory === category.id ? 'active' : ''}`}
+                onClick={() => setActiveCategory(category.id)}
+              >
+                {category.name}
               </button>
-              <ul className="sidebar-menu">
-                {menuItems.map((item, index) => (
-                  <li
-                    key={index}
-                    className={`sidebar-menu-item `}
-                    onClick={() => item.action ? item.action() : navigate(item.route)}
-                  >
-                    <span className="menu-icon">{item.icon}</span>
-                    <span className="menu-text">{item.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </nav>
-        </aside>
-        <main className="main-content">
-          <div className="content-columns">
-            <div className="main-column">
-              <section className="dashboard-welcome">
-                <div className="welcome-text">
-                  <h1>Bienvenido al Sistema</h1>
-                  <p>Panel de control | <span className="current-date">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
-                </div>
-              </section>
-              <section className="module-categories">
-                <div className="categories-tabs">
-                  {categories.map(category => (
-                    <button
-                      key={category.id}
-                      className={`category-tab ${activeCategory === category.id ? 'active' : ''}`}
-                      onClick={() => setActiveCategory(category.id)}
-                    >
-                      {category.name}
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <section className="dashboard-modules">
-                <div className="modules-container">
-                  <h2 className="section-title">Módulos del Sistema</h2>
-                  <div className="modules-grid">
-                    {filteredMenuItems.map((item, index) => (
-                      <div
-                        key={index}
-                        className="module-card"
-                        onClick={() => navigate(item.route)}
-                      >
-                        <div className="module-icon-container">
-                          {item.icon}
-                        </div>
-                        <h3 className="module-title">{item.name}</h3>
-                        <span className="module-category-tag">{item.category}</span>
-                        <button className="module-menu-btn">
-                          <FaEllipsisH />
-                        </button>
-                      </div>
-                    ))}
+            ))}
+          </div>
+        </section>
+        <section className="dashboard-modules">
+          <div className="modules-container">
+            <h2 className="section-title">Módulos del Sistema</h2>
+            <div className="modules-grid">
+              {filteredMenuItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="module-card"
+                  onClick={() => navigate(item.route)}
+                >
+                  <div className="module-icon-container">
+                    {item.icon}
                   </div>
+                  <h3 className="module-title">{item.name}</h3>
+                  <span className="module-category-tag">{item.category}</span>
+                  <button className="module-menu-btn">
+                    <FaEllipsisH />
+                  </button>
                 </div>
-              </section>
-            </div>
-            <div className="sidebar-column">
-              <div className="dashboard-sidebar">
-                <div className="pending-tasks">
-                  <div className="panel-header">
-                    <h2 className="panel-title">Tareas Pendientes</h2>
-                  </div>
-                  <ul className="tasks-list">
-                    {pendingTasks.map((task, index) => (
-                      <li key={index} className={`task-item priority-${task.priority}`}>
-                        <div className="task-details">
-                          <span className="task-name">{task.title}</span>
-                        </div>
-                        <div className="task-actions">
-                          <button
-                            className="task-action-btn"
-                            onClick={() => navigate(task.route)}
-                          >
-                            Completar
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="quick-actions">
-                  <div className="panel-header">
-                    <h2 className="panel-title">Acciones Rápidas</h2>
-                  </div>
-                  <div className="quick-actions-grid">
-                    {actionTasks.map((task, index) => (
-                      <button
-                        key={index}
-                        className="quick-action-btn"
-                        onClick={() => navigate(task.route)}
-                      >
-                        <FaUsers className="btn-icon" />
-                        <span>{task.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </main>
+        </section>
+      </div>
+      <div className="sidebar-column">
+        <div className="dashboard-sidebar">
+          <div className="pending-tasks">
+            <div className="panel-header">
+              <h2 className="panel-title">Tareas Pendientes</h2>
+            </div>
+            <ul className="tasks-list">
+              {pendingTasks.map((task, index) => (
+                <li key={index} className={`task-item priority-${task.priority}`}>
+                  <div className="task-details">
+                    <span className="task-name">{task.title}</span>
+                  </div>
+                  <div className="task-actions">
+                    <button
+                      className="task-action-btn"
+                      onClick={() => navigate(task.route)}
+                    >
+                      Completar
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="quick-actions">
+            <div className="panel-header">
+              <h2 className="panel-title">Acciones Rápidas</h2>
+            </div>
+            <div className="quick-actions-grid">
+              {actionTasks.map((task, index) => (
+                <button
+                  key={index}
+                  className="quick-action-btn"
+                  onClick={() => navigate(task.route)}
+                >
+                  <FaUsers className="btn-icon" />
+                  <span>{task.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  </main>
+</div>
+    </div >
   );
 };
 

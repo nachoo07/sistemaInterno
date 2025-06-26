@@ -5,9 +5,11 @@ import { EmailContext } from "../../context/email/EmailContext";
 import { LoginContext } from "../../context/login/LoginContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaBars, FaUsers, FaMoneyBill, FaList, FaChartBar, FaExchangeAlt, FaCalendarCheck, FaUserCog,
+import {
+  FaBars, FaUsers, FaMoneyBill, FaList, FaChartBar, FaExchangeAlt, FaCalendarCheck, FaUserCog,
   FaCog, FaEnvelope, FaHome, FaClipboardList, FaSearch, FaArrowLeft, FaTimes, FaCheck,
-  FaTrash, FaUserCircle, FaChevronDown, FaTimes as FaTimesClear,} from "react-icons/fa";
+  FaTrash, FaUserCircle, FaChevronDown, FaTimes as FaTimesClear,
+} from "react-icons/fa";
 import Swal from "sweetalert2";
 import "./emailNotification.css";
 import AppNavbar from "../navbar/AppNavbar";
@@ -58,7 +60,9 @@ const EmailNotification = () => {
     { name: "Asistencia", route: "/attendance", icon: <FaCalendarCheck /> },
     { name: "Usuarios", route: "/user", icon: <FaUserCog /> },
     { name: "Ajustes", route: "/settings", icon: <FaCog /> },
-    { name: "Envios de Mail", route: "/email-notifications", icon: <FaEnvelope /> }
+    { name: "Envios de Mail", route: "/email-notifications", icon: <FaEnvelope /> },
+    { name: "Listado de Alumnos", route: "/liststudent", icon: <FaClipboardList /> },
+    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
   ];
 
   useEffect(() => {
@@ -203,11 +207,9 @@ const EmailNotification = () => {
         const cuotaDetails = studentCuotas
           .map((cuota) => {
             const cuotaDate = new Date(cuota.date);
-            return `- ${monthNames[cuotaDate.getMonth()]} ${cuotaDate.getFullYear()}: $${cuota.amount.toLocaleString(
-              "es-ES"
-            )}`;
+            return `- ${monthNames[cuotaDate.getMonth()]} ${cuotaDate.getFullYear()}: $${cuota.amount.toLocaleString("es-ES")}`;
           })
-          .join("\n");
+          .join("<br>");
 
         const totalAmount = studentCuotas.reduce((sum, c) => sum + c.amount, 0);
 
@@ -351,215 +353,224 @@ const EmailNotification = () => {
     setIsMenuOpen(false);
   };
 
-  if (dataLoading) {
-    return (
-      <div className="app-container">
-        <div className="loading">Cargando datos...</div>
-      </div>
-    );
-  }
+
 
   return (
-  <div className={`app-container ${windowWidth <= 576 ? "mobile-view" : ""}`}>
-    {windowWidth <= 576 && (
-      <AppNavbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-    )}
-    {windowWidth > 576 && (
-      <header className="desktop-nav-header">
-        <div className="header-logo" onClick={() => navigate('/')}>
-          <img src={logo} alt="Valladares Fútbol" className="logo-image" />
-        </div>
-     
-        <div className="nav-right-section">
-          <div
-            className="profile-container"
-            onClick={() => setIsProfileOpen(!isProfileOpen)}
-          >
-            <FaUserCircle className="profile-icon" />
-            <span className="profile-greeting">Hola, {userData?.name || "Usuario"}</span>
-            <FaChevronDown className={`arrow-icon ${isProfileOpen ? "rotated" : ""}`} />
-            {isProfileOpen && (
-              <div className="profile-menu">
-                <div
-                  className="menu-option"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate("/user");
-                    setIsProfileOpen(false);
-                  }}
-                >
-                  <FaUserCog className="option-icon" /> Mi Perfil
-                </div>
-                <div
-                  className="menu-option"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate("/settings");
-                    setIsProfileOpen(false);
-                  }}
-                >
-                  <FaCog className="option-icon" /> Configuración
-                </div>
-                <div className="menu-separator"></div>
-                <div
-                  className="menu-option logout-option"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLogout();
-                    setIsProfileOpen(false);
-                  }}
-                >
-                  <FaUserCircle className="option-icon" /> Cerrar Sesión
-                </div>
-              </div>
-            )}
+    <div className={`app-container ${windowWidth <= 576 ? "mobile-view" : ""}`}>
+      {windowWidth <= 576 && (
+        <AppNavbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+      )}
+      {windowWidth > 576 && (
+        <header className="desktop-nav-header">
+          <div className="header-logo" onClick={() => navigate('/')}>
+            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
           </div>
-        </div>
-      </header>
-    )}
-    <div className="dashboard-layout">
-      <aside className={`sidebar ${isMenuOpen ? "open" : "closed"}`}>
-        <nav className="sidebar-nav">
-          <div className="sidebar-section">
-            <button className="menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <FaTimes /> : <FaBars />}
-            </button>
-            <ul className="sidebar-menu">
-              {menuItems.map((item, index) => (
-                <li
-                  key={index}
-                  className={`sidebar-menu-item ${item.route === "/email-notifications" ? "active" : ""}`}
-                  onClick={() => (item.action ? item.action() : navigate(item.route))}
-                >
-                  <span className="menu-icon">{item.icon}</span>
-                  <span className="menu-text">{item.name}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </nav>
-      </aside>
-      <main className={`main-content ${!isMenuOpen ? "expanded" : ""}`}>
-        <section className="dashboard-welcome">
-          <div className="welcome-text">
-            <h1>Enviar Correos</h1>
-          </div>
-        </section>
-        <section className="student-selection">
-          <div className="search-container">
-            <FaSearch className="search-icon" />
+          <div className="search-box">
+            <FaSearch className="search-symbol" />
             <input
               type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-              disabled={loading || dataLoading} // Deshabilitar búsqueda durante carga
-              placeholder="Buscar estudiante..."
+              placeholder="Buscar estudiantes..."
+              className="search-field"
+              value={globalSearchTerm}
+              onChange={(e) => setGlobalSearchTerm(e.target.value)}
+              disabled={dataLoading || loading} // Deshabilitar búsqueda durante carga
             />
-            {searchTerm && (
-              <button className="search-clear" onClick={() => setSearchTerm("")}>
+            {globalSearchTerm && (
+              <button className="search-clear-btn" onClick={() => setGlobalSearchTerm("")}>
                 <FaTimesClear />
               </button>
             )}
           </div>
-          {searchTerm && (
-            <div className="student-dropdown">
-              {dataLoading ? (
-                <div className="student-option">Cargando estudiantes...</div>
-              ) : filteredStudents.length ? (
-                filteredStudents.map((student) => (
+          <div className="nav-right-section">
+            <div
+              className="profile-container"
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+            >
+              <FaUserCircle className="profile-icon" />
+              <span className="profile-greeting">Hola, {userData?.name || "Usuario"}</span>
+              <FaChevronDown className={`arrow-icon ${isProfileOpen ? "rotated" : ""}`} />
+              {isProfileOpen && (
+                <div className="profile-menu">
                   <div
-                    key={student._id}
-                    className="student-option"
-                    onClick={() => handleSelectStudent(student)}
+                    className="menu-option"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/user");
+                      setIsProfileOpen(false);
+                    }}
                   >
-                    {student.name} {student.lastName} ({student.mail || "Sin correo"}){" "}
-                    {student.state === "Inactivo" && "[Inactivo]"}
+                    <FaUserCog className="option-icon" /> Mi Perfil
                   </div>
-                ))
-              ) : (
-                <div className="student-option">No hay coincidencias</div>
+                  <div
+                    className="menu-option"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/settings");
+                      setIsProfileOpen(false);
+                    }}
+                  >
+                    <FaCog className="option-icon" /> Configuración
+                  </div>
+                  <div className="menu-separator"></div>
+                  <div
+                    className="menu-option logout-option"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLogout();
+                      setIsProfileOpen(false);
+                    }}
+                  >
+                    <FaUserCircle className="option-icon" /> Cerrar Sesión
+                  </div>
+                </div>
               )}
             </div>
-          )}
-          <div className="selected-students">
-            {selectedStudents.slice(0, 10).map((student) => (
-              <div key={student._id} className="selected-student">
-                {student.name} {student.lastName}
-                <FaTimes
-                  onClick={() => handleRemoveStudent(student._id)}
-                  className="remove-icon"
-                />
-              </div>
-            ))}
-            {selectedStudents.length > 10 && (
-              <div className="selected-student">
-                +{selectedStudents.length - 10} más
+          </div>
+        </header>
+      )}
+      <div className="dashboard-layout">
+        <aside className={`sidebar ${isMenuOpen ? "open" : "closed"}`}>
+          <nav className="sidebar-nav">
+            <div className="sidebar-section">
+              <button className="menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                {isMenuOpen ? <FaTimes /> : <FaBars />}
+              </button>
+              <ul className="sidebar-menu">
+                {menuItems.map((item, index) => (
+                  <li
+                    key={index}
+                    className={`sidebar-menu-item ${item.route === "/email-notifications" ? "active" : ""}`}
+                    onClick={() => (item.action ? item.action() : navigate(item.route))}
+                  >
+                    <span className="menu-icon">{item.icon}</span>
+                    <span className="menu-text">{item.name}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </nav>
+        </aside>
+        <main className={`main-content ${!isMenuOpen ? "expanded" : ""}`}>
+          <section className="dashboard-welcome">
+            <div className="welcome-text">
+              <h1>Enviar Correos</h1>
+            </div>
+          </section>
+          <section className="student-selection">
+            <div className="search-container">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+                disabled={loading || dataLoading} // Deshabilitar búsqueda durante carga
+                placeholder="Buscar estudiante..."
+              />
+              {searchTerm && (
+                <button className="search-clear" onClick={() => setSearchTerm("")}>
+                  <FaTimesClear />
+                </button>
+              )}
+            </div>
+            {searchTerm && (
+              <div className="student-dropdown">
+                {dataLoading ? (
+                  <div className="student-option">Cargando estudiantes...</div>
+                ) : filteredStudents.length ? (
+                  filteredStudents.map((student) => (
+                    <div
+                      key={student._id}
+                      className="student-option"
+                      onClick={() => handleSelectStudent(student)}
+                    >
+                      {student.name} {student.lastName} ({student.mail || "Sin correo"}){" "}
+                      {student.state === "Inactivo" && "[Inactivo]"}
+                    </div>
+                  ))
+                ) : (
+                  <div className="student-option">No hay coincidencias</div>
+                )}
               </div>
             )}
-          </div>
-          <div className="selection-actions">
-            <button
-              className={`quick-action-btn email select-all-btn ${activeButton === "selectAll" ? "active" : ""}`}
-              onClick={handleSelectAll}
-              disabled={loading || dataLoading} // Deshabilitar botón durante carga
-            >
-              Todos Activos
-            </button>
-            <button
-              className={`quick-action-btn email select-overdue-btn ${activeButton === "selectOverdue" ? "active" : ""}`}
-              onClick={handleSelectOverdue}
-              disabled={loading || dataLoading} // Deshabilitar botón durante carga
-            >
-              Cuotas Vencidas
-            </button>
-            <button
-              className="quick-action-btn email"
-              onClick={handleCancel}
-              disabled={loading || dataLoading} // Deshabilitar botón durante carga
-            >
-              Cancelar
-            </button>
-          </div>
-        </section>
-        <section className="email-composition">
-          <h2 className="section-title">Componer Correo</h2>
-          <input
-            type="text"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="email-subject"
-            disabled={loading || isOverdueMode || dataLoading} // Deshabilitar durante carga
-            placeholder="Asunto..."
-          />
-          <textarea
-            value={displayMessage}
-            onChange={(e) => setDisplayMessage(e.target.value)}
-            className="email-message"
-            disabled={loading || isOverdueMode || dataLoading} // Deshabilitar durante carga
-            placeholder="Mensaje..."
-          />
-          <div className="email-actions">
-            <button
-              className="quick-action-btn cancel-btn"
-              onClick={handleClearEmail}
+            <div className="selected-students">
+              {selectedStudents.slice(0, 10).map((student) => (
+                <div key={student._id} className="selected-student">
+                  {student.name} {student.lastName}
+                  <FaTimes
+                    onClick={() => handleRemoveStudent(student._id)}
+                    className="remove-icon"
+                  />
+                </div>
+              ))}
+              {selectedStudents.length > 10 && (
+                <div className="selected-student">
+                  +{selectedStudents.length - 10} más
+                </div>
+              )}
+            </div>
+            <div className="selection-actions">
+              <button
+                className={`quick-action-btn email select-all-btn ${activeButton === "selectAll" ? "active" : ""}`}
+                onClick={handleSelectAll}
+                disabled={loading || dataLoading} // Deshabilitar botón durante carga
+              >
+                Todos Activos
+              </button>
+              <button
+                className={`quick-action-btn email select-overdue-btn ${activeButton === "selectOverdue" ? "active" : ""}`}
+                onClick={handleSelectOverdue}
+                disabled={loading || dataLoading} // Deshabilitar botón durante carga
+              >
+                Cuotas Vencidas
+              </button>
+              <button
+                className="quick-action-btn email"
+                onClick={handleCancel}
+                disabled={loading || dataLoading} // Deshabilitar botón durante carga
+              >
+                Cancelar
+              </button>
+            </div>
+          </section>
+          <section className="email-composition">
+            <h2 className="section-title">Componer Correo</h2>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="email-subject"
               disabled={loading || isOverdueMode || dataLoading} // Deshabilitar durante carga
-            >
-              Borrar
-            </button>
-            <button
-              className="quick-action-btn"
-              onClick={handleSendToAll}
-              disabled={loading || dataLoading} // Deshabilitar botón durante carga
-            >
-              {loading ? "Enviando..." : `Enviar a ${selectedStudents.length} Seleccionado(s)`}
-            </button>
-          </div>
-        </section>
-      </main>
+              placeholder="Asunto..."
+            />
+            <textarea
+              value={displayMessage}
+              onChange={(e) => setDisplayMessage(e.target.value)}
+              className="email-message"
+              disabled={loading || isOverdueMode || dataLoading} // Deshabilitar durante carga
+              placeholder="Mensaje..."
+            />
+            <div className="email-actions">
+              <button
+                className="quick-action-btn cancel-btn"
+                onClick={handleClearEmail}
+                disabled={loading || isOverdueMode || dataLoading} // Deshabilitar durante carga
+              >
+                Borrar
+              </button>
+              <button
+                className="quick-action-btn"
+                onClick={handleSendToAll}
+                disabled={loading || dataLoading} // Deshabilitar botón durante carga
+              >
+                {loading ? "Enviando..." : `Enviar a ${selectedStudents.length} Seleccionado(s)`}
+              </button>
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default EmailNotification;

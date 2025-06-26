@@ -63,11 +63,6 @@ const studentSchema = new mongoose.Schema({
     enum: ['Activo', 'Inactivo'],
     default: 'Activo',
   },
-  comment: {
-    type: String,
-    trim: true,
-    set: (value) => (value ? sanitizeHtml(value, { allowedTags: [] }) : value),
-  },
   profileImage: {
     type: String,
     trim: true,

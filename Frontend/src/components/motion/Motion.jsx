@@ -1,9 +1,9 @@
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaBars, FaTimes, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt,
+  FaBars, FaTimes, FaUsers,FaList, FaMoneyBill, FaChartBar, FaExchangeAlt,
   FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle, FaChevronDown,
-  FaTrash, FaEdit, FaPlus, FaSearch, FaTimes as FaTimesClear
+  FaTrash, FaEdit, FaPlus, FaClipboardList, FaSearch, FaTimes as FaTimesClear
 } from 'react-icons/fa';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -14,6 +14,7 @@ import { Table, Button } from 'react-bootstrap';
 import MotionFormModal from '../modalMotion/MotionFormModal';
 import './motion.css';
 import AppNavbar from '../navbar/AppNavbar';
+import logo from '../../assets/logo.png';
 
 dayjs.locale('es');
 dayjs.extend(utc);
@@ -51,7 +52,8 @@ const Motion = () => {
     { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },
     { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion' },
     { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' },
-    { name: 'Volver Atrás', route: null, action: () => navigate(-1), icon: <FaArrowLeft />, category: 'navegacion' },
+    { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes' },
+    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
   ];
 
   useEffect(() => {
@@ -165,7 +167,9 @@ const Motion = () => {
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="nav-left-section"></div>
+          <div className="header-logo-setting" onClick={() => navigate('/')}>
+            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
+          </div>
           <div className="nav-right-section">
             <div
               className="profile-container"
@@ -241,6 +245,28 @@ const Motion = () => {
           <div className="welcome-text">
             <h1>Movimientos</h1>
           </div>
+          {windowWidth > 576 && (
+            <section className="search-section">
+              <div className="search-container">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Buscar movimientos..."
+                  className="search-input"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    className="search-clear"
+                    onClick={() => setSearchTerm('')}
+                  >
+                    <FaTimesClear />
+                  </button>
+                )}
+              </div>
+            </section>
+          )}
           {showAlert && (
             <div className="alert alert-warning" role="alert">
               {alertMessage}
@@ -322,7 +348,7 @@ const Motion = () => {
               </div>
             </div>
           </div>
-                   <Table className="motion-table">
+          <Table className="motion-table">
             <thead>
               <tr>
                 <th>Concepto</th>

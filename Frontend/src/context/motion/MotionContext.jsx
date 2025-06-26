@@ -14,7 +14,7 @@ export const MotionProvider = ({ children }) => {
     if (auth !== 'admin') return [];
     try {
       setLoading(true);
-      const response = await axios.get('/api/motions/', { withCredentials: true });
+      const response = await axios.get('http://localhost:4000/api/motions/', { withCredentials: true });
       const data = Array.isArray(response.data) ? response.data : [];
       setMotions(data);
       return data;
@@ -30,7 +30,7 @@ export const MotionProvider = ({ children }) => {
   const createMotion = useCallback(async (motion) => {
     if (auth !== 'admin') return null;
     try {
-      const response = await axios.post('/api/motions/create', motion, { withCredentials: true });
+      const response = await axios.post('http://localhost:4000/api/motions/create', motion, { withCredentials: true });
       const newMotion = response.data;
       setMotions((prev) => {
         if (prev.some((m) => m._id === newMotion._id)) {
@@ -50,7 +50,7 @@ export const MotionProvider = ({ children }) => {
   const updateMotion = useCallback(async (id, updatedMotion) => {
     if (auth !== 'admin') return null;
     try {
-      const response = await axios.put(`/api/motions/update/${id}`, updatedMotion, { withCredentials: true });
+      const response = await axios.put(`http://localhost:4000/api/motions/update/${id}`, updatedMotion, { withCredentials: true });
       const updated = response.data;
       setMotions((prev) => prev.map((motion) => (motion._id === id ? updated : motion)));
       Swal.fire('¡Éxito!', 'El movimiento ha sido actualizado correctamente', 'success');
@@ -76,7 +76,7 @@ export const MotionProvider = ({ children }) => {
         cancelButtonText: 'Cancelar',
       });
       if (confirmacion.isConfirmed) {
-        await axios.delete(`/api/motions/delete/${id}`, { withCredentials: true });
+        await axios.delete(`http://localhost:4000/api/motions/delete/${id}`, { withCredentials: true });
         setMotions((prev) => prev.filter((motion) => motion._id !== id));
         Swal.fire('¡Eliminado!', 'El movimiento ha sido eliminado correctamente', 'success');
       }
@@ -91,7 +91,7 @@ export const MotionProvider = ({ children }) => {
     if (auth !== 'admin') return [];
     try {
       setLoading(true);
-      const response = await axios.get(`/api/motions/date/${date}`, { withCredentials: true });
+      const response = await axios.get(`http://localhost:4000/api/motions/date/${date}`, { withCredentials: true });
       const data = Array.isArray(response.data) ? response.data : [];
       return data;
     } catch (error) {
@@ -108,7 +108,7 @@ export const MotionProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `/api/motions/date-range?startDate=${startDate}&endDate=${endDate}`,
+        `http://localhost:4000/api/motions/date-range?startDate=${startDate}&endDate=${endDate}`,
         { withCredentials: true }
       );
       const data = Array.isArray(response.data) ? response.data : [];

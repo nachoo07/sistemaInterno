@@ -3,14 +3,6 @@
   position: relative;
 }
 
-.profile-container:hover {
-  background-color: #E42278 !important;
-}
-
-.app-navbar{
-  background-color: #E42278;
-}
-
 .profile-container-inner {
   cursor: pointer;
   padding: 8px 12px;
@@ -20,26 +12,22 @@
   align-items: center;
 }
 
-.profile-container-inner:hover {
-  background-color: #E42278;
-}
-
 .profile-icon {
-  font-size: 1.6rem;
-  color: #f42c8c;
+  font-size: 25px;
+  color: #000000;
   margin-right: 10px;
 }
 
 .profile-greeting {
-  font-size: 20px ;
+  font-size: 20px;
   margin-right: 5px;
-  color: #000000 !important;
+  color: #000000;
 }
 
 .arrow-icon {
   margin-left: 8px;
   font-size: 0.8rem;
-  color: #6c757d;
+  color: #000000;
   transition: transform 0.3s ease;
 }
 
@@ -82,8 +70,8 @@
 }
 
 .menu-option:hover {
-  background-color: #104ba5;
-  color: #f42c8c;
+  background-color: #f0f2f5;
+  color: #ea268f;
 }
 
 .option-icon {
@@ -107,28 +95,6 @@
   color: #ffffff;
 }
 
-/* Estilos para el menú colapsable */
-.sidebar-menu-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  margin-bottom: 5px;
-  border-radius: var(--radius-md, 8px);
-  cursor: pointer;
-  transition: var(--transition, all 0.3s ease);
-  color: white;
-  font-weight: 500;
-}
-
-.sidebar-menu-item:hover {
-  background-color: #E42278;
-}
-
-.sidebar-menu-item.active {
-  background-color: #f42c8c;
-  color: white;
-}
-
 .menu-icon {
   font-size: 1.2rem;
   margin-right: 15px;
@@ -139,6 +105,13 @@
   color: white;
 }
 
+.app-navbar {
+  background-color: #ea268f; /* Color de fondo sólido */
+  z-index: 1000; /* Asegura que esté encima */
+}
+.content-container {
+  padding-top: 56px; /* Ajusta según la altura del Navbar */
+}
 /* Responsive adjustments para móviles */
 @media (max-width: 576px) {
   .navbar-collapse {
@@ -149,8 +122,8 @@
 
   .sidebar-menu-item {
     display: flex !important;
-    padding: 14px 20px;
-    margin: 5px 0;
+    padding: 8px 10px;
+    margin: 0px 0;
     color: white;
   }
 

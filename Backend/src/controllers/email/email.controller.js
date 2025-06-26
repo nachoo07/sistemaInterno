@@ -24,6 +24,8 @@ logger.info(`Configurando transporter con EMAIL_USER: ${process.env.EMAIL_USER}`
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
+  pool: true,
+  maxConnections: 10,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -38,15 +40,31 @@ transporter.verify((error, success) => {
   }
 });
 
+const logoPath = path.join(__dirname, "../../assets/logo.png");
+let logoBuffer = null;
+if (fs.existsSync(logoPath)) {
+  try {
+    logoBuffer = fs.readFileSync(logoPath);
+    logger.info("Logo cargado en memoria al iniciar el servidor");
+  } catch (error) {
+    logger.error({ error: error.message }, "Error al cargar el logo en memoria");
+  }
+}
+
+const formatCache = new Map();
+
 const formatAmount = (amount) => {
   if (!amount) return "N/A";
+  const cacheKey = `amount_${amount}`;
+  if (formatCache.has(cacheKey)) return formatCache.get(cacheKey);
   let numericAmount = amount.toString().replace(/CLP/gi, "").trim();
   let numAmount = parseFloat(numericAmount.replace(/\./g, "").replace(",", "."));
   if (isNaN(numAmount)) return "N/A";
-  return `$${numAmount.toLocaleString("es-CL")}`;
+  const formatted = `$${numAmount.toLocaleString("es-CL")}`;
+  formatCache.set(cacheKey, formatted);
+  return formatted;
 };
 
-// Función para capitalizar la primera letra de un string
 const capitalizeFirstLetter = (string) => {
   if (!string) return "N/A";
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
@@ -54,28 +72,24 @@ const capitalizeFirstLetter = (string) => {
 
 const formatDate = (date) => {
   if (!date) return "N/A";
+  const cacheKey = `date_${date}`;
+  if (formatCache.has(cacheKey)) return formatCache.get(cacheKey);
   let parsedDate;
-  
-  // Si la fecha ya está en formato ISO (por ejemplo, 2025-06-04T00:00:00.000Z)
   if (typeof date === "string" && date.includes("T")) {
     parsedDate = DateTime.fromISO(date, { zone: "utc" });
-  } 
-  // Si la fecha está en formato dd/MM/yyyy (por ejemplo, 04/06/2025)
-  else if (typeof date === "string" && date.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+  } else if (typeof date === "string" && date.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
     parsedDate = DateTime.fromFormat(date, "dd/MM/yyyy", { zone: "America/Argentina/Tucuman" });
-  } 
-  // Si es un objeto Date
-  else if (date instanceof Date) {
+  } else if (date instanceof Date) {
     parsedDate = DateTime.fromJSDate(date, { zone: "America/Argentina/Tucuman" });
-  } 
-  // Otros casos
-  else {
+  } else {
     parsedDate = DateTime.fromJSDate(new Date(date), { zone: "America/Argentina/Tucuman" });
   }
-
   if (!parsedDate.isValid) return "N/A";
-  return parsedDate.toFormat("dd/MM/yyyy");
+  const formatted = parsedDate.toFormat("dd/MM/yyyy");
+  formatCache.set(cacheKey, formatted);
+  return formatted;
 };
+
 export const sendEmail = async (req, res) => {
   const { recipients, subject, message, attachment, emails } = req.body;
 
@@ -107,20 +121,29 @@ export const sendEmail = async (req, res) => {
 
     if (attachment) {
       if (typeof attachment === "object" && attachment.format === "pdf") {
+        console.time("pdfGeneration"); // Añadido para medir
         const doc = new PDFDocument({
-          size: [500, 300],
+          size: [400, 230],
           margin: 30,
+          font: 'Helvetica',
         });
         let buffers = [];
         doc.on("data", buffers.push.bind(buffers));
         doc.on("end", () => { });
 
-        const logoPath = path.join(__dirname, "../../assets/logo.png");
         let logoAdded = false;
-        if (fs.existsSync(logoPath)) {
+        if (logoBuffer) {
           try {
-            doc.image(logoPath, 30, 20, { width: 100 });
-            logger.info("Logo agregado exitosamente al PDF");
+            doc.image(logoBuffer, 20, 20, { width: 80 });
+            logger.info("Logo agregado desde caché al PDF");
+            logoAdded = true;
+          } catch (error) {
+            logger.error({ error: error.message }, "Error al agregar el logo desde caché al PDF");
+          }
+        } else if (fs.existsSync(logoPath)) {
+          try {
+            doc.image(logoPath, 20, 20, { width: 60 });
+            logger.info("Logo agregado exitosamente al PDF desde archivo");
             logoAdded = true;
           } catch (error) {
             logger.error({ error: error.message }, "Error al agregar el logo al PDF");
@@ -129,42 +152,44 @@ export const sendEmail = async (req, res) => {
           logger.warn(`Archivo de logo no encontrado en: ${logoPath}`);
         }
 
-        const titleFontSize = 22;
+        const titleFontSize = 14;
         doc.fontSize(titleFontSize);
-        doc.fillColor("#000000").fontSize(titleFontSize).text("Yo Claudio", 140, 50);
+        const titleWidth = doc.widthOfString("Yo Claudio");
+        const titleX = logoAdded ? 30 + 60 + 10 : (400 - titleWidth) / 2;
+        const titleY = logoAdded ? 45 : 45;
+        doc.fillColor("#000000").font('Helvetica').fontSize(titleFontSize).text("Yo Claudio", titleX, titleY);
 
-        const comprobanteFontSize = 24;
+        const comprobanteFontSize = 18;
         doc.fontSize(comprobanteFontSize);
         const comprobanteWidth = doc.widthOfString("Comprobante");
-        const comprobanteX = 500 - 30 - comprobanteWidth;
-        doc.fillColor("#f42c8c").text("Comprobante", comprobanteX, 30);
+        const comprobanteX = 400 - 30 - comprobanteWidth;
+        doc.fillColor("#ea268f").font('Helvetica').text("Comprobante", comprobanteX, 25);
+        doc.fillColor("#ea268f").rect(30, 82, 340, 2).fill();
 
-        doc.fillColor("#f42c8c").rect(30, 90, 440, 2).fill();
-
-        doc.fillColor("#060303").fontSize(14).text("Información del Estudiante", 30, 100);
+        doc.fillColor("#6C757D").font('Helvetica').fontSize(10).text("Información del Estudiante", 30, 90);
         doc.fillColor("#000000")
-          .fontSize(10)
-          .text(`Nombre y Apellido: ${attachment.student.name || "N/A"} ${attachment.student.lastName || ""}`, 30, 115);
-        doc.fillColor("#000000").fontSize(10).text(`Cuil: ${attachment.student.cuil || "N/A"}`, 30, 130);
+          .font('Helvetica')
+          .fontSize(8)
+          .text(`Nombre y Apellido: ${attachment.student.name || "N/A"} ${attachment.student.lastName || ""}`, 30, 102);
+        doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Cuil: ${attachment.student.cuil || "N/A"}`, 30, 114);
 
-        // Determinar si es un pago o una cuota
         if (attachment.cuota) {
-          doc.fillColor("#060303").fontSize(14).text("Detalle de la Cuota", 30, 150);
-          doc.fillColor("#000000").fontSize(10).text(`Mes: ${attachment.cuota.date || "N/A"}`, 30, 165);
-          doc.fillColor("#000000").fontSize(10).text(`Monto: ${formatAmount(attachment.cuota.amount)}`, 30, 180);
-          doc.fillColor("#000000").fontSize(10).text(`Método de Pago: ${attachment.cuota.paymentmethod || "N/A"}`, 30, 195);
-          doc.fillColor("#000000").fontSize(10).text(`Fecha de Pago: ${formatDate(attachment.cuota.paymentdate)}`, 30, 210);
+          doc.fillColor("#6C757D").font('Helvetica').fontSize(10).text("Detalle de la Cuota", 30, 126);
+          doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Mes: ${attachment.cuota.date || "N/A"}`, 30, 138);
+          doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Monto: ${formatAmount(attachment.cuota.amount)}`, 30, 150);
+          doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Método de Pago: ${attachment.cuota.paymentmethod || "N/A"}`, 30, 162);
+          doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Fecha de Pago: ${formatDate(attachment.cuota.paymentdate)}`, 30, 174);
         } else if (attachment.payment) {
-          doc.fillColor("#060303").fontSize(14).text("Detalle del Pago", 30, 150);
-          doc.fillColor("#000000").fontSize(10).text(`Concepto: ${capitalizeFirstLetter(attachment.payment.concept)}`, 30, 170);
-          doc.fillColor("#000000").fontSize(10).text(`Monto: ${formatAmount(attachment.payment.amount)}`, 30, 185);
-          doc.fillColor("#000000").fontSize(10).text(`Método de Pago: ${attachment.payment.paymentMethod}`, 30, 200);
-          doc.fillColor("#000000").fontSize(10).text(`Fecha de Pago: ${formatDate(attachment.payment.paymentDate)}`, 30, 215);
+          doc.fillColor("#6C757D").font('Helvetica').fontSize(10).text("Detalle del Pago", 30, 126);
+          doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Concepto: ${capitalizeFirstLetter(attachment.payment.concept)}`, 30, 138);
+          doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Monto: ${formatAmount(attachment.payment.amount)}`, 30, 150);
+          doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Método de Pago: ${attachment.payment.paymentMethod}`, 30, 162);
+          doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Fecha de Pago: ${formatDate(attachment.payment.paymentDate)}`, 30, 174);
         }
-
-        doc.fillColor("#000000").fontSize(10).text(`Fecha de Emisión: ${DateTime.fromJSDate(new Date()).setZone("America/Argentina/Tucuman").toFormat("dd/MM/yyyy")}`, 30, 225);
+        doc.fillColor("#000000").font('Helvetica').fontSize(8).text(`Fecha de Emisión: ${DateTime.fromJSDate(new Date()).setZone("America/Argentina/Tucuman").toFormat("dd/MM/yyyy")}`, 30, 186);
 
         doc.end();
+        console.timeEnd("pdfGeneration"); // Añadido para medir
 
         const pdfBuffer = await new Promise((resolve) => {
           doc.on("end", () => {

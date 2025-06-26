@@ -5,8 +5,8 @@
     justify-content: center;
     height: 100vh;
     background-color: white;
-    background-image: linear-gradient(45deg, #f42c8c 25%, transparent 25%), 
-                      linear-gradient(-45deg, #f42c8c 25%, transparent 25%);
+    background-image: linear-gradient(45deg, #ea268f 25%, transparent 25%), 
+                      linear-gradient(-45deg, #ea268f 25%, transparent 25%);
     background-size: 60px 60px;
     background-position: 0 0, 30px 30px;
 }
@@ -16,7 +16,7 @@
     display: flex;
     flex-direction: column !important;
     background-color: white;
-    background: linear-gradient(210deg, #f42c8c 38%, #ffffff 10%);
+    background: linear-gradient(210deg, #b71b6e 38%, #ffffff 10%);
     padding: 20px;
     border-radius: 5px;
     width: 900px;
@@ -36,7 +36,7 @@
 .login-page-form input[type="password"] {
     border: none;
     border-radius: 0;
-    border-bottom: 2px solid #D83D8D;
+    border-bottom: 2px solid #ea268f;
     box-shadow: none;
     padding: 10px 5px;
     background-color: transparent;
@@ -49,7 +49,7 @@
 .login-page-form input[type="password"]:focus {
     outline: none;
     box-shadow: none;
-    border-bottom: 2px solid #f42c8c;
+    border-bottom: 2px solid #ea268f;
 }
 
 .login-page-form {
@@ -64,7 +64,7 @@
 }
 
 .login-page-submit-button {
-    background-color: #f42c8c;
+    background-color: #ea268f;
     border: none;
     color: white;
     padding: 10px 20px;
@@ -75,7 +75,7 @@
 }
 
 .login-page-submit-button:hover {
-    background-color: #D83D8D;
+    background-color: #b71b6e;
 
 }
 
@@ -84,4 +84,31 @@
     height: 190px;
     margin-left: 500px;
     
+}
+
+@media (max-width: 576px) {
+    .login-page-form-wrapper {
+        width: 100%;
+        height: auto;
+        padding: 20px;
+        
+    }
+
+    .login-page-form {
+        align-items: center !important;
+        margin-left: 0;
+    }
+
+    .login-page-logo {
+        width: 200px;
+        height: 150px;
+        margin-left: 0;
+        text-align: center !important;
+    }
+
+    .login-page-logo-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
 }

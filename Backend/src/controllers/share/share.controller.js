@@ -4,6 +4,8 @@ import Config from '../../models/base/config.model.js';
 import { calculateShareAmount } from '../../cron/share/sharesCron.js';
 import sanitize from 'mongo-sanitize';
 import pino from 'pino';
+import { DateTime } from 'luxon';
+
 const logger = pino();
 
 export const getAllShares = async (req, res) => {
@@ -21,6 +23,46 @@ export const getAllShares = async (req, res) => {
   }
 };
 
+export const getSharesStatusCount = async (req, res) => {
+  try {
+    logger.info('Iniciando getSharesStatusCount'); // Log para confirmar que se llama el endpoint
+    const counts = await Share.aggregate([
+      {
+        $group: {
+          _id: '$state',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          state: '$_id',
+          count: 1,
+        },
+      },
+    ]);
+
+    const result = {
+      pendientes: 0,
+      vencidas: 0,
+      pagadas: 0,
+    };
+
+    counts.forEach((item) => {
+      if (item.state === 'Pendiente') result.pendientes = item.count;
+      if (item.state === 'Vencido') result.vencidas = item.count;
+      if (item.state === 'Pagado') result.pagadas = item.count;
+    });
+
+    logger.info({ counts: result }, 'Conteo de cuotas exitoso');
+    res.status(200).json(result);
+  } catch (error) {
+    logger.error({ error: error.message, stack: error.stack }, 'Error al obtener conteos de cuotas');
+    res.status(500).json({ message: 'Error al obtener conteos de cuotas' });
+  }
+};
+
+// Resto del código sin cambios
 export const createShare = async (req, res) => {
   const { student, date, amount, paymentmethod, paymentdate } = sanitize(req.body);
 
@@ -79,7 +121,6 @@ export const updateShare = async (req, res) => {
       return res.status(404).json({ message: 'Cuota no encontrada' });
     }
 
-    // Validar y actualizar amount si se proporciona
     if (amount != null) {
       if (parseFloat(amount) < 0) {
         return res.status(400).json({ message: 'El monto no puede ser negativo' });
@@ -87,7 +128,6 @@ export const updateShare = async (req, res) => {
       share.amount = parseFloat(amount);
     }
 
-    // Validar y actualizar paymentdate si se proporciona
     if (paymentdate) {
       const paymentDate = new Date(paymentdate);
       if (isNaN(paymentDate)) {
@@ -96,15 +136,12 @@ export const updateShare = async (req, res) => {
       share.paymentdate = paymentDate;
     }
 
-    // Validar y actualizar paymentmethod si se proporciona
     if (paymentmethod) {
       share.paymentmethod = paymentmethod;
     }
 
-    // Actualizar state basado en paymentdate y paymentmethod
     share.state = paymentdate && paymentmethod ? 'Pagado' : share.state;
 
-    // Actualizar updatedBy
     share.updatedBy = req.user.userId;
 
     await share.save();
@@ -120,6 +157,7 @@ export const getShareById = async (req, res) => {
   const { id } = sanitize(req.params);
 
   try {
+    logger.info({ id }, 'Intentando obtener cuota por ID'); // Log para depuración
     const share = await Share.findById(id)
       .populate({ path: 'student', select: 'name lastName' })
       .lean();
@@ -128,7 +166,7 @@ export const getShareById = async (req, res) => {
     }
     res.status(200).json(share);
   } catch (error) {
-    logger.error({ error: error.message }, 'Error al obtener cuota');
+    logger.error({ error: error.message, stack: error.stack }, 'Error al obtener cuota');
     res.status(500).json({ message: 'Error al obtener cuota' });
   }
 };
@@ -242,33 +280,36 @@ export const updatePendingShares = async (req, res) => {
   try {
     const config = await Config.findOne({ key: 'cuotaBase' });
     const cuotaBase = config ? config.value : 30000;
-    const currentDate = new Date();
-    const currentDay = currentDate.getDate();
+    const currentDate = DateTime.now().setZone('America/Argentina/Tucuman');
+    const currentDay = currentDate.day;
 
     if (currentDay > 10) {
       return res.status(400).json({ message: 'No se puede actualizar cuotas después del día 10' });
     }
 
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
+    const startOfMonth = currentDate.startOf('month').toJSDate();
+    const endOfMonth = currentDate.endOf('month').toJSDate();
 
     const shares = await Share.find({
       state: 'Pendiente',
       date: { $gte: startOfMonth, $lte: endOfMonth }
     });
 
-    const bulkOps = [];
-    for (let share of shares) {
-      const student = await Student.findById(share.student);
-      const baseAmount = student.hasSiblingDiscount ? cuotaBase * 0.9 : cuotaBase;
+    const studentIds = [...new Set(shares.map(s => s.student))];
+    const students = await Student.find({ _id: { $in: studentIds } }).lean();
 
-      bulkOps.push({
+    const bulkOps = shares.map(share => {
+      const student = students.find(s => s._id.equals(share.student));
+      const baseAmount = student && student.hasSiblingDiscount ? cuotaBase * 0.9 : cuotaBase;
+      const { amount, state } = calculateShareAmount(baseAmount, currentDay, share.date);
+
+      return {
         updateOne: {
           filter: { _id: share._id },
-          update: { amount: Math.round(baseAmount), updatedBy: req.user.userId }
+          update: { amount: Math.round(amount), state, updatedBy: req.user.userId }
         }
-      });
-    }
+      };
+    });
 
     if (bulkOps.length > 0) {
       await Share.bulkWrite(bulkOps);

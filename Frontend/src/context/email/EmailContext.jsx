@@ -8,7 +8,7 @@ export const EmailContext = createContext();
 const EmailProvider = ({ children }) => {
   const { auth } = useContext(LoginContext);
 
-  const sendVoucherEmail = async (student, cuota, imageBase64) => {
+  const sendVoucherEmail = async (student, payment, imageBase64) => {
     if (auth !== 'admin') return;
     try {
       if (!student.mail) {
@@ -16,23 +16,39 @@ const EmailProvider = ({ children }) => {
         return;
       }
 
-      const emailData = {
-        recipients: [student.mail],
-        subject: `Comprobante de Pago - ${student.name} ${student.lastName}`,
-        message: `
+      // Usar guardianName para el saludo, con fallback a student.name
+      const recipientName = student.guardianName || student.name;
+
+      // Determinar si es un pago de cuota o un pago genérico
+      const isCuota = payment.type === 'cuota' || !payment.concept;
+      const message = isCuota
+        ? `
           <h2>Comprobante de Pago</h2>
-          <p>Hola ${student.name},</p>
-          <p>Adjuntamos el comprobante de pago de tu cuota correspondiente al mes de ${new Date(
-            cuota.date
+          <p>Hola ${recipientName},</p>
+          <p>Adjuntamos el comprobante de pago de la cuota correspondiente al mes de ${new Date(
+            payment.date
           ).toLocaleString('es-ES', { month: 'long' })}.</p>
           <p>Gracias por tu pago.</p>
           <p>Saludos,</p>
           <p>Equipo Yo Claudio</p>
-        `,
+        `
+        : `
+          <h2>Comprobante de Pago</h2>
+          <p>Hola ${recipientName},</p>
+          <p>Adjuntamos el comprobante de tu pago correspondiente a ${payment.concept || 'N/A'}.</p>
+          <p>Gracias por tu pago.</p>
+          <p>Saludos,</p>
+          <p>Equipo Yo Claudio</p>
+        `;
+
+      const emailData = {
+        recipients: [student.mail],
+        subject: `Comprobante de Pago - ${student.name} ${student.lastName}`,
+        message,
         attachment: imageBase64,
       };
 
-      await axios.post('/api/email/send', emailData, { withCredentials: true });
+      await axios.post('http://localhost:4000/api/email/send', emailData, { withCredentials: true });
       Swal.fire('¡Éxito!', 'El comprobante ha sido enviado al correo del estudiante.', 'success');
     } catch (error) {
       console.error('Error al enviar el comprobante:', error);
@@ -49,7 +65,7 @@ const EmailProvider = ({ children }) => {
 
     try {
       const response = await axios.post(
-        '/api/email/send',
+        'http://localhost:4000/api/email/send',
         { emails },
         { withCredentials: true }
       );

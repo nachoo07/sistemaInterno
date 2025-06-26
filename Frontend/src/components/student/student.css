@@ -29,7 +29,7 @@
   transform: translateY(-50%);
   width: 18px;
   height: 18px;
-  border: 2px solid var(--primary-color);
+  border: 2px solid #ea268f !important;
   border-radius: var(--radius-sm);
   background-color: var(--card-bg);
   transition: var(--transition);
@@ -54,13 +54,13 @@
   display: none;
 }
 
-.checkbox-label input:checked + .checkbox-custom::after {
+.checkbox-label input:checked+.checkbox-custom::after {
   transform: translateY(-50%) rotate(45deg) scale(1);
   opacity: 1;
 }
 
-.checkbox-label input:checked + .checkbox-custom::before {
-  background-color: var(--primary-color);
+.checkbox-label input:checked+.checkbox-custom::before {
+  background-color: #ea268f !important;
 }
 
 .students-filter {
@@ -75,8 +75,8 @@
   margin: 0px 10px;
 }
 
-.add-btn-student {
-  background: #f42c8c;
+.add-btn {
+  background: #ea268f !important;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -88,8 +88,8 @@
   transition: var(--transition);
 }
 
-.add-btn-student:hover {
-  background: #E42278;
+.add-btn:hover {
+  background: #b71b6e !important;
 }
 
 .students-table-section {
@@ -120,7 +120,7 @@
 }
 
 .students-table th {
-  background: #f42c8c;
+  background: #ea268f;
   color: white;
   font-weight: 600;
 }
@@ -149,16 +149,20 @@
 }
 
 .action-btn-student {
-  background: #f42c8c !important;
+  background: #ea268f !important;
   color: white;
   border: none;
   padding: 6px;
   border-radius: var(--radius-sm);
-  font-size: 24px !important;
+  font-size: 25px !important;
   transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.action-btn-student:hover {
+  background: #b71b6e !important;
 }
 
 .pagination {
@@ -180,12 +184,12 @@
 }
 
 .pagination-btn:hover {
-  background: var(--primary-light);
-  color: var(--primary-color);
+  background: #b71b6e !important;
+  color: white !important;
 }
 
 .pagination-btn.active {
-  background: var(--primary-color);
+  background: #ea268f !important;
   color: white;
 }
 
@@ -196,7 +200,7 @@
 }
 
 .mobile-search-section {
-  display: none; 
+  display: none;
   margin: 10px 0;
   width: 100%;
 }
@@ -229,7 +233,7 @@
 
 .mobile-search-input:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #b71b6e !important;
   box-shadow: 0 0 0 2px rgba(244, 44, 140, 0.1);
 }
 
@@ -255,22 +259,58 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-.search-box {
-  margin: 0px ;
-}
-
-.header-logo {
+.import-btn {
+  background: #ea268f !important;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 18px;
   display: flex;
   align-items: center;
-  cursor: pointer;
+  gap: 5px;
+  transition: var(--transition);
 }
 
-.logo-image {
-  height: 55px;
-  /* Ajusta la altura según necesites */
+.import-btn:hover {
+  background-color: #b71b6e !important;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.loading-spinner p {
+  margin-top: 10px;
+}
+
+.btn-student {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 450px;
+  justify-content: space-between;
+
 }
 
 @media (max-width: 576px) {
+
   .students-table th,
   .students-table td {
     font-size: 13px;
@@ -279,7 +319,7 @@
 
   .action-btn-student {
     padding: 3px;
-    font-size: 13px !important;
+    font-size: 18px !important;
   }
 
   .pagination-btn {
@@ -292,20 +332,19 @@
     flex-direction: row !important;
   }
 
-  .state-student{
-    display: none;
-  }
-
   .filter-actions {
     display: flex;
     flex-direction: row !important;
     margin-top: 10px !important;
   }
 
-  .add-btn-student {
-    font-size: 10px !important;
-    margin: 0px !important;
-    padding: 8px 10px !important;
+  .add-btn {
+    font-size: 12px !important;
+    margin-left: 0px !important;
+  }
+
+  .import-btn {
+    font-size: 12px !important;
   }
 
   .checkbox-custom {
@@ -313,7 +352,8 @@
   }
 
   .mobile-search-section {
-    display: block; /* Mostrar solo en pantallas móviles */
+    display: block;
+    /* Mostrar solo en pantallas móviles */
   }
 
   .header-actions .search-container {
@@ -337,11 +377,16 @@
     flex-direction: row !important;
   }
 
-  .action-btn {
-    font-size: 15px !important;
-  }
-
   .search-box {
     display: none;
+  }
+
+  .club{
+    display: none;
+  }
+
+  .btn-student {
+    
+    justify-content: space-around;
   }
 }

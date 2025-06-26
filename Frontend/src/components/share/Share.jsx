@@ -1,23 +1,23 @@
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
-  FaSearch, FaBars, FaTimes, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt,
+  FaSearch, FaBars, FaTimes, FaList, FaUsers, FaClipboardList, FaMoneyBill, FaChartBar, FaExchangeAlt,
   FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle,
   FaChevronDown, FaTimes as FaTimesClear
 } from "react-icons/fa";
 import { StudentsContext } from "../../context/student/StudentContext";
 import { SharesContext } from "../../context/share/ShareContext";
 import { LoginContext } from "../../context/login/LoginContext";
-import { debounce } from "lodash";
-import logo from '../../assets/logo.png';
 import "./share.css";
 import AppNavbar from "../navbar/AppNavbar";
+import logo from '../../assets/logo.png';
 
 const Share = () => {
   const { estudiantes, obtenerEstudiantes, loading: loadingStudents } = useContext(StudentsContext);
   const { cuotas, obtenerCuotas, obtenerCuotasPorEstudiante, loading: loadingCuotas } = useContext(SharesContext);
   const { auth, logout, userData } = useContext(LoginContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const profileRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -37,7 +37,8 @@ const Share = () => {
     { name: "Usuarios", route: "/user", icon: <FaUserCog />, category: "configuracion" },
     { name: "Ajustes", route: "/settings", icon: <FaCog />, category: "configuracion" },
     { name: "Envios de Mail", route: "/email-notifications", icon: <FaEnvelope />, category: "comunicacion" },
-    { name: "Volver Atrás", route: null, action: () => navigate(-1), icon: <FaArrowLeft />, category: "navegacion" },
+    { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes' },
+    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
   ];
 
   useEffect(() => {
@@ -51,6 +52,9 @@ const Share = () => {
   }, []);
 
   useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const page = parseInt(queryParams.get('page')) || 1;
+    setCurrentPage(page);
     obtenerEstudiantes();
     obtenerCuotas();
     const handleResize = () => {
@@ -65,7 +69,7 @@ const Share = () => {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [obtenerEstudiantes, obtenerCuotas]);
+  }, [obtenerEstudiantes, obtenerCuotas, location.search]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -84,9 +88,9 @@ const Share = () => {
       const studentCuotas = cuotas.filter((cuota) => cuota.student?._id === student._id);
       const lastCuota = studentCuotas.length > 0
         ? studentCuotas.reduce((latest, current) =>
-          new Date(current.date) > new Date(latest.date) ? current : latest,
-          studentCuotas[0]
-        )
+            new Date(current.date) > new Date(latest.date) ? current : latest,
+            studentCuotas[0]
+          )
         : null;
       const matchesStatus =
         statusFilter === "todos" ||
@@ -98,7 +102,7 @@ const Share = () => {
 
   const handleViewCuotas = async (studentId) => {
     await obtenerCuotasPorEstudiante(studentId);
-    navigate(`/share/${studentId}`);
+    navigate(`/share/${studentId}?page=${currentPage}`);
   };
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
@@ -135,12 +139,8 @@ const Share = () => {
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="header-logo" onClick={() => navigate("/")}>
-            <img
-              src={logo}
-              alt="Valladares Fútbol"
-              className="logo-image"
-            />
+          <div className="header-logo" onClick={() => navigate('/')}>
+            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
           </div>
           <div className="search-box">
             <FaSearch className="search-symbol" />
@@ -253,7 +253,7 @@ const Share = () => {
             </section>
           )}
           <section className="cuotas-filter">
-            <div className="filter-actions-share">
+            <div className="filter-actions">
               <div className="checkbox-filters">
                 <label className="checkbox-label">
                   <input
@@ -304,9 +304,6 @@ const Share = () => {
             </div>
           </section>
           <section className="cuotas-table-section">
-            {loadingStudents || loadingCuotas ? (
-              <p className="no-data">Cargando datos...</p>
-            ) : (
               <div className="table-wrapper">
                 <table className="cuotas-table">
                   <thead>
@@ -314,7 +311,7 @@ const Share = () => {
                       <th>#</th>
                       <th>Nombre</th>
                       <th>Apellido</th>
-                      <th>Cuil</th>
+                      <th>Dni</th>
                       <th>Estado</th>
                       <th>Acciones</th>
                     </tr>
@@ -327,11 +324,9 @@ const Share = () => {
                         );
                         const lastCuota = studentCuotas.length > 0
                           ? studentCuotas.reduce((latest, current) =>
-                            new Date(current.date) > new Date(latest.date)
-                              ? current
-                              : latest,
-                            studentCuotas[0]
-                          )
+                              new Date(current.date) > new Date(latest.date) ? current : latest,
+                              studentCuotas[0]
+                            )
                           : null;
                         const cuotaStatus = lastCuota ? lastCuota.state : "Sin cuotas";
 
@@ -344,7 +339,7 @@ const Share = () => {
                             <td>{cuotaStatus}</td>
                             <td className="action-buttons">
                               <button
-                                className="action-btn view-btn"
+                                className="action-btn-share"
                                 onClick={() => handleViewCuotas(student._id)}
                               >
                                 <FaUserCircle />
@@ -369,9 +364,6 @@ const Share = () => {
                   </tbody>
                 </table>
               </div>
-            )}
-
-
             <div className="pagination">
               <button
                 disabled={currentPage === 1}
@@ -397,9 +389,6 @@ const Share = () => {
                 »
               </button>
             </div>
-
-
-
           </section>
         </main>
       </div>

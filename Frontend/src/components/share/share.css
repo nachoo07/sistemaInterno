@@ -1,43 +1,8 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: "Inter", "Segoe UI", "Roboto", sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  transition: var(--transition);
-}
-
 .app-container {
   display: flex;
   flex: flex-column;
   min-height: 100vh;
   width: 100%;
-}
-
-.desktop-nav-header {
-  background-color: var(--card-bg);
-  height: var(--header-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  box-shadow: var(--card-shadow);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.nav-left-section {
-  flex: 1;
-}
-
-.nav-right-section {
-  display: flex;
-  align-items: center;
 }
 
 .search-box {
@@ -73,55 +38,6 @@ body {
   box-shadow: 0 0 0 2px rgba(244, 144, 140, 0.2);
 }
 
-.profile-container {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
-  padding: 5px 10px;
-  border-radius: var(--radius-md);
-  transition: var(--transition);
-}
-
-.profile-container:hover {
-  background-color: var(--background-alt);
-}
-
-.profile-icon {
-  font-size: 1.6rem;
-  color: var(--primary-color);
-  margin-right: 10px;
-}
-
-.profile-greeting {
-  font-weight: 500;
-  color: var(--text-color);
-  margin-right: 2px;
-}
-
-.arrow-icon {
-  font-size: 0.7rem;
-  color: var(--text-light);
-  transition: transform var(--transition);
-}
-
-.arrow-icon.rotated {
-  transform: rotate(180deg);
-}
-
-.profile-menu {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--card-shadow);
-  min-width: 200px;
-  overflow: hidden;
-  z-index: 1000;
-  animation: dropdown-fade 0.2s ease;
-}
-
 @keyframes dropdown-menu {
   from {
     opacity: 0;
@@ -134,134 +50,10 @@ body {
   }
 }
 
-.menu-option {
-  padding: 12px 16px;
-  color: var(--text-color);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: var(--transition);
-}
-
-.menu-option:hover {
-  background-color: var(--background-alt);
-  color: var(--primary-color);
-}
-
-.option-icon {
-  font-size: 1rem;
-}
-
-.menu-separator {
-  height: 1px;
-  background-color: var(--border-color);
-  margin: 4px 0;
-}
-
-.logout-option {
-  color: var(--danger-color);
-}
-
-.logout-option:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-}
-
 .dashboard-layout {
   display: flex;
   height: calc(100vh - var(--header-height));
   transition: var(--transition);
-}
-
-.sidebar {
-  background-color: #30343b;
-  width: var(--sidebar-width);
-  height: 100%;
-  overflow-y: auto;
-  transition: var(--transition);
-}
-
-.sidebar.closed {
-  width: var(--sidebar-collapsed);
-}
-
-.sidebar-nav {
-  padding: 20px;
-}
-
-.sidebar-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.menu-toggle {
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  color: white;
-  cursor: pointer;
-  padding: 10px;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-  transition: var(--transition);
-}
-
-.menu-toggle:hover {
-  background-color: var(--primary-light);
-}
-
-.sidebar-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar-menu-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  margin-bottom: 5px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition);
-  color: white;
-  font-weight: 500;
-}
-
-.sidebar-menu-item:hover {
-  background-color: var(--primary-light);
-}
-
-.sidebar-menu-item.active {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.sidebar.closed .sidebar-menu-item {
-  justify-content: center;
-  padding: 10px;
-}
-
-.sidebar.closed .menu-text {
-  display: none;
-}
-
-.sidebar.closed .menu-icon {
-  margin-right: 0;
-}
-
-.menu-icon {
-  font-size: 1.2rem;
-  margin-right: 15px;
-}
-
-.menu-text {
-  font-weight: 500;
 }
 
 .main-content {
@@ -345,77 +137,12 @@ body {
   margin-bottom: 20px;
 }
 
-.filter-actions-share {
+.filter-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 15px;
   margin: 0 10px;
-}
-
-.checkbox-filters {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.checkbox-custom {
-  display: inline-block;
-  position: relative;
-  padding-left: 30px;
-  margin-bottom: 0;
-  font-size: 18px !important;
-  color: var(--text-color);
-  user-select: none;
-  transition: var(--transition);
-}
-
-.checkbox-custom::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--primary-color);
-  border-radius: var(--radius-sm);
-  background-color: var(--card-bg);
-  transition: var(--transition);
-}
-
-.checkbox-custom::after {
-  content: '';
-  position: absolute;
-  left: 6px;
-  top: 50%;
-  transform: translateY(-50%) scale(0);
-  width: 6px;
-  height: 10px;
-  border-right: 2px solid white;
-  border-bottom: 2px solid white;
-  transform-origin: center;
-  transition: var(--transition);
-  opacity: 0;
-}
-
-.checkbox-label input {
-  display: none;
-}
-
-.checkbox-label input:checked+.checkbox-custom::after {
-  transform: translateY(-50%) rotate(45deg) scale(1);
-  opacity: 1;
-}
-
-.checkbox-label input:checked+.checkbox-custom::before {
-  background-color: var(--primary-color);
 }
 
 .cuotas-table-section {
@@ -440,15 +167,17 @@ body {
 .cuotas-table th,
 .cuotas-table td {
   padding: 12px 15px;
-  text-align: center;
+  text-align: center !important;
   font-size: 18px;
   color: var(--text-color);
+
 }
 
 .cuotas-table th {
-  background: #E42278 !important;
+  background: #ea268f !important;
   color: white !important;
   font-weight: 600;
+
 }
 
 .empty-table-message {
@@ -474,27 +203,6 @@ body {
   gap: 8px;
 }
 
-.action-btn {
-  background: var(--primary-color) !important;
-  color: white;
-  border: none;
-  padding: 6px;
-  border-radius: var(--radius-sm);
-  font-size: 18px !important;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.action-btn:hover {
-  background: var(--primary-hover) !important;
-}
-
-.view-btn {
-  background: var(--primary-color);
-}
-
 .no-data {
   text-align: center;
   color: var(--text-light);
@@ -502,37 +210,17 @@ body {
   font-size: 1rem;
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 20px;
-}
-
-.pagination-btn {
-  background: var(--background-alt);
-  color: var(--text-color);
-  border: none;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  transition: var(--transition);
-}
-
-.pagination-btn:hover {
-  background: var(--primary-light);
-  color: var(--primary-color);
-}
-
-.pagination-btn.active {
-  background: var(--primary-color) !important;
+.action-btn-share {
+  background: #ea268f !important;
   color: white;
-}
-
-.pagination-btn:disabled {
-  background: var(--border-color);
-  color: var(--text-light);
-  cursor: not-allowed;
+  border: none;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  font-size: 25px !important;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (max-width: 576px) {
@@ -544,20 +232,16 @@ body {
     padding: 15px;
   }
 
-  .action-buttons {
-    border-bottom: none !important; ;
-}
-
   .cuotas-table th,
   .cuotas-table td {
-    font-size: 12px !important;
+    font-size: 13px !important;
     padding: 6px !important;
     border: none !important;
   }
 
-  .action-btn {
+  .action-btn-share {
     padding: 3px;
-    font-size: 15px !important;
+    font-size: 18px !important;
   }
 
   .pagination-btn {
@@ -571,7 +255,7 @@ body {
     width: 100% !important;
   }
 
-  .filter-actions-share {
+  .filter-actions {
     display: flex;
     flex-wrap: wrap !important;
     margin-top: 10px !important;
@@ -602,10 +286,6 @@ body {
   .search-box {
     display: none;
   }
-}
 
-@media (min-width: 577px) {
-  .mobile-search-section {
-    display: none;
-  }
+  
 }

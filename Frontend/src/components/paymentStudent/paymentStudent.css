@@ -1,31 +1,21 @@
 
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(244, 44, 140, 0.1);
+/* Estilos del buscador (solo para pantallas grandes) */
+.search-section {
+  display: none; /* Oculto por defecto */
 }
 
-.search-clear {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--text-light);
-  font-size: 0.8rem;
-  cursor: pointer;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+/* Resto de los estilos */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.search-clear:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+body {
+  font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: var(--transition);
 }
 
 .app-container {
@@ -40,49 +30,30 @@
   align-items: center;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.header-action-btn {
+.menu-toggle {
   background: none;
   border: none;
+  font-size: 1.3rem;
+  color: white;
+  cursor: pointer;
+  padding: 10px;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-color);
-  cursor: pointer;
   transition: var(--transition);
-  position: relative;
 }
 
-.header-action-btn:hover {
+.menu-toggle:hover {
   background-color: var(--background-alt);
-}
-
-@keyframes dropdown-fade {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .dashboard-layout {
   display: flex;
   height: calc(100vh - var(--header-height));
   transition: var(--transition);
-}
-
-.menu-icon {
-  font-size: 1.2rem;
-  margin-right: 15px;
-}
-
-.menu-text {
-  font-weight: 500;
 }
 
 .main-content {
@@ -154,14 +125,16 @@
 .payment-table th,
 .payment-table td {
   padding: 12px;
-  text-align: left;
+
+  text-align: center;
   border-bottom: 1px solid var(--border-color);
 }
 
 .payment-table th {
-  background-color: #f42c8c;
+  background-color: #ea268f;
   color: white;
   font-weight: 600;
+  
 }
 
 .payment-table tr:hover {
@@ -170,49 +143,18 @@
 
 .btn-action-container {
   display: flex;
+  justify-content: center;
   gap: 10px;
-  justify-content: center;
 }
 
-.btn-edit, .btn-delete, .send-voucher-payment {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: var(--radius-sm);
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  width: 32px;
-  height: 32px;
-}
 
-.btn-edit {
-  color: #04a45c;
-}
-
-.btn-edit:hover {
-  background-color: rgba(4, 164, 92, 0.1);
-  color: #1b5930;
-}
-
-.btn-delete {
-  color: #dc3545;
-}
-
-.btn-delete:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-  color: #c82333;
-}
-
-.no-data {
-  text-align: center;
+.no-data-payment {
+  text-align: center !important;
   color: var(--text-light);
   padding: 20px;
+  
+  margin: 0px;
 }
-
 .quick-actions, .payment-summary {
   background-color: var(--card-bg);
   border-radius: var(--radius-md);
@@ -287,8 +229,19 @@
   animation: dropdown-fade 0.2s ease;
 }
 
-.modal-header {
-  background-color: var(--primary-color);
+.modal-header-payment {
+  background-color: #ea268f;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+}
+
+.modal-header-concept{
+  background-color: #ea268f;
   color: white;
   padding: 15px 20px;
   display: flex;
@@ -359,30 +312,33 @@
   grid-column: span 2;
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .btn-submit, .btn-cancel {
-  padding: 10px 20px;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  cursor: pointer;
-  transition: var(--transition);
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s ease;
 }
 
 .btn-submit {
-  background-color: var(--primary-color);
+  background-color: #ea268f;
   color: white;
+  border: none;
 }
 
 .btn-submit:hover {
-  background-color: var(--primary-hover);
+  background-color: #b71b6e;
 }
 
 .btn-cancel {
   background-color: var(--background-alt);
   color: var(--text-color);
+  border: none;
 }
 
 .btn-cancel:hover {
@@ -394,47 +350,9 @@
   width: 90%;
 }
 
-.concept-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.concept-table th,
-.concept-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-.concept-table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-}
-
-.concept-table td {
-  background-color: #fff;
-}
-
-.concept-table .btn-delete {
-  background: none;
-  border: none;
-  color: #e74c3c;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.concept-table .btn-delete:hover {
-  color: #c0392b;
-}
-
-.modal-footer {
-  margin-top: 20px;
-  text-align: right;
-}
-
+/* New styles for concept list */
 .concept-list {
-  display: flex;
+   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 20px;
@@ -442,14 +360,14 @@
 }
 
 .concept-item {
-  display: flex;
+   display: flex;
   align-items: center;
   background-color: #fff;
   border: 1px solid #e0e6e0;
   border-radius: 25px;
   padding: 8px 12px;
   margin-bottom: 8px;
-  transition: var(--transition);
+  transition: all 0.3s ease;
 }
 
 .concept-item:hover {
@@ -457,37 +375,43 @@
 }
 
 .concept-name {
-  font-size: 14px;
+   font-size: 14px;
   font-weight: normal;
   color: #333;
+ 
 }
 
 .concept-delete-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  background-color: #04a45c;
+  width: 15px;
+  height: 15px;
+  background-color: #ea268f;
   color: white;
   border: none;
-  border-radius: 50%;
+  border-radius: 15px; /* Oval shape */
   cursor: pointer;
   transition: var(--transition);
-  margin-left: 10px;
+  margin-left: 15px;
 }
 
 .concept-delete-btn:hover {
-  background-color: #1b5930;
+  background-color: var(--primary-dark);
 }
 
 .concept-delete-btn svg {
   font-size: 10px;
 }
 
-.titulo-concepto {
+.titulo-concepto{
   margin-bottom: 10px;
   margin-top: 20px;
+}
+
+.modal-footer {
+  text-align: right;
+  padding: 20px;
 }
 
 @media (max-width: 1200px) {
