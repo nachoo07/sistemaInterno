@@ -20,7 +20,7 @@ const SharesProvider = ({ children }) => {
     if (auth !== "admin") return;
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:4000/api/shares", {
+      const response = await axios.get("/api/shares", {
         withCredentials: true,
       });
       const data = Array.isArray(response.data) ? response.data : [];
@@ -36,7 +36,7 @@ const SharesProvider = ({ children }) => {
     if (auth !== "admin") return;
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:4000/api/shares/status-count", {
+      const response = await axios.get("/api/shares/status-count", {
         withCredentials: true,
       });
       setCuotasStatusCount({
@@ -56,7 +56,7 @@ const SharesProvider = ({ children }) => {
     if (!studentId) return;
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:4000/api/shares/student/${studentId}`, {
+      const response = await axios.get(`/api/shares/student/${studentId}`, {
         withCredentials: true,
       });
       const data = Array.isArray(response.data) ? response.data : [];
@@ -72,7 +72,7 @@ const SharesProvider = ({ children }) => {
     if (auth !== "admin") return;
     try {
       setLoading(true);
-      const response = await axios.post("http://localhost:4000/api/shares/create", cuota, {
+      const response = await axios.post("/api/shares/create", cuota, {
         withCredentials: true,
       });
       const newCuota = response.data.share;
@@ -90,7 +90,7 @@ const SharesProvider = ({ children }) => {
     if (auth !== "admin") return;
     try {
       setLoading(true);
-      await axios.delete(`http://localhost:4000/api/shares/delete/${id}`, {
+      await axios.delete(`/api/shares/delete/${id}`, {
         withCredentials: true,
       });
       setCuotas((prev) => prev.filter((cuota) => cuota._id !== id));
@@ -107,7 +107,7 @@ const SharesProvider = ({ children }) => {
     if (auth !== "admin") return;
     try {
       setLoading(true);
-      const response = await axios.put(`http://localhost:4000/api/shares/update/${cuota._id}`, cuota, {
+      const response = await axios.put(`/api/shares/update/${cuota._id}`, cuota, {
         withCredentials: true,
       });
       const updatedCuota = response.data.share;
@@ -127,7 +127,7 @@ const SharesProvider = ({ children }) => {
     try {
       setLoading(true);
       setCuotas([]);
-      const response = await axios.get(`http://localhost:4000/api/shares/date/${fecha}`, {
+      const response = await axios.get(`/api/shares/date/${fecha}`, {
         withCredentials: true,
       });
       const data = Array.isArray(response.data) ? response.data : [];
@@ -145,7 +145,7 @@ const SharesProvider = ({ children }) => {
     try {
       setLoading(true);
       setCuotas([]);
-      const response = await axios.get(`http://localhost:4000/api/shares/date-range?startDate=${startDate}&endDate=${endDate}`, {
+      const response = await axios.get(`/api/shares/date-range?startDate=${startDate}&endDate=${endDate}`, {
         withCredentials: true,
       });
       const data = Array.isArray(response.data) ? response.data : [];

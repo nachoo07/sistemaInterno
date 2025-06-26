@@ -23,7 +23,7 @@ const StudentsProvider = ({ children }) => {
 
   const uploadToCloudinary = async (file) => {
     try {
-      const { data } = await axios.get('http://localhost:4000/api/students/cloudinary-signature', {
+      const { data } = await axios.get('/api/students/cloudinary-signature', {
         withCredentials: true,
       });
 
@@ -67,7 +67,7 @@ const StudentsProvider = ({ children }) => {
     }
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:4000/api/students', {
+      const response = await axios.get('/api/students', {
         withCredentials: true,
       });
       const data = Array.isArray(response.data) ? response.data : [];
@@ -98,7 +98,7 @@ const StudentsProvider = ({ children }) => {
     // Evitar usar el caché para garantizar datos frescos
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:4000/api/students/${studentId}`, {
+      const response = await axios.get(`/api/students/${studentId}`, {
         withCredentials: true,
       });
       const student = {
@@ -155,7 +155,7 @@ const StudentsProvider = ({ children }) => {
         }
       });
 
-      const response = await axios.post('http://localhost:4000/api/students/create', formData, {
+      const response = await axios.post('/api/students/create', formData, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -228,7 +228,7 @@ const StudentsProvider = ({ children }) => {
         cancelButtonText: 'Cancelar',
       });
       if (confirmacion.isConfirmed) {
-        await axios.delete(`http://localhost:4000/api/students/delete/${id}`, {
+        await axios.delete(`/api/students/delete/${id}`, {
           withCredentials: true,
         });
         setEstudiantes(prev => prev.filter(estudiante => estudiante._id !== id));
@@ -298,7 +298,7 @@ const StudentsProvider = ({ children }) => {
         }
       });
 
-      const response = await axios.put(`http://localhost:4000/api/students/update/${estudiante._id}`, formData, {
+      const response = await axios.put(`/api/students/update/${estudiante._id}`, formData, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -378,7 +378,7 @@ const StudentsProvider = ({ children }) => {
         }
       }
 
-      const response = await axios.post('http://localhost:4000/api/students/import', { students: formattedStudentList }, {
+      const response = await axios.post('/api/students/import', { students: formattedStudentList }, {
         withCredentials: true,
         headers: { 'Content-Type': 'application/json' },
       });

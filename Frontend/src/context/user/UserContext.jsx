@@ -12,7 +12,7 @@ const UsersProvider = ({ children }) => {
   const obtenerUsuarios = async () => {
     if (auth === "admin") {
       try {
-        const response = await axios.get("http://localhost:4000/api/users", {
+        const response = await axios.get("/api/users", {
           withCredentials: true,
         });
         if (JSON.stringify(usuarios) !== JSON.stringify(response.data)) {
@@ -39,7 +39,7 @@ const UsersProvider = ({ children }) => {
           role: usuario.role,
         };
         const response = await axios.post(
-          "http://localhost:4000/api/users/create",
+          "/api/users/create",
           usuarioData,
           { withCredentials: true }
         );
@@ -80,7 +80,7 @@ const UsersProvider = ({ children }) => {
           state: usuarioActualizado.state,
         };
         const response = await axios.put(
-          `http://localhost:4000/api/users/update/${id}`,
+          `/api/users/update/${id}`,
           usuarioData,
           { withCredentials: true }
         );
@@ -132,7 +132,7 @@ const UsersProvider = ({ children }) => {
         });
 
         if (confirmacion.isConfirmed) {
-          await axios.delete(`http://localhost:4000/api/users/delete/${id}`, {
+          await axios.delete(`/api/users/delete/${id}`, {
             withCredentials: true,
           });
           setUsuarios((prevUsuarios) =>

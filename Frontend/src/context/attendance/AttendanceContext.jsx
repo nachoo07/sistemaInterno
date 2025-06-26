@@ -22,7 +22,7 @@ export const AttendanceProvider = ({ children }) => {
 
   const ObtenerAsistencia = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/attendance/', {
+      const response = await axios.get('/api/attendance/', {
         withCredentials: true,
       });
       // Asegurarse de que response.data sea un arreglo
@@ -37,7 +37,7 @@ export const AttendanceProvider = ({ children }) => {
   const agregarAsistencia = async (asistencia) => {
     if (auth === 'admin' || auth === 'user') {
       try {
-        const response = await axios.post('http://localhost:4000/api/attendance/create', asistencia, {
+        const response = await axios.post('/api/attendance/create', asistencia, {
           withCredentials: true,
         });
         setAttendance((prev) => [...prev, response.data.attendance]);
@@ -52,7 +52,7 @@ export const AttendanceProvider = ({ children }) => {
   const actualizarAsistencia = async ({ date, category, attendance }) => {
     if (auth === 'admin' || auth === 'user') {
       try {
-        const response = await axios.put('http://localhost:4000/api/attendance/update', {
+        const response = await axios.put('/api/attendance/update', {
           date,
           category,
           attendance,

@@ -70,7 +70,7 @@ const Settings = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get('http://localhost:4000/api/config/cuotaBase', { withCredentials: true });
+        const response = await axios.get('/api/config/cuotaBase', { withCredentials: true });
         const value = response.data.value || 30000;
         setCuotaBase(value);
       } catch (error) {
@@ -91,7 +91,7 @@ const Settings = () => {
         Swal.fire('Error', 'El monto debe ser un número positivo.', 'error');
         return;
       }
-      await axios.post('http://localhost:4000/api/config/set', {
+      await axios.post('/api/config/set', {
         key: 'cuotaBase',
         value: newValue,
       }, { withCredentials: true });
@@ -107,7 +107,7 @@ const Settings = () => {
   const handleUpdatePendingCuotas = async () => {
     setLoading(true);
     try {
-      const response = await axios.put('http://localhost:4000/api/shares/update-pending', {}, { withCredentials: true });
+      const response = await axios.put('/api/shares/update-pending', {}, { withCredentials: true });
       if (response.status === 400) {
         Swal.fire('Error', response.data.message, 'error');
       } else {
