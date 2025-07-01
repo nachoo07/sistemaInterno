@@ -573,7 +573,7 @@ const Student = () => {
                     <th>#</th>
                     <th>Nombre</th>
                     <th>Apellido</th>
-                    <th>Dni</th>
+                    <th>Cuil</th>
                     <th className='club'>Estado</th>
                     <th>Acciones</th>
                   </tr>
