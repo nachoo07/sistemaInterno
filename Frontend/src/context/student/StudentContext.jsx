@@ -125,17 +125,30 @@ const StudentsProvider = ({ children }) => {
   }, [auth]);
 
   const addEstudiante = useCallback(async (estudiante) => {
-    if (auth !== 'admin') {
-      throw new Error('No tienes permisos para agregar estudiantes.');
-    }
+   if (auth !== 'admin') {
+    Swal.fire({
+      title: '¡Error!',
+      text: 'No tienes permisos para agregar estudiantes.',
+      icon: 'error',
+      confirmButtonText: 'Aceptar',
+    });
+    return { success: false, message: 'No tienes permisos para agregar estudiantes.' };
+  }
     try {
-      setLoading(true);
-      let profileImageUrl = estudiante.profileImage;
-      if (estudiante.profileImage instanceof File) {
-        profileImageUrl = null;
-      } else if (!profileImageUrl) {
-        profileImageUrl = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg';
+         setLoading(true);
+    let profileImageUrl = estudiante.profileImage;
+    if (estudiante.profileImage instanceof File) {
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp', 'image/gif'];
+      if (!validImageTypes.includes(estudiante.profileImage.type)) {
+        throw new Error('La imagen de perfil debe ser un archivo JPEG, PNG, HEIC, WEBP o GIF.');
       }
+      if (estudiante.profileImage.size > 5 * 1024 * 1024) {
+        throw new Error('La imagen de perfil no debe exceder los 5MB.');
+      }
+      profileImageUrl = null;
+    } else if (!profileImageUrl) {
+      profileImageUrl = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg';
+    }
 
       const estudianteData = {
         ...estudiante,
@@ -160,7 +173,8 @@ const StudentsProvider = ({ children }) => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      if (response.status === 201 && response.data?.student) {
+         if (response.status === 201) {
+      if (response.data?.student) {
         const newStudent = response.data.student;
         const formattedStudent = {
           ...newStudent,
@@ -171,48 +185,59 @@ const StudentsProvider = ({ children }) => {
         };
         setEstudiantes(prev => [...(Array.isArray(prev) ? prev : []), formattedStudent]);
         cache.current.set('estudiantes', [...(cache.current.get('estudiantes') || []), formattedStudent]);
+        Swal.fire({
+          title: '¡Éxito!',
+          text: 'Estudiante creado correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+        });
+        return { success: true, student: formattedStudent };
       } else {
-        throw new Error('Respuesta inválida del servidor al crear el estudiante.');
+        throw new Error('Respuesta del servidor no contiene datos del estudiante.');
       }
-    } catch (error) {
-      console.error('Error al crear el estudiante:', error);
-      let errorMessage = 'Ha ocurrido un error al crear el estudiante: ';
-      const rawMessage = error.response?.data?.error || error.message;
-
-      const fieldTranslations = {
-        name: 'Nombre',
-        lastName: 'Apellido',
-        cuil: 'CUIL',
-        birthDate: 'Fecha de Nacimiento',
-        address: 'Dirección',
-        category: 'Categoría',
-        mail: 'Correo Electrónico',
-        guardianName: 'Nombre del Tutor',
-        guardianPhone: 'Teléfono del Tutor',
-      };
-
-      if (rawMessage.includes('duplicate key error')) {
-        const match = rawMessage.match(/index: (\w+)_1/);
-        const field = match ? match[1] : 'desconocido';
-        const readableField = fieldTranslations[field] || field;
-        errorMessage = `${readableField} duplicado. Por favor, usa un ${readableField} diferente.`;
-      } else if (rawMessage.includes('Faltan datos obligatorios')) {
-        errorMessage = 'Faltan campos obligatorios. Por favor, completa todos los campos requeridos.';
-      } else if (rawMessage.includes('DNI debe contener')) {
-        errorMessage = 'El DNI debe contener entre 8 y 10 dígitos.';
-      } else if (rawMessage.includes('Formato de fecha de nacimiento inválido')) {
-        errorMessage = 'La fecha de nacimiento tiene un formato inválido. Usa el formato yyyy-MM-dd.';
-      } else if (rawMessage.includes('Error al procesar imagen')) {
-        errorMessage = 'Hubo un problema al subir la imagen de perfil.';
-      } else {
-        errorMessage = rawMessage;
-      }
-
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
+    } else {
+      throw new Error(response.data?.error || response.data?.message || 'Error desconocido del servidor.');
     }
-  }, [auth]);
+    } catch (error) {
+    console.error('Error detallado al crear el estudiante:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
+    let errorMessage = 'Ha ocurrido un error al crear el estudiante.';
+    const rawMessage = error.response?.data?.error || error.response?.data?.message || error.message;
+
+    if (typeof rawMessage === 'string' && rawMessage.includes('El CUIL ya está registrado')) {
+      errorMessage = 'El CUIL ya está registrado. Por favor, usa un CUIL diferente.';
+    } else if (typeof rawMessage === 'string' && rawMessage.includes('Faltan datos obligatorios')) {
+      errorMessage = rawMessage;
+    } else if (typeof rawMessage === 'string' && rawMessage.includes('CUIL debe contener entre 10 y 12 dígitos')) {
+      errorMessage = 'El CUIL debe contener entre 7 y 9 dígitos.';
+    } else if (typeof rawMessage === 'string' && rawMessage.includes('Formato de fecha de nacimiento inválido')) {
+      errorMessage = 'La fecha de nacimiento tiene un formato inválido. Usa el formato yyyy-MM-dd.';
+    } else if (typeof rawMessage === 'string' && rawMessage.includes('Formato de correo electrónico no válido')) {
+      errorMessage = 'El correo electrónico tiene un formato inválido.';
+    } else if (typeof rawMessage === 'string' && rawMessage.includes('El número de teléfono del tutor')) {
+      errorMessage = 'El número de teléfono del tutor debe tener entre 10 y 15 dígitos.';
+    } else if (typeof rawMessage === 'string' && rawMessage.includes('Error al procesar imagen')) {
+      errorMessage = 'Hubo un problema al subir la imagen de perfil. Asegúrate de que sea un archivo JPEG, PNG, HEIC, WEBP o GIF y no exceda los 5MB.';
+    } else if (typeof rawMessage === 'string' && rawMessage.includes('Errores de validación')) {
+      errorMessage = rawMessage;
+    } else {
+      errorMessage = `Error interno: ${rawMessage}`;
+    }
+
+     Swal.fire({
+      title: '¡Error!',
+      text: errorMessage,
+      icon: 'error',
+      confirmButtonText: 'Aceptar',
+    });
+    return { success: false, message: errorMessage }; // Devolver el resultado en lugar de lanzar error
+  } finally {
+    setLoading(false);
+  }
+}, [auth]);
 
   const deleteEstudiante = useCallback(async (id) => {
     if (auth !== 'admin') return;
@@ -255,31 +280,30 @@ const StudentsProvider = ({ children }) => {
   }, [auth, selectedStudent]);
 
   const updateEstudiante = useCallback(async (estudiante) => {
-    if (auth !== 'admin') {
-      throw new Error('No tienes permisos para actualizar estudiantes. Inicia sesión como administrador.');
-    }
-    try {
-      setLoading(true);
-      let profileImageUrl = estudiante.profileImage;
-      if (estudiante.profileImage instanceof File) {
-        profileImageUrl = null;
-        const validImageTypes = [
-          'image/jpeg',
-          'image/png',
-          'image/heic',
-          'image/heif',
-          'image/webp',
-          'image/gif',
-        ];
-        if (!validImageTypes.includes(estudiante.profileImage.type)) {
-          throw new Error('La imagen de perfil debe ser un archivo JPEG, PNG, HEIC, WEBP o GIF.');
-        }
-        if (estudiante.profileImage.size > 5 * 1024 * 1024) {
-          throw new Error('La imagen de perfil no debe exceder los 5MB.');
-        }
-      } else if (!profileImageUrl) {
-        profileImageUrl = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg';
+     if (auth !== 'admin') {
+    Swal.fire({
+      title: '¡Error!',
+      text: 'No tienes permisos para actualizar estudiantes.',
+      icon: 'error',
+      confirmButtonText: 'Aceptar',
+    });
+    return { success: false, message: 'No tienes permisos para actualizar estudiantes.' };
+  }
+      try {
+    setLoading(true);
+    let profileImageUrl = estudiante.profileImage;
+    if (estudiante.profileImage instanceof File) {
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp', 'image/gif'];
+      if (!validImageTypes.includes(estudiante.profileImage.type)) {
+        throw new Error('La imagen de perfil debe ser un archivo JPEG, PNG, HEIC, WEBP o GIF.');
       }
+      if (estudiante.profileImage.size > 5 * 1024 * 1024) {
+        throw new Error('La imagen de perfil no debe exceder los 5MB.');
+      }
+      profileImageUrl = null;
+    } else if (!profileImageUrl) {
+      profileImageUrl = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg';
+    }
       const estudianteData = {
         ...estudiante,
         name: capitalizeWords(estudiante.name),
@@ -302,46 +326,73 @@ const StudentsProvider = ({ children }) => {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+
       if (response.status === 200 && response.data?.student) {
-        const updatedStudent = response.data.student;
-        const formattedStudent = {
-          ...updatedStudent,
-          name: capitalizeWords(updatedStudent.name),
-          lastName: capitalizeWords(updatedStudent.lastName),
-          guardianName: capitalizeWords(updatedStudent.guardianName),
-          birthDate: updatedStudent.birthDate ? new Date(updatedStudent.birthDate).toISOString().split('T')[0] : '',
-        };
-        setEstudiantes(prev =>
-          prev.map(est => (est._id === estudiante._id ? formattedStudent : est))
-        );
-        cache.current.set('estudiantes', cache.current.get('estudiantes').map(est =>
-          est._id === estudiante._id ? formattedStudent : est
-        ));
-        cache.current.set(estudiante._id, formattedStudent);
-        if (selectedStudent?._id === estudiante._id) {
-          setSelectedStudent(formattedStudent);
-        }
-      } else {
-        throw new Error('Respuesta inesperada del servidor al actualizar el estudiante.');
+      const updatedStudent = response.data.student;
+      const formattedStudent = {
+        ...updatedStudent,
+        name: capitalizeWords(updatedStudent.name),
+        lastName: capitalizeWords(updatedStudent.lastName),
+        guardianName: capitalizeWords(updatedStudent.guardianName),
+        birthDate: updatedStudent.birthDate ? new Date(updatedStudent.birthDate).toISOString().split('T')[0] : '',
+      };
+      setEstudiantes(prev =>
+        prev.map(est => (est._id === estudiante._id ? formattedStudent : est))
+      );
+      cache.current.set('estudiantes', cache.current.get('estudiantes').map(est =>
+        est._id === estudiante._id ? formattedStudent : est
+      ));
+      cache.current.set(estudiante._id, formattedStudent);
+      if (selectedStudent?._id === estudiante._id) {
+        setSelectedStudent(formattedStudent);
       }
-    } catch (error) {
-      console.error('Error al actualizar estudiante:', error);
-      let errorMessage = 'Ha ocurrido un error al actualizar el estudiante. Por favor, intenta de nuevo.';
-      const rawMessage = error.response?.data?.error || error.message;
-
-    if (rawMessage.includes('duplicate key error') && rawMessage.includes('cuil')) {
-        errorMessage = 'El CUIL ya está registrado. Por favor, usa un CUIL diferente.';
-      } else if (rawMessage.includes('Error al procesar imagen')) {
-        errorMessage = 'Hubo un problema al procesar la imagen de perfil. Asegúrate de que sea un archivo JPEG, PNG, HEIC, WEBP o GIF y no exceda los 5MB.';
-      } else {
-        errorMessage = rawMessage;
-      }
-
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
+      Swal.fire({
+        title: '¡Éxito!',
+        text: 'Estudiante actualizado correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Aceptar',
+      });
+      return { success: true, student: formattedStudent };
+    } else {
+      throw new Error('Respuesta inesperada del servidor al actualizar el estudiante.');
     }
-  }, [auth, selectedStudent]);
+    } catch (error) {
+    console.error('Error al actualizar estudiante:', error);
+    let errorMessage = 'Ha ocurrido un error al actualizar el estudiante.';
+    const rawMessage = error.response?.data?.error || error.message;
+
+    if (rawMessage.includes('El CUIL ya está registrado')) {
+      errorMessage = 'El CUIL ya está registrado en otro estudiante. Por favor, usa un CUIL diferente.';
+    } else if (rawMessage.includes('Faltan datos obligatorios')) {
+      errorMessage = rawMessage;
+    } else if (rawMessage.includes('CUIL debe contener entre 10 y 12 dígitos')) {
+      errorMessage = 'El CUIL debe contener entre 10 y 12 dígitos.';
+    } else if (rawMessage.includes('Formato de fecha de nacimiento inválido')) {
+      errorMessage = 'La fecha de nacimiento tiene un formato inválido. Usa el formato yyyy-MM-dd.';
+    } else if (rawMessage.includes('Formato de correo electrónico no válido')) {
+      errorMessage = 'El correo electrónico tiene un formato inválido.';
+    } else if (rawMessage.includes('El número de teléfono del tutor')) {
+      errorMessage = 'El número de teléfono del tutor debe tener entre 10 y 15 dígitos.';
+    } else if (rawMessage.includes('Error al procesar imagen')) {
+      errorMessage = 'Hubo un problema al procesar la imagen de perfil. Asegúrate de que sea un archivo JPEG, PNG, HEIC, WEBP o GIF y no exceda los 5MB.';
+    } else if (rawMessage.includes('Errores de validación')) {
+      errorMessage = rawMessage;
+    } else if (rawMessage.includes('Estudiante no encontrado')) {
+      errorMessage = 'El estudiante no fue encontrado.';
+    } else {
+      errorMessage = `Error interno: ${rawMessage}`;
+    }
+      Swal.fire({
+      title: '¡Error!',
+      text: errorMessage,
+      icon: 'error',
+      confirmButtonText: 'Aceptar',
+    });
+    return { success: false, message: errorMessage };
+  } finally {
+    setLoading(false);
+  }
+}, [auth, selectedStudent]);
 
   const importStudents = useCallback(async (studentList) => {
     if (auth !== 'admin') {

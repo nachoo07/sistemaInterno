@@ -312,8 +312,10 @@ const Student = () => {
     };
 
     try {
-      if (editStudent) {
-        await updateEstudiante(formattedData);
+       let result;
+    if (editStudent) {
+      result = await updateEstudiante(formattedData);
+      if (result.success) {
         Swal.fire({
           title: '¡Éxito!',
           text: 'El perfil del estudiante ha sido actualizado correctamente.',
@@ -321,23 +323,30 @@ const Student = () => {
           confirmButtonText: 'Aceptar',
         });
       } else {
-        await addEstudiante(formattedData);
+        throw new Error(result.message);
+      }
+    } else {
+      result = await addEstudiante(formattedData);
+      if (result.success) {
         Swal.fire({
           title: '¡Éxito!',
           text: 'El estudiante ha sido agregado correctamente.',
           icon: 'success',
           confirmButtonText: 'Aceptar',
         });
+      } else {
+        throw new Error(result.message);
       }
-      setShow(false);
+    }
+    setShow(false);
     } catch (error) {
-      console.error('Error en handleSubmit:', error);
-      Swal.fire({
-        title: '¡Error!',
-        text: error.message || 'Ocurrió un problema al guardar el estudiante. Por favor, intenta de nuevo.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
-      });
+    console.error('Error capturado en handleSubmit:', error);
+    Swal.fire({
+      title: '¡Error!',
+      text: error.message || 'Ocurrió un problema al guardar el estudiante. Por favor, intenta de nuevo.',
+      icon: 'error',
+      confirmButtonText: 'Aceptar',
+    });
     }
   };
 

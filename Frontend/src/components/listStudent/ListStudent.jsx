@@ -174,7 +174,7 @@ const ListStudent = () => {
   };
 
   // Aplicar estilos a los encabezados
-  const headers = ['Nombre Completo', 'DNI', 'Fecha de Nacimiento', ...(conceptFilter ? ['Concepto', 'Monto'] : [])];
+  const headers = ['Nombre Completo', 'CUIL', 'Fecha de Nacimiento', ...(conceptFilter ? ['Concepto', 'Monto'] : [])];
   headers.forEach((header, index) => {
     const cellRef = XLSX.utils.encode_cell({ r: 0, c: index });
     ws[cellRef].s = headerStyle;
@@ -227,7 +227,7 @@ const ListStudent = () => {
     ];
   });
 
-  const headers = ['#', 'Nombre Completo', 'DNI', 'Fecha de Nacimiento', ...(conceptFilter ? ['Concepto', 'Monto'] : [])];
+  const headers = ['#', 'Nombre Completo', 'CUIL', 'Fecha de Nacimiento', ...(conceptFilter ? ['Concepto', 'Monto'] : [])];
   autoTable(doc, {
     head: [headers],
     body: tableData,
@@ -400,7 +400,7 @@ const ListStudent = () => {
                   <tr>
                     <th>#</th>
                     <th>Nombre Completo</th>
-                    <th>DNI</th>
+                    <th>CUIL</th>
                     <th>Fecha de Nacimiento</th>
                     {conceptFilter && (
                       <>

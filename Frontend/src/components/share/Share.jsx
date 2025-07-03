@@ -311,7 +311,7 @@ const Share = () => {
                       <th>#</th>
                       <th>Nombre</th>
                       <th>Apellido</th>
-                      <th>Dni</th>
+                      <th>Cuil</th>
                       <th>Estado</th>
                       <th>Acciones</th>
                     </tr>
