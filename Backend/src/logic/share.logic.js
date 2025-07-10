@@ -80,6 +80,29 @@ const sendCuotaEmail = async (student, cuota) => {
                   <p style="color: #333333; font-size: 16px; line-height: 1.5; margin-top: 20px;">
                     Por favor, realice el pago a la brevedad para evitar incrementos.
                   </p>
+
+                    <h2 style="color: #ff1493; font-size: 20px; font-weight: bold; margin-bottom: 10px;">
+                Información para realizar la transferencia
+              </h2>
+
+              <p style="color: #333333; font-size: 16px; line-height: 1.5;">
+                En caso de que desee abonar mediante transferencia bancaria, le compartimos los datos necesarios:
+              </p>
+
+
+              <ul style="color: #333333; font-size: 16px; line-height: 1.8; padding-left: 20px;">
+                <li><strong>Alias:</strong>Pipe.agus.lf</li>
+                <li><strong>Titular:</strong> Mariano Lopez Figueroa</li>
+                <li><strong>Entidad:</strong> Banco Nacion</li>
+              </ul>
+
+                <p style="color: #333333; font-size: 16px; line-height: 1.5; margin-top: 20px;">
+                Una vez realizada la transferencia, por favor envíe el comprobante al siguiente correo electrónico: <strong>yoclaudiofutbolinfantil@gmail.com</strong>.
+              </p>
+
+                 <p style="color: #333333; font-size: 16px; line-height: 1.5;">
+                Dentro de las siguientes 72 horas hábiles, recibirá el comprobante de pago correspondiente.
+              </p>
                   <p style="color: #333333; font-size: 16px; line-height: 1.5; margin-top: 20px;">
                     Saludos cordiales,<br>
                     Equipo Yo Claudio
@@ -114,7 +137,7 @@ export const createPendingShares = async () => {
     const config = await Config.findOne({ key: 'cuotaBase' });
     const cuotaBase = config ? config.value : 30000;
     const currentDate = DateTime.now().setZone('America/Argentina/Tucuman');
-  logger.info(`Fecha actual en UTC-3: ${currentDate.toString()}`);
+    logger.info(`Fecha actual en UTC-3: ${currentDate.toString()}`);
     const monthStart = currentDate.startOf('month').toJSDate();
 
     const students = await Student.find({ state: 'Activo' }).lean();

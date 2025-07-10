@@ -2,7 +2,7 @@
 import Student from '../../models/student/student.model.js';
 import Share from '../../models/share/share.model.js';
 import Attendance from '../../models/attendance/attendance.model.js';
-import {Payment} from '../../models/payment/payment.model.js';
+import { Payment } from '../../models/payment/payment.model.js';
 import mongoose from 'mongoose';
 import multer from 'multer';
 import cloudinary from 'cloudinary';
@@ -163,7 +163,7 @@ export const createStudent = async (req, res) => {
       category, mail, state, hasSiblingDiscount, profileImage,
     } = sanitize(req.body);
 
-   // Validar campos obligatorios
+    // Validar campos obligatorios
     const missingFields = [];
     if (!name) missingFields.push('Nombre');
     if (!lastName) missingFields.push('Apellido');
@@ -319,7 +319,7 @@ export const updateStudent = async (req, res) => {
       category, mail, state, hasSiblingDiscount, profileImage,
     } = sanitize(req.body);
 
-       // Validar campos obligatorios
+    // Validar campos obligatorios
     const missingFields = [];
     if (!name) missingFields.push('Nombre');
     if (!lastName) missingFields.push('Apellido');
@@ -351,7 +351,8 @@ export const updateStudent = async (req, res) => {
       return res.status(400).json({ error: 'El CUIL ya está registrado en otro estudiante' });
     }
 
-       const updates = {
+    // Inicializar el objeto updates al inicio
+    const updates = {
       name,
       lastName,
       cuil,
@@ -361,19 +362,21 @@ export const updateStudent = async (req, res) => {
       category,
       mail,
       state,
-      profileImage: finalProfileImage,
       hasSiblingDiscount,
+      profileImage: existingStudent.profileImage || 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg',
     };
 
+    // Validar y actualizar fecha de nacimiento
     if (birthDate && birthDate !== format(existingStudent.birthDate, 'yyyy-MM-dd')) {
       const normalizedDate = normalizeDate(birthDate);
       if (!normalizedDate) {
+        logger.warn(`Fecha de nacimiento inválida: ${birthDate}`);
         return res.status(400).json({ error: 'Formato de fecha de nacimiento inválido' });
       }
       updates.birthDate = createUTCDate(normalizedDate);
     }
 
-        // Validar correo si está presente
+    // Validar correo si está presente
     if (mail && !/\S+@\S+\.\S+/.test(mail)) {
       logger.warn(`Correo inválido: ${mail}`);
       return res.status(400).json({ error: 'Formato de correo electrónico no válido' });
@@ -385,10 +388,10 @@ export const updateStudent = async (req, res) => {
       return res.status(400).json({ error: 'El número de teléfono del tutor debe tener entre 10 y 15 dígitos' });
     }
 
-
-    let finalProfileImage = existingStudent.profileImage || 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg';
+    // Manejo de la imagen
     if (req.file || (profileImage && profileImage !== existingStudent.profileImage)) {
       try {
+        // Eliminar la imagen anterior si no es la predeterminada
         if (existingStudent.profileImage && existingStudent.profileImage !== 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg') {
           const publicId = extractPublicId(existingStudent.profileImage);
           if (publicId) {
@@ -397,23 +400,25 @@ export const updateStudent = async (req, res) => {
           }
         }
 
+        // Subir nueva imagen desde archivo
         if (req.file) {
-          finalProfileImage = await uploadToCloudinary(
+          updates.profileImage = await uploadToCloudinary(
             { buffer: req.file.buffer, mimetype: req.file.mimetype },
             'students',
             `student_${cuil}`
           );
-          logger.info(`Nueva imagen subida desde archivo para ID ${id}: ${finalProfileImage}`);
+          logger.info(`Nueva imagen subida desde archivo para ID ${id}: ${updates.profileImage}`);
         } else if (profileImage) {
+          // Subir nueva imagen desde URL
           try {
             new URL(profileImage);
             const { buffer, mimetype } = await downloadImage(profileImage);
-            finalProfileImage = await uploadToCloudinary(
+            updates.profileImage = await uploadToCloudinary(
               { buffer, mimetype },
               'students',
               `student_${cuil}`
             );
-            logger.info(`Nueva imagen subida desde URL para ID ${id}: ${finalProfileImage}`);
+            logger.info(`Nueva imagen subida desde URL para ID ${id}: ${updates.profileImage}`);
           } catch (error) {
             logger.error(`Error al procesar imagen URL para CUIL ${cuil}: ${error.message}`);
             return res.status(400).json({ error: `Error al procesar imagen: ${error.message}` });
@@ -425,6 +430,7 @@ export const updateStudent = async (req, res) => {
       }
     }
 
+    // Actualizar el estudiante
     const student = await Student.findByIdAndUpdate(id, { $set: updates }, { new: true }).lean();
 
     logger.info({ studentId: id }, 'Estudiante actualizado con éxito');
@@ -503,12 +509,12 @@ export const importStudents = async (req, res) => {
       const row = rowNumber || 'Desconocida';
 
       // Validaciones iniciales
-      if (!name || !lastName || !cuil || !birthDate || !address || !category ) {
+      if (!name || !lastName || !cuil || !birthDate || !address || !category) {
         errors.push(`Fila ${row}, CUIL ${cuil || 'desconocido'}: Faltan campos obligatorios`);
         return;
       }
 
-     if (!/^\d{9,11}$/.test(cuil)) {
+      if (!/^\d{9,11}$/.test(cuil)) {
         errors.push(`Fila ${row}, CUIL ${cuil}: CUIL debe contener 9 a 11 dígitos`);
         return;
       }
