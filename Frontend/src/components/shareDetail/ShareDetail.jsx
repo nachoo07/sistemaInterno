@@ -14,7 +14,7 @@ import AppNavbar from "../navbar/AppNavbar";
 import AlertCustom from "../alert/AlertCustom";
 import Swal from 'sweetalert2';
 import "./shareDetail.css";
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 
 const ShareDetail = () => {
   const { selectedStudent, obtenerEstudiantePorId, loading: loadingStudent } = useContext(StudentsContext);

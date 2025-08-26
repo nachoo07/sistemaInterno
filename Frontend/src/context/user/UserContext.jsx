@@ -1,29 +1,39 @@
+// UsersProvider.js
 import { useEffect, useState, createContext, useContext } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { LoginContext } from "../login/LoginContext";
+import { useNavigate } from "react-router-dom"; // Importar useNavigate
 
 export const UsersContext = createContext();
 
 const UsersProvider = ({ children }) => {
   const { auth, waitForAuth } = useContext(LoginContext);
   const [usuarios, setUsuarios] = useState([]);
+  const navigate = useNavigate(); // Agregar navigate
 
   const obtenerUsuarios = async () => {
-    if (auth === "admin") {
-      try {
-        const response = await axios.get("/api/users", {
-          withCredentials: true,
-        });
-        if (JSON.stringify(usuarios) !== JSON.stringify(response.data)) {
-          setUsuarios(response.data);
-        }
-      } catch (error) {
-        console.error("Error al obtener usuarios:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
+    if (auth !== "admin") {
+      // No intentar obtener usuarios si no es admin o no está autenticado
+      return;
+    }
+    try {
+      const response = await axios.get("/api/users", {
+        withCredentials: true,
+      });
+      if (JSON.stringify(usuarios) !== JSON.stringify(response.data)) {
+        setUsuarios(response.data);
+      }
+    } catch (error) {
+      console.error("Error al obtener usuarios:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      if (error.response?.status === 401) {
+        // Token expirado o no autenticado, redirigir al login
+        navigate("/login");
+      } else {
         Swal.fire("¡Error!", "No se pudieron cargar los usuarios", "error");
       }
     }
@@ -56,12 +66,14 @@ const UsersProvider = ({ children }) => {
           status: error.response?.status,
         });
         let errorMessage = "No se pudo crear el usuario admin.";
-        if (error.response?.status === 400) {
-          errorMessage = error.response.data.message || "Datos inválidos. Verifica los campos.";
+        if (error.response?.status === 400 && error.response?.data?.errors) {
+          const validationErrors = error.response.data.errors.map((err) => err.msg).join("\n");
+          errorMessage = validationErrors || "Datos inválidos. Verifica los campos.";
         } else if (error.response?.status === 409) {
           errorMessage = "El correo ya está registrado.";
         } else if (error.response?.status === 401) {
           errorMessage = "Sesión expirada. Inicia sesión nuevamente.";
+          navigate("/login"); // Redirigir al login
         } else if (error.message) {
           errorMessage = error.message;
         }
@@ -101,14 +113,16 @@ const UsersProvider = ({ children }) => {
           status: error.response?.status,
         });
         let errorMessage = "No se pudo actualizar el usuario.";
-        if (error.response?.status === 400) {
-          errorMessage = error.response.data.message || "Datos inválidos. Verifica los campos.";
+        if (error.response?.status === 400 && error.response?.data?.errors) {
+          const validationErrors = error.response.data.errors.map((err) => err.msg).join("\n");
+          errorMessage = validationErrors || "Datos inválidos. Verifica los campos.";
         } else if (error.response?.status === 404) {
           errorMessage = "Usuario no encontrado.";
         } else if (error.response?.status === 409) {
           errorMessage = "El correo ya está registrado.";
         } else if (error.response?.status === 401) {
           errorMessage = "Sesión expirada. Inicia sesión nuevamente.";
+          navigate("/login"); // Redirigir al login
         } else if (error.message) {
           errorMessage = error.message;
         }
@@ -146,7 +160,11 @@ const UsersProvider = ({ children }) => {
           response: error.response?.data,
           status: error.response?.status,
         });
-        Swal.fire("¡Error!", "No se pudo eliminar el usuario", "error");
+        if (error.response?.status === 401) {
+          navigate("/login"); // Redirigir al login
+        } else {
+          Swal.fire("¡Error!", "No se pudo eliminar el usuario", "error");
+        }
       }
     }
   };
@@ -154,10 +172,12 @@ const UsersProvider = ({ children }) => {
   useEffect(() => {
     const fetchData = async () => {
       await waitForAuth();
-      await obtenerUsuarios();
+      if (auth === "admin") {
+        await obtenerUsuarios();
+      }
     };
     fetchData();
-  }, [auth, waitForAuth]);
+  }, [auth, waitForAuth, navigate]);
 
   return (
     <UsersContext.Provider

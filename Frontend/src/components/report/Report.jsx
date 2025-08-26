@@ -15,7 +15,7 @@ import { LoginContext } from '../../context/login/LoginContext';
 import { PaymentContext } from '../../context/payment/PaymentContext';
 import './report.css';
 import AppNavbar from '../navbar/AppNavbar';
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 
 dayjs.locale('es');
 

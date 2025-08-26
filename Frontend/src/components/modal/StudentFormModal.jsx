@@ -203,6 +203,22 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               <option value="Inactivo">Inactivo</option>
             </Form.Control>
           </Form.Group>
+          <Form.Group controlId="formLeague" className="studentFormModal-form-group">
+            <Form.Label>Liga</Form.Label>
+            <Form.Control
+              as="select"
+              name="league"
+              value={formData.league || ''}
+              onChange={handleChange}
+              className="form-control-custom"
+            >
+              <option value="">Seleccionar</option>
+              <option value="Si">Sí</option>
+              <option value="No">No</option>
+            </Form.Control>
+         
+           
+          </Form.Group>
           <Form.Group controlId="formHasSiblingDiscount" className="studentFormModal-checkbox-group">
             <Form.Check
               type="checkbox"

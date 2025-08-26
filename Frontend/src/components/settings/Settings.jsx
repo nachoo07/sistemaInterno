@@ -11,7 +11,7 @@ import {
 import Swal from 'sweetalert2';
 import './settings.css';
 import AppNavbar from '../navbar/AppNavbar';
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 
 const Settings = () => {
   const { obtenerCuotas } = useContext(SharesContext);

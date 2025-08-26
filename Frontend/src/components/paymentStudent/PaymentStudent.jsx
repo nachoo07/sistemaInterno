@@ -29,7 +29,7 @@ import Swal from "sweetalert2";
 import SendPaymentVoucherEmail from "../voucherPayment/SendPaymentVoucerEmail";
 import "./paymentStudent.css";
 import AppNavbar from "../navbar/AppNavbar";
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 
 const PaymentStudent = () => {
   const { estudiantes } = useContext(StudentsContext);

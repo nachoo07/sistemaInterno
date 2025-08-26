@@ -160,7 +160,7 @@ export const createStudent = async (req, res) => {
   try {
     const {
       name, lastName, cuil, birthDate, address, guardianName, guardianPhone,
-      category, mail, state, hasSiblingDiscount, profileImage,
+      category, mail, state, hasSiblingDiscount, profileImage, league
     } = sanitize(req.body);
 
     // Validar campos obligatorios
@@ -176,13 +176,13 @@ export const createStudent = async (req, res) => {
       return res.status(400).json({ error: `Faltan datos obligatorios: ${missingFields.join(', ')}` });
     }
 
-    // Validar formato de DNI
-    if (!/^\d{10,12}$/.test(cuil)) {
+    // Validar formato de cul
+    if (!/^\d{10,11}$/.test(cuil)) {
       logger.warn(`CUIL inválido: ${cuil}`);
-      return res.status(400).json({ error: 'El Cuil debe contener entre 10 y 12 dígitos' });
+      return res.status(400).json({ error: 'El Cuil debe contener entre 10 y 11 dígitos' });
     }
 
-    // Validar si el DNI ya existe
+    // Validar si el cuil ya existe
     const existingStudent = await Student.findOne({ cuil });
     if (existingStudent) {
       logger.warn(`Intento de crear estudiante con CUIL duplicado: ${cuil}`);
@@ -251,6 +251,7 @@ export const createStudent = async (req, res) => {
       state: state || 'Activo',
       profileImage: finalProfileImage,
       hasSiblingDiscount,
+      league
     });
 
     const savedStudent = await newStudent.save();
@@ -266,7 +267,7 @@ export const createStudent = async (req, res) => {
     }
     if (error.code === 11000 && error.keyPattern.cuil) {
       logger.warn(`Intento de crear estudiante con CUIL duplicado: ${req.body.cuil}`);
-      return res.status(400).json({ error: 'El DNI ya está registrado' });
+      return res.status(400).json({ error: 'El CUIL ya está registrado' });
     }
     // Otros errores inesperados
     logger.error({ error: error.message, stack: error.stack }, 'Error al crear estudiante');
@@ -316,7 +317,7 @@ export const updateStudent = async (req, res) => {
     const { id } = sanitize(req.params);
     const {
       name, lastName, cuil, birthDate, address, guardianName, guardianPhone,
-      category, mail, state, hasSiblingDiscount, profileImage,
+      category, mail, state, hasSiblingDiscount, profileImage, league
     } = sanitize(req.body);
 
     // Validar campos obligatorios
@@ -331,10 +332,10 @@ export const updateStudent = async (req, res) => {
       return res.status(400).json({ error: `Faltan datos obligatorios: ${missingFields.join(', ')}` });
     }
 
-    // Validar formato de DNI
-    if (!/^\d{10,12}$/.test(cuil)) {
+    // Validar formato de CUIL
+    if (!/^\d{10,11}$/.test(cuil)) {
       logger.warn(`CUIL inválido: ${cuil}`);
-      return res.status(400).json({ error: 'El CUIL debe contener entre 10 y 12 dígitos' });
+      return res.status(400).json({ error: 'El CUIL debe contener entre 10 y 11 dígitos' });
     }
 
     // Verificar si el estudiante existe
@@ -364,6 +365,7 @@ export const updateStudent = async (req, res) => {
       state,
       hasSiblingDiscount,
       profileImage: existingStudent.profileImage || 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg',
+      league
     };
 
     // Validar y actualizar fecha de nacimiento

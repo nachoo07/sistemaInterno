@@ -10,7 +10,7 @@ import { SharesContext } from "../../context/share/ShareContext";
 import { LoginContext } from "../../context/login/LoginContext";
 import "./share.css";
 import AppNavbar from "../navbar/AppNavbar";
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 
 const Share = () => {
   const { estudiantes, obtenerEstudiantes, loading: loadingStudents } = useContext(StudentsContext);

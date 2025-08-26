@@ -5,7 +5,7 @@ import { StudentsContext } from "../../context/student/StudentContext";
 import { LoginContext } from "../../context/login/LoginContext";
 import "./detailStudent.css";
 import AppNavbar from '../navbar/AppNavbar';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logoyoclaudio.png';
 
 const StudentDetail = () => {
   const { estudiantes } = useContext(StudentsContext);
@@ -261,6 +261,15 @@ const StudentDetail = () => {
                     <div className="form-group">
                       <label className="label-text">Categoría</label>
                       <input type="text" value={student.category || ''} readOnly className="form-control-custom" />
+                    </div>
+                     <div className="form-group">
+                      <label className="label-text">Liga</label>
+                      <input
+                        type="text"
+                        value={student.league === 'Si' ? 'Si' : student.league === 'No' ? 'No' : 'No especificado'}
+                        readOnly
+                        className="form-control-custom"
+                      />
                     </div>
                     <div className="form-group">
                       <label className="label-text">Descuento por Hermanos</label>

@@ -15,7 +15,7 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import 'react-datepicker/dist/react-datepicker.css';
 import './attendance.css';
 import AppNavbar from '../navbar/AppNavbar';
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 import * as XLSX from 'xlsx-js-style';
 import  jsPDF  from 'jspdf';
 import autoTable from 'jspdf-autotable';

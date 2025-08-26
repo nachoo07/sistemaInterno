@@ -14,7 +14,7 @@ import { Table, Button } from 'react-bootstrap';
 import MotionFormModal from '../modalMotion/MotionFormModal';
 import './motion.css';
 import AppNavbar from '../navbar/AppNavbar';
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 
 dayjs.locale('es');
 dayjs.extend(utc);

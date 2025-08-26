@@ -8,7 +8,7 @@ import StudentFormModal from "../modal/StudentFormModal";
 import Swal from "sweetalert2";
 import "./student.css";
 import AppNavbar from '../navbar/AppNavbar';
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 import { Spinner } from "react-bootstrap";
 import { format, parse, parseISO, isValid } from 'date-fns';
 import * as XLSX from 'xlsx';
@@ -24,7 +24,7 @@ const Student = () => {
   const [editStudent, setEditStudent] = useState(null);
   const [filterState, setFilterState] = useState("todos");
   const [formData, setFormData] = useState({
-    name: "",lastName: "",cuil: "",birthDate: "",address: "",mail: "",category: "",guardianName: "",guardianPhone: "",profileImage: null,state: "Activo",hasSiblingDiscount: false,});
+    name: "",lastName: "",cuil: "",birthDate: "",address: "",mail: "",category: "",guardianName: "",guardianPhone: "",profileImage: null,state: "Activo",hasSiblingDiscount: false, league: '',});
   const [currentPage, setCurrentPage] = useState(1);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -255,6 +255,7 @@ const Student = () => {
         profileImage: null,
         state: 'Activo',
         hasSiblingDiscount: undefined,
+        league: '',
       });
     }
     setShow(true);

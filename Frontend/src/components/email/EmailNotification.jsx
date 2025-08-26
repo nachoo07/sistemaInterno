@@ -13,7 +13,7 @@ import {
 import Swal from "sweetalert2";
 import "./emailNotification.css";
 import AppNavbar from "../navbar/AppNavbar";
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 
 const EmailNotification = () => {
   const { estudiantes, obtenerEstudiantes } = useContext(StudentsContext);

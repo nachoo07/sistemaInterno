@@ -7,7 +7,7 @@ import {
 import { LoginContext } from '../../context/login/LoginContext';
 import "./homeUser.css"
 import AppNavbar from '../navbar/AppNavbar';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logoyoclaudio.png';
 const HomeUser = () => {
 
   const navigate = useNavigate();

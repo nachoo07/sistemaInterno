@@ -1,3 +1,4 @@
+// Users.js
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -10,7 +11,7 @@ import Swal from 'sweetalert2';
 import './user.css';
 import AppNavbar from '../navbar/AppNavbar';
 import { LoginContext } from '../../context/login/LoginContext';
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 
 const Users = () => {
   const { usuarios, obtenerUsuarios, addUsuarioAdmin, updateUsuarioAdmin, deleteUsuarioAdmin } = useContext(UsersContext);
@@ -28,9 +29,16 @@ const Users = () => {
     role: 'user',
     state: 'Activo'
   });
+  const [formErrors, setFormErrors] = useState({}); // Nuevo estado para errores
   const [currentPage, setCurrentPage] = useState(1);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const usersPerPage = 10;
+
+  useEffect(() => {
+    if (auth !== "admin") {
+      navigate("/login");
+    }
+  }, [auth, navigate]);
 
   const menuItems = [
     { name: 'Inicio', route: '/', icon: <FaHome />, category: 'principal' },
@@ -77,11 +85,16 @@ const Users = () => {
     resetForm();
   };
 
-  const handleShow = () => setShow(true);
+  const handleShow = () => {
+    setFormErrors({}); // Limpiar errores al abrir el formulario
+    setShow(true);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    // Limpiar error del campo al cambiar su valor
+    setFormErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -123,6 +136,16 @@ const Users = () => {
         response: error.response?.data,
         status: error.response?.status,
       });
+      if (error.response?.status === 400 && error.response?.data?.errors) {
+        // Mapear errores a los campos correspondientes
+        const errors = error.response.data.errors.reduce((acc, err) => {
+          acc[err.path] = err.msg;
+          return acc;
+        }, {});
+        setFormErrors(errors);
+      } else {
+        Swal.fire('Error', error.response?.data?.message || 'Error al procesar la solicitud', 'error');
+      }
     }
   };
 
@@ -134,6 +157,7 @@ const Users = () => {
       role: 'user',
       state: 'Activo'
     });
+    setFormErrors({});
   };
 
   const handleShowAddUser = () => {
@@ -436,8 +460,9 @@ const Users = () => {
                         onChange={handleChange}
                         required
                         maxLength={50}
-                        className="form-control"
+                        className={`form-control ${formErrors.name ? 'is-invalid' : ''}`}
                       />
+                      {formErrors.name && <div className="invalid-feedback">{formErrors.name}</div>}
                     </div>
                     <div className="form-group">
                       <label>Mail</label>
@@ -448,8 +473,9 @@ const Users = () => {
                         onChange={handleChange}
                         required
                         pattern="\S+@\S+\.\S+"
-                        className="form-control"
+                        className={`form-control ${formErrors.mail ? 'is-invalid' : ''}`}
                       />
+                      {formErrors.mail && <div className="invalid-feedback">{formErrors.mail}</div>}
                     </div>
                     <div className="form-group">
                       <label>Contraseña</label>
@@ -462,8 +488,9 @@ const Users = () => {
                         minLength={formData._id ? 0 : 6}
                         maxLength={50}
                         disabled={!!formData._id}
-                        className="form-control"
+                        className={`form-control ${formErrors.password ? 'is-invalid' : ''}`}
                       />
+                      {formErrors.password && <div className="invalid-feedback">{formErrors.password}</div>}
                     </div>
                     <div className="form-group">
                       <label>Estado</label>

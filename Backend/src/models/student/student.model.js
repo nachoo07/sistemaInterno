@@ -40,7 +40,7 @@ const studentSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: (v) => !v || /^\d{10,15}$/.test(v),
-      message: 'Guardian phone number must have between 10 and 15 digits.',
+      message: 'El número de teléfono del tutor debe tener entre 10 y 15 dígitos.',
     },
   },
   category: {
@@ -55,7 +55,7 @@ const studentSchema = new mongoose.Schema({
     default: '',
     validate: {
       validator: (v) => !v || /\S+@\S+\.\S+/.test(v),
-      message: 'Invalid email format.',
+      message: 'El formato del correo electrónico es inválido.',
     },
   },
   state: {
@@ -71,6 +71,12 @@ const studentSchema = new mongoose.Schema({
   hasSiblingDiscount: {
     type: Boolean,
     default: false,
+  },
+  league: {
+    type: String,
+    enum: ['Si', 'No'], // Mantenemos el enum para valores válidos
+    required: false,    // No es obligatorio
+    default: null,      // Valor por defecto nulo
   },
 }, {
   timestamps: true,

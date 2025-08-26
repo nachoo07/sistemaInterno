@@ -7,7 +7,7 @@ import { SharesContext } from "../../context/share/ShareContext";
 import { LoginContext } from "../../context/login/LoginContext";
 import { StudentsContext } from "../../context/student/StudentContext";
 import AppNavbar from "../navbar/AppNavbar";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/logoyoclaudio.png";
 import * as XLSX from "xlsx-js-style";
 import "./economicMovements.css";
 

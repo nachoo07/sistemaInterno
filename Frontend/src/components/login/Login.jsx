@@ -4,7 +4,7 @@ import { Form, Button } from 'react-bootstrap';
 import { LoginContext } from '../../context/login/LoginContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './login.css';
-import logo from '../../assets/logo.png';
+import logo from "../../assets/logoyoclaudio.png";
 
 const Login = () => {
     const { login, auth } = useContext(LoginContext);
@@ -49,8 +49,7 @@ const Login = () => {
                 </div>
 
                 <Form onSubmit={handleSubmit} className="login-page-form">
-
-                    <Form.Group className="login-page-form-input" controlId="exampleForm.ControlInput1">
+                    <Form.Group className="login-page-form-input" controlId="emailInput">
                         <Form.Label className="login-page-form-label">Usuario</Form.Label>
                         <Form.Control
                             type="email"
@@ -59,23 +58,26 @@ const Login = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
-                   
-                    <Form.Label htmlFor="inputPassword5" className="login-page-form-label">Contraseña</Form.Label>
-                    <Form.Control
-                        type="password"
-                        id="inputPassword5"
-                        className="mb-3 login-page-form-input"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
+                    </Form.Group>
+
+                    <Form.Group className="login-page-form-input" controlId="passwordInput">
+                        <Form.Label className="login-page-form-label">Contraseña</Form.Label>
+                        <Form.Control
+                            type="password"
+                            className="mb-3"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </Form.Group>
+
                     {error && <p style={{ color: 'red' }}>{error}</p>}
+
                     <div className="login-page-button-container">
                         <Button variant="primary" type="submit" className="login-page-submit-button">
                             Iniciar sesión
                         </Button>
                     </div>
-                     </Form.Group>
                 </Form>
             </div>
         </div>
