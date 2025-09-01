@@ -6,16 +6,21 @@ import { DateTime } from 'luxon';
 
 const logger = pino();
 
-export const calculateShareAmount = (baseAmount, currentDay) => {
-  if (currentDay > 10) return { amount: baseAmount * 1.1, state: 'Vencido' };
+export const calculateShareAmount = (baseAmount, currentDay, currentState) => {
+  if (currentState === 'Vencido' || currentState === 'Pagado') {
+    return { amount: baseAmount, state: currentState }; // Mantener estado si ya es Vencido o Pagado
+  }
+  if (currentDay > 10) {
+    return { amount: baseAmount * 1.1, state: 'Vencido' };
+  }
   return { amount: baseAmount, state: 'Pendiente' };
 };
 
 export const updateShares = async () => {
   const currentDate = DateTime.now().setZone('America/Argentina/Tucuman');
   logger.info(`Fecha actual en UTC-3: ${currentDate.toString()}`);
-  const currentDay = currentDate.day; // Usa .day para obtener el día del mes
-  logger.info(`Ejecutando actualización de cuotas con fecha: ${currentDate.toISODate()}`); // Usa toISODate() para el formato YYYY-MM-DD
+  const currentDay = currentDate.day;
+  logger.info(`Ejecutando actualización de cuotas con fecha: ${currentDate.toISODate()}`);
 
   try {
     const config = await Config.findOne({ key: 'cuotaBase' });
@@ -29,7 +34,7 @@ export const updateShares = async () => {
     const bulkOps = shares.map(share => {
       const student = students.find(s => s._id.equals(share.student));
       const baseAmount = student && student.hasSiblingDiscount ? cuotaBase * 0.9 : cuotaBase;
-      const { amount, state } = calculateShareAmount(baseAmount, currentDay);
+      const { amount, state } = calculateShareAmount(baseAmount, currentDay, share.state);
 
       return {
         updateOne: {

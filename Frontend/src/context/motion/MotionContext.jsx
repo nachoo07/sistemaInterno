@@ -8,7 +8,7 @@ export const MotionContext = createContext();
 export const MotionProvider = ({ children }) => {
   const [motions, setMotions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { auth, waitForAuth } = useContext(LoginContext); // Añadimos waitForAuth
+  const { auth, waitForAuth } = useContext(LoginContext);
 
   const fetchMotions = useCallback(async () => {
     if (auth !== 'admin') return [];
@@ -20,7 +20,11 @@ export const MotionProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error('Error fetching motions:', error);
-      Swal.fire('¡Error!', 'No se pudieron obtener los movimientos.', 'error');
+      if (error.response?.status === 401) {
+        // Token expirado, no mostrar alerta en login
+      } else {
+        Swal.fire('¡Error!', 'No se pudieron obtener los movimientos.', 'error');
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -96,7 +100,9 @@ export const MotionProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error('Error obteniendo movimientos por fecha:', error);
-      Swal.fire('¡Error!', 'No se pudieron obtener los movimientos por fecha.', 'error');
+      if (error.response?.status !== 401) {
+        Swal.fire('¡Error!', 'No se pudieron obtener los movimientos por fecha.', 'error');
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -115,7 +121,9 @@ export const MotionProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error('Error obteniendo movimientos por rango de fechas:', error);
-      Swal.fire('¡Error!', 'No se pudieron obtener los movimientos por rango de fechas.', 'error');
+      if (error.response?.status !== 401) {
+        Swal.fire('¡Error!', 'No se pudieron obtener los movimientos por rango de fechas.', 'error');
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -125,7 +133,7 @@ export const MotionProvider = ({ children }) => {
   // Carga inicial de movimientos
   useEffect(() => {
     const fetchData = async () => {
-      await waitForAuth(); // Espera a que la autenticación esté lista
+      await waitForAuth();
       if (auth === 'admin') {
         await fetchMotions();
       } else {
@@ -133,7 +141,7 @@ export const MotionProvider = ({ children }) => {
       }
     };
     fetchData();
-  }, [auth, fetchMotions, waitForAuth]); // Añadimos waitForAuth como dependencia
+  }, [auth, fetchMotions, waitForAuth]);
 
   return (
     <MotionContext.Provider

@@ -86,16 +86,16 @@ const Share = () => {
       const matchesSearch = fullName.includes(searchNormalized) || cuilSearch;
 
       const studentCuotas = cuotas.filter((cuota) => cuota.student?._id === student._id);
-      const lastCuota = studentCuotas.length > 0
-        ? studentCuotas.reduce((latest, current) =>
-            new Date(current.date) > new Date(latest.date) ? current : latest,
-            studentCuotas[0]
-          )
-        : null;
-      const matchesStatus =
+      const hasCuotas = studentCuotas.length > 0;
+
+      // Verificar si el alumno tiene al menos una cuota con el estado filtrado
+      const matchesStatus = 
         statusFilter === "todos" ||
-        (lastCuota && lastCuota.state.toLowerCase() === statusFilter.toLowerCase()) ||
-        (!lastCuota && statusFilter === "sin cuotas");
+        (!hasCuotas && statusFilter === "sin cuotas") ||
+        (statusFilter === "pagado" && studentCuotas.some(cuota => cuota.state.toLowerCase() === "pagado")) ||
+        (statusFilter === "pendiente" && studentCuotas.some(cuota => cuota.state.toLowerCase() === "pendiente")) ||
+        (statusFilter === "vencido" && studentCuotas.some(cuota => cuota.state.toLowerCase() === "vencido"));
+
       return matchesSearch && matchesStatus;
     });
   }, [estudiantes, cuotas, searchTerm, statusFilter]);
