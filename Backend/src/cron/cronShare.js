@@ -19,7 +19,7 @@ cron.schedule('30 8 1 * *', async () => {
 });
 
 // Cron job diario para actualizar montos y estados a las 00:00 UTC-3
-cron.schedule('*/30 * * * *', async () => {
+cron.schedule('0 1 * * *', async () => {
   logger.info('Ejecutando cron job para actualizar montos y estados de cuotas...');
   try {
     await updateShares();
