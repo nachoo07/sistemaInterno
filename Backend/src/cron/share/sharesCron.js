@@ -1,17 +1,14 @@
-import Share from '../../models/share/share.model.js';
-import Student from '../../models/student/student.model.js';
-import Config from '../../models/base/config.model.js';
+import Share from '../../models/share.model.js';
+import Student from '../../models/student.model.js';
+import Config from '../../models/config.model.js';
 import pino from 'pino';
 import { DateTime } from 'luxon';
 
 const logger = pino();
 
 export const calculateShareAmount = (baseAmount, currentDay, currentState, currentAmount) => {
-  if (currentState === 'Pagado') {
-    return { amount: currentAmount, state: currentState }; // Mantener monto y estado si está Pagado
-  }
-  if (currentState === 'Vencido') {
-    return { amount: Math.round(baseAmount * 1.1), state: currentState }; // Recalcular con recargo para Vencido
+  if (currentState === 'Vencido' || currentState === 'Pagado') {
+    return { amount: currentAmount, state: currentState }; // Mantener el monto actual y el estado
   }
   if (currentDay > 10) {
     return { amount: baseAmount * 1.1, state: 'Vencido' };
