@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt, FaCalendarCheck, FaList,
+  FaUsers, FaMoneyBill, FaExchangeAlt, FaCalendarCheck, FaList,
   FaUserCog, FaCog, FaEnvelope, FaBars, FaTimes, FaSearch, FaUserCircle, FaChevronDown, FaEllipsisH, FaClipboardList 
 } from 'react-icons/fa';
 import { LoginContext } from '../../context/login/LoginContext';
@@ -56,7 +56,6 @@ const Home = () => {
   const menuItems = [
     { name: 'Alumnos', route: '/student', icon: <FaUsers />, category: 'principal' },
     { name: 'Cuotas', route: '/share', icon: <FaMoneyBill />, category: 'finanzas' },
-    { name: 'Reportes', route: '/report', icon: <FaChartBar />, category: 'informes' },
     { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt />, category: 'finanzas' },
     { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal' },
     { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },
@@ -199,8 +198,8 @@ const Home = () => {
       <div className="main-column">
         <section className="dashboard-welcome">
           <div className="welcome-text">
-            <h1>Bienvenido al Sistema</h1>
-            <p>Panel de control | <span className="current-date">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
+            <h1 className="titulo-principal">Bienvenido al Sistema</h1>
+            <p className="panel-de-control">Panel de control | <span className="current-date">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
           </div>
         </section>
         <section className="module-categories">

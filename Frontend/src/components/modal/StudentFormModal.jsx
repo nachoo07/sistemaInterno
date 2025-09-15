@@ -52,7 +52,6 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
       show={show}
       onHide={handleClose}
       dialogClassName="studentFormModal-container"
-      size="lg"
       backdrop="static"
       keyboard={false}
     >
@@ -62,17 +61,7 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="studentFormModal-body">
-        {showAlert && (
-          <Alert
-            variant="warning"
-            onClose={() => setShowAlert(false)}
-            dismissible
-            className="custom-alert"
-          >
-            <Alert.Heading>¡Atención!</Alert.Heading>
-            <p>{alertMessage}</p>
-          </Alert>
-        )}
+   
         <Form onSubmit={onSubmit} className="studentFormModal-form-grid" encType="multipart/form-data">
           <Form.Group controlId="formNombre" className="studentFormModal-form-group">
             <Form.Label>Nombre</Form.Label>
@@ -225,10 +214,12 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               name="hasSiblingDiscount"
               checked={formData.hasSiblingDiscount || false}
               onChange={(e) => handleChange({ target: { name: e.target.name, value: e.target.checked } })}
-              label="Aplicar 10% de descuento por hermanos"
+              label="10% de descuento por hermanos"
               className="studentFormModal-form-check-custom"
             />
           </Form.Group>
+
+          
           <Form.Group controlId="formProfileImage" className="studentFormModal-full-width-img">
             <div className="studentFormModal-image-upload-container">
               <Form.Label>Imagen de Perfil</Form.Label>

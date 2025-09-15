@@ -4,7 +4,7 @@ import { AttendanceContext } from '../../context/attendance/AttendanceContext';
 import { StudentsContext } from '../../context/student/StudentContext';
 import { LoginContext } from '../../context/login/LoginContext';
 import {
-  FaBars, FaUsers, FaMoneyBill, FaChartBar, FaExchangeAlt, FaList,
+  FaBars, FaUsers, FaMoneyBill, FaExchangeAlt, FaList,
   FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome,
   FaUserCircle, FaChevronDown, FaTimes, FaClipboardList, FaSearch, FaTimes as FaTimesClear,
   FaFileExport
@@ -52,7 +52,6 @@ const Attendance = () => {
     ...(auth === 'admin' ? [
       { name: 'Alumnos', route: '/student', icon: <FaUsers />, category: 'principal' },
       { name: 'Cuotas', route: '/share', icon: <FaMoneyBill />, category: 'finanzas' },
-      { name: 'Reportes', route: '/report', icon: <FaChartBar />, category: 'informes' },
       { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt />, category: 'finanzas' },
       { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal' },
       { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },

@@ -1,17 +1,6 @@
 
-.search-section {
-  display: none;
-}
-
-.search-container {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-  margin: 10px auto;
-}
-
-.add-btn,
-.back-btn {
+.add-btn-detail-share,
+.back-btn-detail-share {
   background: #ea268f;
   color: white;
   border: none;
@@ -25,8 +14,8 @@
   margin-left: 10px;
 }
 
-.add-btn:hover,
-.back-btn:hover {
+.add-btn-detail-share:hover,
+.back-btn-detail-share:hover {
   background: #b71b6e;
 }
 
@@ -63,11 +52,6 @@
   background: #b71b6e;
 }
 
-.error-text {
-  color: var(--danger-color);
-  font-size: 12px;
-}
-
 .send-voucher {
   background: #ea268f !important;
   color: white;
@@ -79,10 +63,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 !important;
-}
-
-.btn-icon {
   margin: 0 !important;
 }
 
@@ -143,26 +123,23 @@
   background: var(--background-alt);
 }
 
-.filter-actions {
+.filter-actions-detail-share {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
 
-/* Estilo para el botón deshabilitado */
 .action-btn.send-voucher.disabled {
   opacity: 0.5;
   pointer-events: none;
   cursor: not-allowed;
 }
 
-/* Estilo para el spinner */
 .spinner {
   animation: spin 1s linear infinite;
 }
 
-/* Estilos para el mensaje de carga */
 .loading-message {
   display: flex;
   justify-content: center;
@@ -176,7 +153,6 @@
   padding: 20px;
 }
 
-/* Animación de rotación para el spinner */
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -187,9 +163,6 @@
 }
 
 @media (max-width: 576px) {
-  .dashboard-container .sidebar {
-    display: none;
-  }
 
   .content-container {
     margin-left: 0px !important;
@@ -198,23 +171,19 @@
 
   .cuotas-table th,
   .cuotas-table td {
-    font-size: 10px;
-    padding: 6px;
+    font-size: 11px;
+    padding: 4px;
   }
 
-  .back-btn {
+  .back-btn-detail-share,
+  .add-btn-detail-share {
     font-size: 12px !important;
     margin: 0 !important;
   }
 
   .send-voucher {
-  font-size: 20px !important;
-    padding: 4px !important;
-  }
-
-  .btn-icon {
+    padding: 3px !important;
     font-size: 16px !important;
-    margin: 0 !important;
   }
 
   .no-data-row {
@@ -222,19 +191,17 @@
     font-size: 0.9rem;
   }
 
-  .search-section {
-    display: none;
-  }
-
   .action-btn-share-detail{
-    font-size: 20px !important;
-    padding: 4px !important;
+    padding: 3px;
+    font-size: 16px !important;
   }
 
-}
-
-@media (min-width: 577px) {
-  .search-section {
-    display: block;
+  .checkbox-filters {
+    font-size: 12px;
+    width: 100% !important;
+    gap: 5px;
+    max-width: 160px;
+    margin-top: 0px;
   }
+
 }

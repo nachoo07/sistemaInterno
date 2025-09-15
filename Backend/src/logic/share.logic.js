@@ -91,7 +91,7 @@ const sendCuotaEmail = async (student, cuota) => {
 
 
               <ul style="color: #333333; font-size: 16px; line-height: 1.8; padding-left: 20px;">
-                <li><strong>Alias:</strong>Pipe.agus.lf</li>
+                <li><strong>Alias:</strong>Yoclaudio.liga</li>
                 <li><strong>Titular:</strong> Mariano Lopez Figueroa</li>
                 <li><strong>Entidad:</strong> Banco Nacion</li>
               </ul>

@@ -1,9 +1,4 @@
-.app-container {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
+
 
 .desktop-nav-header {
   background-color: var(--card-bg);
@@ -340,14 +335,14 @@
   z-index: 1050;
 }
 
-.modal-content {
+/*.modal-content {
   background: var(--card-bg);
   border-radius: var(--radius-md);
   box-shadow: var(--card-shadow);
   max-width: 500px;
   width: 90%;
   overflow: hidden;
-}
+}*/
 
 .modal-header-user {
   display: flex;

@@ -215,9 +215,13 @@ export const getSharesByDateRange = async (req, res) => {
     }
     end.setDate(end.getDate() + 1);
 
+    logger.info('Obteniendo cuotas para rango:', { startDate, endDate, start: start.toISOString(), end: end.toISOString() }); // Log del rango recibido
+
     const shares = await Share.find({
       paymentdate: { $gte: start, $lt: end }
     }).populate({ path: 'student', select: 'name lastName' }).lean();
+
+    logger.info('Shares encontrados:', { length: shares.length, shares }); // Log de shares encontrados
 
     res.status(200).json(shares.length ? shares : { message: "No hay cuotas disponibles para este rango de fechas" });
   } catch (error) {

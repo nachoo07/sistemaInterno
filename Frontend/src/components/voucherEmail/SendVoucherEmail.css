@@ -89,16 +89,17 @@
 }
 
 .send-voucher {
-  background: #04a45c !important;
+   background: #ea268f !important;
   color: white;
   border: none;
-  padding: 6px;
-  border-radius: var(--radius-sm);
+  padding: 6px !important;
+  border-radius: var(--radius-sm) !important;
   font-size: 25px !important;
   transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0 !important;
 }
 
 .send-voucher.disabled {

@@ -1,7 +1,9 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import {FaSearch, FaBars, FaList, FaTimes, FaUsers, FaClipboardList, FaMoneyBill, FaChartBar, FaExchangeAlt, FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle,
-  FaChevronDown, FaPlus, FaEdit, FaTrash, FaTimes as FaTimesClear, FaFileExcel} from "react-icons/fa";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import {
+  FaSearch, FaBars, FaList, FaTimes, FaUsers, FaClipboardList, FaMoneyBill, FaExchangeAlt, FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle,
+  FaChevronDown, FaPlus, FaEdit, FaTrash, FaTimes as FaTimesClear, FaFileExcel
+} from "react-icons/fa";
 import { StudentsContext } from "../../context/student/StudentContext";
 import { LoginContext } from "../../context/login/LoginContext";
 import StudentFormModal from "../modal/StudentFormModal";
@@ -18,13 +20,16 @@ const Student = () => {
   const location = useLocation();
   const { estudiantes, obtenerEstudiantes, addEstudiante, updateEstudiante, deleteEstudiante, importStudents, } = useContext(StudentsContext);
   const { auth, logout, userData } = useContext(LoginContext);
+  const [student, setStudent] = useState(null);
+  const { id } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [show, setShow] = useState(false);
   const profileRef = useRef(null);
   const [editStudent, setEditStudent] = useState(null);
   const [filterState, setFilterState] = useState("todos");
   const [formData, setFormData] = useState({
-    name: "",lastName: "",cuil: "",birthDate: "",address: "",mail: "",category: "",guardianName: "",guardianPhone: "",profileImage: null,state: "Activo",hasSiblingDiscount: false, league: '',});
+    name: "", lastName: "", cuil: "", birthDate: "", address: "", mail: "", category: "", guardianName: "", guardianPhone: "", profileImage: null, state: "Activo", hasSiblingDiscount: false, league: '',
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -44,7 +49,6 @@ const Student = () => {
     { name: "Inicio", route: "/", icon: <FaHome />, category: "principal" },
     { name: "Alumnos", route: "/student", icon: <FaUsers />, category: "principal" },
     { name: "Cuotas", route: "/share", icon: <FaMoneyBill />, category: "finanzas" },
-    { name: "Reportes", route: "/report", icon: <FaChartBar />, category: "informes" },
     { name: "Movimientos", route: "/motion", icon: <FaExchangeAlt />, category: "finanzas", },
     { name: "Asistencia", route: "/attendance", icon: <FaCalendarCheck />, category: "principal", },
     { name: "Usuarios", route: "/user", icon: <FaUserCog />, category: "configuración" },
@@ -187,6 +191,10 @@ const Student = () => {
     }
   };
 
+  const handleViewPayments = () => {
+    navigate(`/paymentstudent/${estudiante._id}`);
+  };
+
   const filteredStudents = estudiantes.filter((estudiante) => {
     const searchNormalized = searchTerm
       .toLowerCase()
@@ -220,7 +228,7 @@ const Student = () => {
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage) || 1;
   const indexOfLastStudent = currentPage * studentsPerPage;
   const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-  const currentStudents = filteredStudents.slice(indexOfFirstStudent,indexOfLastStudent);
+  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   const handleSearchChange = (e) => {
@@ -286,7 +294,7 @@ const Student = () => {
 
     // Validar formato de imagen en el frontend
     if (formData.profileImage instanceof File) {
-      const validImageTypes = ['image/jpeg','image/png','image/heic','image/heif','image/webp','image/gif',];
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp', 'image/gif',];
       if (!validImageTypes.includes(formData.profileImage.type)) {
         Swal.fire({
           title: '¡Error!',
@@ -313,41 +321,41 @@ const Student = () => {
     };
 
     try {
-       let result;
-    if (editStudent) {
-      result = await updateEstudiante(formattedData);
-      if (result.success) {
-        Swal.fire({
-          title: '¡Éxito!',
-          text: 'El perfil del estudiante ha sido actualizado correctamente.',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-        });
+      let result;
+      if (editStudent) {
+        result = await updateEstudiante(formattedData);
+        if (result.success) {
+          Swal.fire({
+            title: '¡Éxito!',
+            text: 'El perfil del estudiante ha sido actualizado correctamente.',
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+          });
+        } else {
+          throw new Error(result.message);
+        }
       } else {
-        throw new Error(result.message);
+        result = await addEstudiante(formattedData);
+        if (result.success) {
+          Swal.fire({
+            title: '¡Éxito!',
+            text: 'El estudiante ha sido agregado correctamente.',
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+          });
+        } else {
+          throw new Error(result.message);
+        }
       }
-    } else {
-      result = await addEstudiante(formattedData);
-      if (result.success) {
-        Swal.fire({
-          title: '¡Éxito!',
-          text: 'El estudiante ha sido agregado correctamente.',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-        });
-      } else {
-        throw new Error(result.message);
-      }
-    }
-    setShow(false);
+      setShow(false);
     } catch (error) {
-    console.error('Error capturado en handleSubmit:', error);
-    Swal.fire({
-      title: '¡Error!',
-      text: error.message || 'Ocurrió un problema al guardar el estudiante. Por favor, intenta de nuevo.',
-      icon: 'error',
-      confirmButtonText: 'Aceptar',
-    });
+      console.error('Error capturado en handleSubmit:', error);
+      Swal.fire({
+        title: '¡Error!',
+        text: error.message || 'Ocurrió un problema al guardar el estudiante. Por favor, intenta de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+      });
     }
   };
 
@@ -392,7 +400,7 @@ const Student = () => {
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
           <div className="header-logo" onClick={() => navigate("/")}>
-            <img src={logo} alt="Valladares Fútbol" className="logo-image"/>
+            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
           </div>
           <div className="search-box">
             <FaSearch className="search-symbol" />
@@ -484,7 +492,7 @@ const Student = () => {
         <main className="main-content">
           <section className="dashboard-welcome">
             <div className="welcome-text">
-              <h1>Panel de Alumnos</h1>
+              <h1 className="titulo-panel-alumnos">Panel de Alumnos</h1>
             </div>
           </section>
           {windowWidth <= 576 && (
@@ -510,7 +518,7 @@ const Student = () => {
             </div>
           )}
           <section className="students-filter">
-            <div className="filter-actions">
+            <div className="filter-actions-student">
               <div className="checkbox-filters">
                 <label className="checkbox-label">
                   <input
@@ -540,11 +548,11 @@ const Student = () => {
                   <span className="checkbox-custom">Inactivo</span>
                 </label>
               </div>
-              <div className="btn-student">
-                <button className="add-btn" onClick={() => handleShow()}>
+              <div className="btn-student-add">
+                <button className="add-btn-student" onClick={() => handleShow()}>
                   <FaPlus /> Agregar estudiante
                 </button>
-                <label htmlFor="import-excel" className="import-btn">
+                <label htmlFor="import-excel" className="add-btn-student">
                   <FaFileExcel style={{ marginRight: "10px" }} /> Importar Excel
                 </label>
                 <input
@@ -607,6 +615,13 @@ const Student = () => {
                             title="Ver Detalle"
                           >
                             <FaUserCircle />
+                          </button>
+                          <button
+                            className="action-btn-student"
+                            onClick={() => navigate(`/paymentstudent/${estudiante._id}`)}
+                            title="Ver Pagos"
+                          >
+                            <FaMoneyBill />
                           </button>
                           <button
                             className="action-btn-student"

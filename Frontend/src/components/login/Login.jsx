@@ -48,6 +48,9 @@ const Login = () => {
                     <img src={logo} alt="Logo" className="login-page-logo" />
                 </div>
 
+                <div className="login-page-title-container">
+                    <h2 className="login-page-title">Bienvenido</h2>
+                </div>
                 <Form onSubmit={handleSubmit} className="login-page-form">
                     <Form.Group className="login-page-form-input" controlId="emailInput">
                         <Form.Label className="login-page-form-label">Usuario</Form.Label>

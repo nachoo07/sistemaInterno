@@ -10,6 +10,32 @@
   cursor: pointer;
 }
 
+.titulo-panel-alumnos {
+  font-size: 35px !important;
+  font-weight: 800;
+  color: #ea268f;
+  position: relative;
+  display: inline-block;
+}
+
+.titulo-panel-alumnos::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, #ea268f, #b71b6e);
+  border-radius: 3px;
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+
+}
+@keyframes underline-grow {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+
 .checkbox-custom {
   display: inline-block;
   position: relative;
@@ -67,7 +93,7 @@
   margin-bottom: 20px;
 }
 
-.filter-actions {
+.filter-actions-student {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -75,20 +101,20 @@
   margin: 0px 10px;
 }
 
-.add-btn {
+.add-btn-student {
   background: #ea268f !important;
   color: white;
   border: none;
   padding: 8px 16px;
   border-radius: var(--radius-sm);
-  font-size: 18px;
+  font-size: 20px;
   display: flex;
   align-items: center;
   gap: 5px;
   transition: var(--transition);
 }
 
-.add-btn:hover {
+.add-btn-student:hover {
   background: #b71b6e !important;
 }
 
@@ -259,23 +285,6 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-.import-btn {
-  background: #ea268f !important;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: var(--transition);
-}
-
-.import-btn:hover {
-  background-color: #b71b6e !important;
-}
-
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -300,13 +309,16 @@
   margin-top: 10px;
 }
 
-.btn-student {
+.btn-student-add {
   display: flex;
   flex-direction: row;
   width: 100%;
   max-width: 450px;
   justify-content: space-between;
+}
 
+.welcome-text {
+  text-align: center;
 }
 
 @media (max-width: 576px) {
@@ -314,12 +326,16 @@
   .students-table th,
   .students-table td {
     font-size: 13px;
-    padding: 6px;
+    padding: 5px;
+  }
+
+  .titulo-panel-alumnos {
+  font-size: 25px !important;
   }
 
   .action-btn-student {
     padding: 3px;
-    font-size: 18px !important;
+    font-size: 16px !important;
   }
 
   .pagination-btn {
@@ -332,19 +348,15 @@
     flex-direction: row !important;
   }
 
-  .filter-actions {
+  .filter-actions-student {
     display: flex;
-    flex-direction: row !important;
+    flex-direction: column !important;
     margin-top: 10px !important;
   }
 
-  .add-btn {
-    font-size: 12px !important;
+  .add-btn-student {
+    font-size: 15px !important;
     margin-left: 0px !important;
-  }
-
-  .import-btn {
-    font-size: 12px !important;
   }
 
   .checkbox-custom {
@@ -368,10 +380,6 @@
     margin-top: 10px;
   }
 
-  .welcome-text h1 {
-    font-size: 1.4rem;
-  }
-
   .action-buttons {
     display: flex;
     flex-direction: row !important;
@@ -385,8 +393,5 @@
     display: none;
   }
 
-  .btn-student {
-    
-    justify-content: space-around;
-  }
+
 }

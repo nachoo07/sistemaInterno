@@ -1,10 +1,10 @@
 .modal-header-share {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    padding: 10px !important;
-    background-color: #ea268f !important;
-    border-bottom: 1px solid #ccc !important;
+  background: linear-gradient(90deg, #ea268f 60%, #b71b6e 100%);
+  color: #fff;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  padding: 15px;
+  border-bottom: none;
 }
 
 .modal-title-share {
@@ -39,11 +39,13 @@
 }
 
 .btn-modal-guardar {
-    background: #ea268f !important;
-    color: white;
-    border: none;
-    padding: 6px !important;
-    border-radius: var(--radius-sm) !important;
-    font-size: 20px !important;
-    width: 200px !important;
+    background: linear-gradient(90deg, #ea268f 60%, #b71b6e 100%);
+  color: #fff;
+  border: none;
+}
+
+.btn-modal-guardar:hover {
+   background: linear-gradient(90deg, #b71b6e 60%, #ea268f 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(234,38,143,0.13);
 }

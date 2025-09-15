@@ -6,9 +6,9 @@ import { DateTime } from 'luxon';
 
 const logger = pino();
 
-export const calculateShareAmount = (baseAmount, currentDay, currentState) => {
+export const calculateShareAmount = (baseAmount, currentDay, currentState, currentAmount) => {
   if (currentState === 'Vencido' || currentState === 'Pagado') {
-    return { amount: baseAmount, state: currentState }; // Mantener estado si ya es Vencido o Pagado
+    return { amount: currentAmount, state: currentState }; // Mantener el monto actual y el estado
   }
   if (currentDay > 10) {
     return { amount: baseAmount * 1.1, state: 'Vencido' };
@@ -34,7 +34,7 @@ export const updateShares = async () => {
     const bulkOps = shares.map(share => {
       const student = students.find(s => s._id.equals(share.student));
       const baseAmount = student && student.hasSiblingDiscount ? cuotaBase * 0.9 : cuotaBase;
-      const { amount, state } = calculateShareAmount(baseAmount, currentDay, share.state);
+      const { amount, state } = calculateShareAmount(baseAmount, currentDay, share.state, share.amount);
 
       return {
         updateOne: {

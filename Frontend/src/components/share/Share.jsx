@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  FaSearch, FaBars, FaTimes, FaList, FaUsers, FaClipboardList, FaMoneyBill, FaChartBar, FaExchangeAlt,
+  FaSearch, FaBars, FaTimes, FaList, FaUsers, FaClipboardList, FaMoneyBill, FaExchangeAlt,
   FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle,
   FaChevronDown, FaTimes as FaTimesClear
 } from "react-icons/fa";
@@ -31,7 +31,6 @@ const Share = () => {
     { name: "Inicio", route: "/", icon: <FaHome />, category: "principal" },
     { name: "Alumnos", route: "/student", icon: <FaUsers />, category: "principal" },
     { name: "Cuotas", route: "/share", icon: <FaMoneyBill />, category: "finanzas" },
-    { name: "Reportes", route: "/report", icon: <FaChartBar />, category: "informes" },
     { name: "Movimientos", route: "/motion", icon: <FaExchangeAlt />, category: "finanzas" },
     { name: "Asistencia", route: "/attendance", icon: <FaCalendarCheck />, category: "principal" },
     { name: "Usuarios", route: "/user", icon: <FaUserCog />, category: "configuracion" },
@@ -89,7 +88,7 @@ const Share = () => {
       const hasCuotas = studentCuotas.length > 0;
 
       // Verificar si el alumno tiene al menos una cuota con el estado filtrado
-      const matchesStatus = 
+      const matchesStatus =
         statusFilter === "todos" ||
         (!hasCuotas && statusFilter === "sin cuotas") ||
         (statusFilter === "pagado" && studentCuotas.some(cuota => cuota.state.toLowerCase() === "pagado")) ||
@@ -103,6 +102,7 @@ const Share = () => {
   const handleViewCuotas = async (studentId) => {
     await obtenerCuotasPorEstudiante(studentId);
     navigate(`/share/${studentId}?page=${currentPage}`);
+
   };
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
@@ -140,7 +140,7 @@ const Share = () => {
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
           <div className="header-logo" onClick={() => navigate('/')}>
-            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
+            <img src={logo} alt="Yo claudio" className="logo-image" />
           </div>
           <div className="search-box">
             <FaSearch className="search-symbol" />
@@ -227,7 +227,7 @@ const Share = () => {
         <main className="main-content">
           <section className="dashboard-welcome">
             <div className="welcome-text">
-              <h1>Panel de Cuotas</h1>
+              <h1 className="title-dashboard-share">Panel de Cuotas</h1>
             </div>
           </section>
           {windowWidth <= 576 && (
@@ -304,66 +304,82 @@ const Share = () => {
             </div>
           </section>
           <section className="cuotas-table-section">
-              <div className="table-wrapper">
-                <table className="cuotas-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Nombre</th>
-                      <th>Apellido</th>
-                      <th>Cuil</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentItems.length > 0 ? (
-                      currentItems.map((student, index) => {
-                        const studentCuotas = cuotas.filter(
-                          (cuota) => cuota.student?._id === student._id
-                        );
-                        const lastCuota = studentCuotas.length > 0
-                          ? studentCuotas.reduce((latest, current) =>
-                              new Date(current.date) > new Date(latest.date) ? current : latest,
-                              studentCuotas[0]
-                            )
-                          : null;
-                        const cuotaStatus = lastCuota ? lastCuota.state : "Sin cuotas";
+            <div className="table-wrapper">
+              <table className="cuotas-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Cuil</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.length > 0 ? (
+                    currentItems.map((student, index) => {
+                      const studentCuotas = cuotas.filter(
+                        (cuota) => cuota.student?._id === student._id
+                      );
+                      const lastCuota = studentCuotas.length > 0
+                        ? studentCuotas.reduce((latest, current) =>
+                          new Date(current.date) > new Date(latest.date) ? current : latest,
+                          studentCuotas[0]
+                        )
+                        : null;
+                      const cuotaStatus = lastCuota ? lastCuota.state : "Sin cuotas";
 
-                        return (
-                          <tr key={student._id}>
-                            <td>{indexOfFirstItem + index + 1}</td>
-                            <td>{student.name}</td>
-                            <td className="student-name">{student.lastName}</td>
-                            <td>{student.cuil}</td>
-                            <td>{cuotaStatus}</td>
-                            <td className="action-buttons">
-                              <button
-                                className="action-btn-share"
-                                onClick={() => handleViewCuotas(student._id)}
-                              >
-                                <FaUserCircle />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan="6" className="empty-table-message">
-                          {searchTerm ? (
-                            `No hay cuotas que coincidan con "${searchTerm}"`
-                          ) : statusFilter !== 'todos' ? (
-                            `No hay cuotas con estado "${statusFilter === 'sin cuotas' ? 'Sin cuotas' : statusFilter}"`
-                          ) : (
-                            "No hay cuotas registradas en el sistema"
-                          )}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      return (
+                        <tr key={student._id}>
+                          <td>{indexOfFirstItem + index + 1}</td>
+                          <td>{student.name}</td>
+                          <td className="student-name">{student.lastName}</td>
+                          <td>{student.cuil}</td>
+                          <td>{cuotaStatus}</td>
+                          <td className="action-buttons-share">
+                               <button
+                              className="action-btn-share"
+                              onClick={() => handleViewCuotas(student._id)}
+                              title="Ver Cuotas"
+                            >
+                              <FaClipboardList />
+                            </button>
+                            <button
+                              className="action-btn-student"
+                              onClick={() => navigate(`/detailstudent/${student._id}`)}
+                              title="Ver Detalle Alumno"
+                            >
+                              <FaUserCircle />
+                            </button>
+                            <button
+                              className="action-btn-student"
+                              onClick={() => navigate(`/paymentstudent/${student._id}`)}
+                              title="Ver Pagos"
+                            >
+                              <FaMoneyBill />
+                            </button>
+                         
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="empty-table-message">
+                        {searchTerm ? (
+                          `No hay cuotas que coincidan con "${searchTerm}"`
+                        ) : statusFilter !== 'todos' ? (
+                          `No hay cuotas con estado "${statusFilter === 'sin cuotas' ? 'Sin cuotas' : statusFilter}"`
+                        ) : (
+                          "No hay cuotas registradas en el sistema"
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
             <div className="pagination">
               <button
                 disabled={currentPage === 1}
