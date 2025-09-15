@@ -1,6 +1,6 @@
-import Share from '../../models/share.model.js';
-import Student from '../../models/student.model.js';
-import Config from '../../models/config.model.js';
+import Share from '../../models/share/share.model.js';
+import Student from '../../models/student/student.model.js';
+import Config from '../../models/base/config.model.js';
 import pino from 'pino';
 import { DateTime } from 'luxon';
 
