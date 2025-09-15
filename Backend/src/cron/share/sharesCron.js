@@ -7,8 +7,11 @@ import { DateTime } from 'luxon';
 const logger = pino();
 
 export const calculateShareAmount = (baseAmount, currentDay, currentState, currentAmount) => {
-  if (currentState === 'Vencido' || currentState === 'Pagado') {
-    return { amount: currentAmount, state: currentState }; // Mantener el monto actual y el estado
+  if (currentState === 'Pagado') {
+    return { amount: currentAmount, state: currentState }; // Mantener monto y estado si está Pagado
+  }
+  if (currentState === 'Vencido') {
+    return { amount: Math.round(baseAmount * 1.1), state: currentState }; // Recalcular con recargo para Vencido
   }
   if (currentDay > 10) {
     return { amount: baseAmount * 1.1, state: 'Vencido' };
@@ -24,8 +27,10 @@ export const updateShares = async () => {
 
   try {
     const config = await Config.findOne({ key: 'cuotaBase' });
-    if (!config) throw new Error('No se encontró la configuración de cuotaBase');
-    const cuotaBase = config.value || 30000;
+    const cuotaBase = config ? config.value : 30000;
+    if (!config) {
+      logger.warn('No se encontró la configuración de cuotaBase, usando valor predeterminado: 30000');
+    }
 
     const shares = await Share.find({ $or: [{ state: 'Pendiente' }, { state: 'Vencido' }] }).lean();
     const studentIds = [...new Set(shares.map(s => s.student))];
