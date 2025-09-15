@@ -178,7 +178,7 @@ export const PaymentProvider = ({ children }) => {
       return;
     }
     try {
-      await axios.delete(`http://localhost:4000/api/payments/delete/${paymentId}`, {
+      await axios.delete(`/api/payments/delete/${paymentId}`, {
         withCredentials: true,
       });
       const freshPayments = await fetchPaymentsByStudent(studentId);
