@@ -9,6 +9,13 @@
   margin-top: 0;
 }
 
+.filter-group input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+}
+
 .main-content {
   flex: 1;
   padding: 25px;

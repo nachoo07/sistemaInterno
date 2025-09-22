@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaSearch, FaDownload, FaList, FaFilePdf, FaBars, FaTimes, FaClipboardList, FaUserCircle, FaChevronDown, FaHome, FaUsers, FaMoneyBill, FaExchangeAlt, FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaColumns } from 'react-icons/fa';
@@ -7,6 +8,7 @@ import { LoginContext } from '../../context/login/LoginContext';
 import * as XLSX from 'xlsx-js-style';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import Swal from 'sweetalert2';
 import AppNavbar from '../navbar/AppNavbar';
 import './listStudent.css';
 import logo from "../../assets/logoyoclaudio.png";
@@ -14,13 +16,15 @@ import logo from "../../assets/logoyoclaudio.png";
 const ListStudent = () => {
   const navigate = useNavigate();
   const { estudiantes, loading: studentsLoading } = useContext(StudentsContext);
-  const { payments, concepts, fetchConcepts, fetchAllPayments, loadingPayments } = useContext(PaymentContext);
+  const { payments, concepts, fetchConcepts, fetchAllPayments, fetchPaymentsByDateRange, loadingPayments } = useContext(PaymentContext);
   const { auth, logout, userData } = useContext(LoginContext);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState(); // Cambiado: valor por defecto 'all' para mostrar todas las categorías
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [leagueFilter, setLeagueFilter] = useState('');
   const [conceptFilter, setConceptFilter] = useState('');
-  const [selectedColumns, setSelectedColumns] = useState(['nombre', 'fechaNacimiento', 'categoria']); // MODIFICADO: Sin 'liga'
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [selectedColumns, setSelectedColumns] = useState(['nombre', 'fechaNacimiento', 'categoria']);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
   const itemsPerPage = 20;
@@ -30,7 +34,6 @@ const ListStudent = () => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const profileRef = useRef(null);
 
-  // MODIFICADO: Columnas sin 'liga'
   const availableColumns = [
     { key: 'nombre', label: 'Nombre Completo', visibleByDefault: true },
     { key: 'fechaNacimiento', label: 'Fecha de Nacimiento', visibleByDefault: true },
@@ -49,8 +52,6 @@ const ListStudent = () => {
     { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes' },
     { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
   ];
-
-  // ... (useEffects para click outside, resize sin cambios)
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,7 +75,6 @@ const ListStudent = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Cargar conceptos y pagos
   useEffect(() => {
     if (auth === 'admin') {
       fetchConcepts();
@@ -82,7 +82,6 @@ const ListStudent = () => {
     }
   }, [auth, fetchConcepts, fetchAllPayments]);
 
-  // MODIFICADO: Agregar/remover 'montoConcepto' automáticamente al cambiar conceptFilter
   useEffect(() => {
     if (conceptFilter) {
       if (!selectedColumns.includes('montoConcepto')) {
@@ -90,32 +89,66 @@ const ListStudent = () => {
       }
     } else {
       setSelectedColumns(prev => prev.filter(k => k !== 'montoConcepto'));
+      setStartDate('');
+      setEndDate('');
     }
   }, [conceptFilter]);
 
-  // Chequear filtros activos
   useEffect(() => {
-    setHasAppliedFilters(!!searchTerm || !!categoryFilter || !!leagueFilter || !!conceptFilter);
+    setHasAppliedFilters(!!conceptFilter && !!startDate && !!endDate);
     setCurrentPage(1);
-  }, [searchTerm, categoryFilter, leagueFilter, conceptFilter]);
+  }, [searchTerm, categoryFilter, leagueFilter, conceptFilter, startDate, endDate]);
 
-  // Mapa de pagos
+  const handleEndDateChange = (e) => {
+    const newEndDate = e.target.value;
+    if (startDate && newEndDate < startDate) {
+      Swal.fire('¡Error!', 'La fecha de fin no puede ser anterior a la fecha de inicio.', 'error');
+      return;
+    }
+    setEndDate(newEndDate);
+    setCurrentPage(1);
+  };
+
   const paymentsMap = useMemo(() => {
     const map = new Map();
     payments.forEach(p => {
       if (!map.has(p.studentId)) map.set(p.studentId, new Map());
-      map.get(p.studentId).set(p.concept.toLowerCase(), p);
+      const conceptMap = map.get(p.studentId);
+      const conceptLower = p.concept.toLowerCase();
+      if (!conceptMap.has(conceptLower)) conceptMap.set(conceptLower, []);
+      conceptMap.get(conceptLower).push(p);
     });
-    return map;
-  }, [payments]);
 
-  // MODIFICADO: Filtrado - PRIMERO filtrar, LUEGO calcular monto
+    const processedMap = new Map();
+    map.forEach((conceptMap, studentId) => {
+      processedMap.set(studentId, new Map());
+      conceptMap.forEach((paymentList, concept) => {
+        if (conceptFilter && startDate && endDate) {
+          const filteredPayments = paymentList.filter(p => {
+            const paymentDate = new Date(p.paymentDate);
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            return paymentDate >= start && paymentDate <= end;
+          });
+          const totalAmount = filteredPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+          processedMap.get(studentId).set(concept, totalAmount || null);
+        }
+      });
+    });
+
+    return processedMap;
+  }, [payments, conceptFilter, startDate, endDate]);
+
+  const hasAnyPaymentForConcept = (studentId, conceptLower) => {
+    const studentPayments = payments.filter(p => p.studentId === studentId && p.concept.toLowerCase() === conceptLower);
+    return studentPayments.length > 0;
+  };
+
   const processedStudents = useMemo(() => {
     if (!estudiantes || estudiantes.length === 0) return [];
 
     let filtered = [...estudiantes];
 
-    // Búsqueda
     if (searchTerm) {
       const searchNormalized = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       filtered = filtered.filter((student) => {
@@ -125,12 +158,10 @@ const ListStudent = () => {
       });
     }
 
-    // Categoría
     if (categoryFilter && categoryFilter !== 'all') {
       filtered = filtered.filter((student) => new Date(student.birthDate).getFullYear() === parseInt(categoryFilter));
     }
 
-    // Liga
     if (leagueFilter) {
       filtered = filtered.filter((student) => {
         const leagueNorm = String(student.league || '').toLowerCase();
@@ -141,32 +172,37 @@ const ListStudent = () => {
       });
     }
 
-    // Concepto
-    if (conceptFilter) {
+    if (conceptFilter && startDate && endDate) {
       const conceptLower = conceptFilter.toLowerCase();
-      if (conceptLower === 'liga') {
-        filtered = filtered.filter(s => String(s.league || '').toLowerCase() === 'si' || s.league === true);
-      } else {
-        filtered = filtered.filter(s => {
-          const studentPayments = paymentsMap.get(s._id);
-          return studentPayments && studentPayments.has(conceptLower);
-        });
-      }
+      filtered = filtered.filter(s => {
+        const studentPayments = paymentsMap.get(s._id);
+        const hasPaymentInRange = studentPayments && studentPayments.has(conceptLower) && studentPayments.get(conceptLower) > 0;
+        const hasNoPayments = !hasAnyPaymentForConcept(s._id, conceptLower);
+        // Incluir alumnos con pagos en el rango o sin pagos registrados
+        // Excluir alumnos con pagos fuera del rango
+        if (conceptLower === 'liga') {
+          const isLeaguePlayer = String(s.league || '').toLowerCase() === 'si' || s.league === true;
+          return (hasPaymentInRange || (hasNoPayments && isLeaguePlayer));
+        }
+        return hasPaymentInRange || hasNoPayments;
+      });
+    } else {
+      return [];
     }
 
-    // FIX: Calcular monto DESPUÉS del filtro
     return filtered.map(student => {
-      let montoConcepto = null;
+      let montoConcepto = 'Pendiente';
       if (conceptFilter) {
         const studentPayments = paymentsMap.get(student._id);
-        const payment = studentPayments ? studentPayments.get(conceptFilter.toLowerCase()) : null;
-        montoConcepto = payment ? payment.amount : 'Pendiente';
+        const totalAmount = studentPayments ? studentPayments.get(conceptFilter.toLowerCase()) : null;
+        if (totalAmount > 0) {
+          montoConcepto = totalAmount;
+        }
       }
       return { ...student, montoConcepto };
     });
-  }, [estudiantes, searchTerm, categoryFilter, leagueFilter, conceptFilter, paymentsMap]);
+  }, [estudiantes, searchTerm, categoryFilter, leagueFilter, conceptFilter, startDate, endDate, paymentsMap]);
 
-  // Paginación
   const totalPages = Math.ceil(processedStudents.length / itemsPerPage);
   const paginatedStudents = processedStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -184,14 +220,13 @@ const ListStudent = () => {
     return `${day}/${month}/${year}`;
   };
 
-  // MODIFICADO: Exports - Siempre incluir monto si conceptFilter activo
   const handleDownloadExcel = () => {
     if (processedStudents.length === 0 || !hasAppliedFilters) return;
 
     const headers = availableColumns
       .filter(col => selectedColumns.includes(col.key))
       .map(col => col.label);
-    if (conceptFilter) { // Siempre agregar si concepto activo
+    if (conceptFilter) {
       headers.push(`Monto ${conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}`);
     }
 
@@ -214,19 +249,46 @@ const ListStudent = () => {
     });
 
     const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-    // ... (estilos sin cambios, como en versión anterior)
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Alumnos');
-    XLSX.writeFile(wb, `Lista_Alumnos_${new Date().toISOString().split('T')[0]}.xlsx`);
+    const dateRange = startDate && endDate ? `${startDate}_to_${endDate}` : 'all';
+    XLSX.writeFile(wb, `Lista_Alumnos_${dateRange}.xlsx`);
   };
 
   const handleDownloadPDF = () => {
-    // Similar a Excel, sin cambios mayores
     if (processedStudents.length === 0 || !hasAppliedFilters) return;
     const doc = new jsPDF();
     doc.text('Lista de Alumnos', 14, 20);
-    // ... (construir headers y data como en Excel)
-    doc.save('Lista_Alumnos.pdf');
+    const headers = availableColumns
+      .filter(col => selectedColumns.includes(col.key))
+      .map(col => col.label);
+    if (conceptFilter) {
+      headers.push(`Monto ${conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}`);
+    }
+    const data = processedStudents.map(student => {
+      const row = [];
+      availableColumns.forEach(col => {
+        if (selectedColumns.includes(col.key)) {
+          switch (col.key) {
+            case 'nombre': row.push(`${student.name} ${student.lastName}`); break;
+            case 'fechaNacimiento': row.push(formatDate(student.birthDate)); break;
+            case 'categoria': row.push(new Date(student.birthDate).getFullYear().toString()); break;
+            default: row.push('');
+          }
+        }
+      });
+      if (conceptFilter) {
+        row.push(student.montoConcepto === 'Pendiente' ? 'Pendiente' : `$${Number(student.montoConcepto).toLocaleString('es-ES')}`);
+      }
+      return row;
+    });
+    autoTable(doc, {
+      startY: 30,
+      head: [headers],
+      body: data,
+    });
+    const dateRange = startDate && endDate ? `${startDate}_to_${endDate}` : 'all';
+    doc.save(`Lista_Alumnos_${dateRange}.pdf`);
   };
 
   const handleLogout = async () => {
@@ -235,14 +297,14 @@ const ListStudent = () => {
     setIsMenuOpen(false);
   };
 
-  // Lista de años únicos de nacimiento (categorías)
   const uniqueBirthYears = [...new Set(estudiantes.map(s => new Date(s.birthDate).getFullYear()))].sort((a, b) => b - a);
 
   const getEmptyMessage = () => {
-    if (!hasAppliedFilters) return 'Por favor, aplica un filtro para ver los resultados.';
+    if (!conceptFilter) return 'Por favor, selecciona un concepto para ver los resultados.';
+    if (!startDate || !endDate) return 'Por favor, selecciona un rango de fechas.';
     if (leagueFilter === 'Sí') return 'No hay alumnos que jueguen liga con los filtros seleccionados.';
     if (leagueFilter === 'No') return 'No hay alumnos que no jueguen liga con los filtros seleccionados.';
-    return 'No se encontraron alumnos con los filtros aplicados.';
+    return 'No se encontraron alumnos con pagos o pendientes para el concepto y rango de fechas seleccionados.';
   };
 
   if (studentsLoading || loadingPayments) {
@@ -387,6 +449,7 @@ const ListStudent = () => {
                   value={conceptFilter}
                   onChange={(e) => { setConceptFilter(e.target.value); setCurrentPage(1); }}
                   className="filter-select"
+                  title="Selecciona un concepto para habilitar los filtros de fecha"
                 >
                   <option value="">Seleccionar</option>
                   {concepts.map(c => (
@@ -396,6 +459,30 @@ const ListStudent = () => {
                   ))}
                 </select>
               </div>
+              {conceptFilter && (
+                <>
+                  <div className="filter-group">
+                    <label>Fecha Inicio:</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                      className="filter-input"
+                      required
+                    />
+                  </div>
+                  <div className="filter-group">
+                    <label>Fecha Fin:</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={handleEndDateChange}
+                      className="filter-input"
+                      required
+                    />
+                  </div>
+                </>
+              )}
               <div className="download-actions">
                 <button className="download-btn" onClick={handleDownloadExcel} disabled={processedStudents.length === 0 || !hasAppliedFilters}>
                   <FaDownload /> Excel
@@ -417,7 +504,7 @@ const ListStudent = () => {
                       {availableColumns
                         .filter(col => selectedColumns.includes(col.key))
                         .map(col => <th key={col.key}>{col.label}</th>)}
-                      {conceptFilter && ( // FIX: Siempre mostrar si concepto activo
+                      {conceptFilter && (
                         <th>Monto {conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}</th>
                       )}
                     </tr>
@@ -476,3 +563,4 @@ const ListStudent = () => {
 };
 
 export default ListStudent;
+
