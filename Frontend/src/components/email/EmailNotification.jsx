@@ -314,17 +314,21 @@ const EmailNotification = () => {
       return;
     }
 
+    // Convertir saltos de línea a HTML br tags para emails personalizados
+    const formatMessageForEmail = (message) => {
+      if (!message) return "Mensaje no especificado";
+      return message.replace(/\n/g, '<br>');
+    };
+
     const emails = isOverdueMode
       ? generateOverdueMessages(selectedStudents)
       : [
           {
             recipient: selectedStudents.map((s) => s.mail).join(","),
             subject,
-            message: displayMessage || "Mensaje no especificado",
+            message: formatMessageForEmail(displayMessage),
           },
-      ];
-
-    if (emails.length === 0) {
+        ];    if (emails.length === 0) {
       Swal.fire(
         "Error",
         "No hay mensajes válidos para enviar. Verifica que los estudiantes seleccionados tengan cuotas vencidas.",
@@ -538,8 +542,19 @@ const EmailNotification = () => {
               onChange={(e) => setDisplayMessage(e.target.value)}
               className="email-message"
               disabled={loading || isOverdueMode || dataLoading}
-              placeholder="Mensaje..."
+              placeholder="Escribe tu mensaje aquí...&#10;&#10;Presiona Enter para crear saltos de línea."
+              rows={8}
+              style={{
+                whiteSpace: 'pre-wrap',
+                lineHeight: '1.5'
+              }}
             />
+            {displayMessage && !isOverdueMode && (
+              <div className="email-preview">
+                <h4 style={{marginBottom: '10px', color: 'var(--text-light)'}}>Vista previa del email:</h4>
+                <div className="preview-content" dangerouslySetInnerHTML={{ __html: displayMessage.replace(/\n/g, '<br>') }} />
+              </div>
+            )}
             <div className="email-actions">
               <button
                 className="quick-action-btn cancel-btn"
