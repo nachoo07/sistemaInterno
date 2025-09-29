@@ -1,7 +1,6 @@
-
 import React, { useState, useContext, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaSearch, FaDownload, FaList, FaFilePdf, FaBars, FaTimes, FaClipboardList, FaUserCircle, FaChevronDown, FaHome, FaUsers, FaMoneyBill, FaExchangeAlt, FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaColumns } from 'react-icons/fa';
+import { FaDownload, FaList, FaFilePdf, FaBars, FaTimes, FaClipboardList, FaUserCircle, FaChevronDown, FaHome, FaUsers, FaMoneyBill, FaExchangeAlt, FaCalendarCheck, FaUserCog, FaCog, FaEnvelope } from 'react-icons/fa';
 import { StudentsContext } from '../../context/student/StudentContext';
 import { PaymentContext } from '../../context/payment/PaymentContext';
 import { LoginContext } from '../../context/login/LoginContext';
@@ -16,41 +15,32 @@ import logo from "../../assets/logoyoclaudio.png";
 const ListStudent = () => {
   const navigate = useNavigate();
   const { estudiantes, loading: studentsLoading } = useContext(StudentsContext);
-  const { payments, concepts, fetchConcepts, fetchAllPayments, fetchPaymentsByDateRange, loadingPayments } = useContext(PaymentContext);
+  const { payments, concepts, fetchConcepts, fetchAllPayments, loadingPayments } = useContext(PaymentContext);
   const { auth, logout, userData } = useContext(LoginContext);
-  const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [leagueFilter, setLeagueFilter] = useState('');
   const [conceptFilter, setConceptFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [selectedColumns, setSelectedColumns] = useState(['nombre', 'fechaNacimiento', 'categoria']);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
   const itemsPerPage = 20;
   const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isColumnsOpen, setIsColumnsOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const profileRef = useRef(null);
-
-  const availableColumns = [
-    { key: 'nombre', label: 'Nombre Completo', visibleByDefault: true },
-    { key: 'fechaNacimiento', label: 'Fecha de Nacimiento', visibleByDefault: true },
-    { key: 'categoria', label: 'Categoría', visibleByDefault: true },
-  ];
 
   const menuItems = [
     { name: 'Inicio', route: '/', icon: <FaHome />, category: 'principal' },
     { name: 'Alumnos', route: '/student', icon: <FaUsers />, category: 'principal' },
     { name: 'Cuotas', route: '/share', icon: <FaMoneyBill />, category: 'finanzas' },
+    { name: 'Reporte', route: '/listeconomic', icon: <FaList />, category: 'finanzas' },
     { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt />, category: 'finanzas' },
     { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal' },
     { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },
     { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion' },
-    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' },
+    { name: 'Envíos de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' },
     { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes' },
-    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
   ];
 
   useEffect(() => {
@@ -84,20 +74,14 @@ const ListStudent = () => {
 
   useEffect(() => {
     if (conceptFilter) {
-      if (!selectedColumns.includes('montoConcepto')) {
-        setSelectedColumns(prev => [...prev, 'montoConcepto']);
-      }
+      setHasAppliedFilters(!!startDate && !!endDate);
     } else {
-      setSelectedColumns(prev => prev.filter(k => k !== 'montoConcepto'));
+      setHasAppliedFilters(!!categoryFilter || !!leagueFilter);
       setStartDate('');
       setEndDate('');
     }
-  }, [conceptFilter]);
-
-  useEffect(() => {
-    setHasAppliedFilters(!!conceptFilter && !!startDate && !!endDate);
     setCurrentPage(1);
-  }, [searchTerm, categoryFilter, leagueFilter, conceptFilter, startDate, endDate]);
+  }, [categoryFilter, leagueFilter, conceptFilter, startDate, endDate]);
 
   const handleEndDateChange = (e) => {
     const newEndDate = e.target.value;
@@ -144,25 +128,23 @@ const ListStudent = () => {
     return studentPayments.length > 0;
   };
 
+  const getLeagueDisplay = (league) => {
+    const leagueNorm = String(league || '').toLowerCase();
+    if (leagueNorm === 'si' || leagueNorm === 'true') return 'Sí';
+    if (leagueNorm === 'no' || leagueNorm === 'false') return 'No';
+    return 'No especificado';
+  };
+
   const processedStudents = useMemo(() => {
     if (!estudiantes || estudiantes.length === 0) return [];
 
     let filtered = [...estudiantes];
 
-    if (searchTerm) {
-      const searchNormalized = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      filtered = filtered.filter((student) => {
-        const nameNormalized = `${student.name} ${student.lastName}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const cuilSearch = student.cuil?.toLowerCase().includes(searchNormalized);
-        return nameNormalized.includes(searchNormalized) || cuilSearch;
-      });
-    }
-
     if (categoryFilter && categoryFilter !== 'all') {
       filtered = filtered.filter((student) => new Date(student.birthDate).getFullYear() === parseInt(categoryFilter));
     }
 
-    if (leagueFilter) {
+    if (leagueFilter && leagueFilter !== 'all') {
       filtered = filtered.filter((student) => {
         const leagueNorm = String(student.league || '').toLowerCase();
         if (leagueFilter === 'No especificado') return !leagueNorm || leagueNorm === '';
@@ -176,41 +158,31 @@ const ListStudent = () => {
       const conceptLower = conceptFilter.toLowerCase();
       filtered = filtered.filter(s => {
         const studentPayments = paymentsMap.get(s._id);
-        const hasPaymentInRange = studentPayments && studentPayments.has(conceptLower) && studentPayments.get(conceptLower) > 0;
+        const hasPaymentInRange = studentPayments && studentPayments.get(conceptLower) && studentPayments.get(conceptLower) > 0;
         const hasNoPayments = !hasAnyPaymentForConcept(s._id, conceptLower);
-        // Incluir alumnos con pagos en el rango o sin pagos registrados
-        // Excluir alumnos con pagos fuera del rango
         if (conceptLower === 'liga') {
           const isLeaguePlayer = String(s.league || '').toLowerCase() === 'si' || s.league === true;
           return (hasPaymentInRange || (hasNoPayments && isLeaguePlayer));
         }
         return hasPaymentInRange || hasNoPayments;
       });
-    } else {
-      return [];
     }
 
     return filtered.map(student => {
       let montoConcepto = 'Pendiente';
-      if (conceptFilter) {
+      if (conceptFilter && startDate && endDate) {
         const studentPayments = paymentsMap.get(student._id);
         const totalAmount = studentPayments ? studentPayments.get(conceptFilter.toLowerCase()) : null;
         if (totalAmount > 0) {
           montoConcepto = totalAmount;
         }
       }
-      return { ...student, montoConcepto };
+      return { ...student, montoConcepto, leagueDisplay: getLeagueDisplay(student.league) };
     });
-  }, [estudiantes, searchTerm, categoryFilter, leagueFilter, conceptFilter, startDate, endDate, paymentsMap]);
+  }, [estudiantes, categoryFilter, leagueFilter, conceptFilter, startDate, endDate, paymentsMap]);
 
   const totalPages = Math.ceil(processedStudents.length / itemsPerPage);
   const paginatedStudents = processedStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  const handleColumnToggle = (key) => {
-    setSelectedColumns(prev => 
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-    );
-  };
 
   const formatDate = (date) => {
     const d = new Date(date);
@@ -221,28 +193,21 @@ const ListStudent = () => {
   };
 
   const handleDownloadExcel = () => {
-    if (processedStudents.length === 0 || !hasAppliedFilters) return;
+    if (processedStudents.length === 0 || (!conceptFilter && !categoryFilter && !leagueFilter)) return;
 
-    const headers = availableColumns
-      .filter(col => selectedColumns.includes(col.key))
-      .map(col => col.label);
-    if (conceptFilter) {
+    const headers = ['Nombre Completo', 'Fecha de Nacimiento', 'Categoría', 'Liga'];
+    if (conceptFilter && startDate && endDate) {
       headers.push(`Monto ${conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}`);
     }
 
     const data = processedStudents.map(student => {
-      const row = [];
-      availableColumns.forEach(col => {
-        if (selectedColumns.includes(col.key)) {
-          switch (col.key) {
-            case 'nombre': row.push(`${student.name} ${student.lastName}`); break;
-            case 'fechaNacimiento': row.push(formatDate(student.birthDate)); break;
-            case 'categoria': row.push(new Date(student.birthDate).getFullYear()); break;
-            default: row.push('');
-          }
-        }
-      });
-      if (conceptFilter) {
+      const row = [
+        `${student.name} ${student.lastName}`,
+        formatDate(student.birthDate),
+        new Date(student.birthDate).getFullYear(),
+        student.leagueDisplay
+      ];
+      if (conceptFilter && startDate && endDate) {
         row.push(student.montoConcepto === 'Pendiente' ? 'Pendiente' : `$${Number(student.montoConcepto).toLocaleString('es-ES')}`);
       }
       return row;
@@ -256,28 +221,21 @@ const ListStudent = () => {
   };
 
   const handleDownloadPDF = () => {
-    if (processedStudents.length === 0 || !hasAppliedFilters) return;
+    if (processedStudents.length === 0 || (!conceptFilter && !categoryFilter && !leagueFilter)) return;
     const doc = new jsPDF();
     doc.text('Lista de Alumnos', 14, 20);
-    const headers = availableColumns
-      .filter(col => selectedColumns.includes(col.key))
-      .map(col => col.label);
-    if (conceptFilter) {
+    const headers = ['Nombre Completo', 'Fecha de Nacimiento', 'Categoría', 'Liga'];
+    if (conceptFilter && startDate && endDate) {
       headers.push(`Monto ${conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}`);
     }
     const data = processedStudents.map(student => {
-      const row = [];
-      availableColumns.forEach(col => {
-        if (selectedColumns.includes(col.key)) {
-          switch (col.key) {
-            case 'nombre': row.push(`${student.name} ${student.lastName}`); break;
-            case 'fechaNacimiento': row.push(formatDate(student.birthDate)); break;
-            case 'categoria': row.push(new Date(student.birthDate).getFullYear().toString()); break;
-            default: row.push('');
-          }
-        }
-      });
-      if (conceptFilter) {
+      const row = [
+        `${student.name} ${student.lastName}`,
+        formatDate(student.birthDate),
+        new Date(student.birthDate).getFullYear().toString(),
+        student.leagueDisplay
+      ];
+      if (conceptFilter && startDate && endDate) {
         row.push(student.montoConcepto === 'Pendiente' ? 'Pendiente' : `$${Number(student.montoConcepto).toLocaleString('es-ES')}`);
       }
       return row;
@@ -300,11 +258,13 @@ const ListStudent = () => {
   const uniqueBirthYears = [...new Set(estudiantes.map(s => new Date(s.birthDate).getFullYear()))].sort((a, b) => b - a);
 
   const getEmptyMessage = () => {
-    if (!conceptFilter) return 'Por favor, selecciona un concepto para ver los resultados.';
-    if (!startDate || !endDate) return 'Por favor, selecciona un rango de fechas.';
+    if (conceptFilter && (!startDate || !endDate)) return 'Por favor, selecciona un rango de fechas para el concepto.';
     if (leagueFilter === 'Sí') return 'No hay alumnos que jueguen liga con los filtros seleccionados.';
     if (leagueFilter === 'No') return 'No hay alumnos que no jueguen liga con los filtros seleccionados.';
-    return 'No se encontraron alumnos con pagos o pendientes para el concepto y rango de fechas seleccionados.';
+    if (leagueFilter === 'No especificado') return 'No hay alumnos con liga no especificada con los filtros seleccionados.';
+    if (categoryFilter && !conceptFilter && !leagueFilter) return `No hay alumnos en la categoría ${categoryFilter}.`;
+    if (!categoryFilter && !leagueFilter && !conceptFilter) return 'Por favor, selecciona al menos un filtro (categoría, liga o concepto).';
+    return 'No se encontraron alumnos con los filtros seleccionados.';
   };
 
   if (studentsLoading || loadingPayments) {
@@ -322,16 +282,6 @@ const ListStudent = () => {
         <header className="desktop-nav-header">
           <div className="header-logo" onClick={() => navigate('/')}>
             <img src={logo} alt="Valladares Fútbol" className="logo-image" />
-          </div>
-          <div className="search-box">
-            <FaSearch className="search-symbol" />
-            <input
-              type="text"
-              placeholder="Buscar alumnos..."
-              className="search-field"
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            />
           </div>
           <div className="nav-right-section">
             <div className="profile-container" ref={profileRef} onClick={() => setIsProfileOpen(!isProfileOpen)}>
@@ -382,42 +332,12 @@ const ListStudent = () => {
           <section className="dashboard-welcome">
             <div className="welcome-text">
               <h1>Lista de Alumnos Personalizada</h1>
-              {hasAppliedFilters && <p>Total filtrados: {processedStudents.length}</p>}
+              {(categoryFilter || leagueFilter || (conceptFilter && startDate && endDate)) && <p>Total filtrados: {processedStudents.length}</p>}
             </div>
-          </section>
-
-          <section className="columns-selector">
-            <button className="columns-toggle" onClick={() => setIsColumnsOpen(!isColumnsOpen)}>
-              <FaColumns /> Seleccionar Columnas {isColumnsOpen ? '↑' : '↓'}
-            </button>
-            {isColumnsOpen && (
-              <div className="columns-list">
-                {availableColumns.map(col => (
-                  <label key={col.key} className="columns-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedColumns.includes(col.key)}
-                      onChange={() => handleColumnToggle(col.key)}
-                    />
-                    {col.label}
-                  </label>
-                ))}
-              </div>
-            )}
           </section>
 
           <section className="students-filter">
             <div className="filter-actions list">
-              <div className="filter-group">
-                <label><FaSearch /> Buscar:</label>
-                <input
-                  type="text"
-                  placeholder="Nombre, apellido o CUIL..."
-                  value={searchTerm}
-                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                  className="filter-input"
-                />
-              </div>
               <div className="filter-group">
                 <label>Categoría:</label>
                 <select
@@ -438,6 +358,7 @@ const ListStudent = () => {
                   className="filter-select"
                 >
                   <option value="">Seleccionar</option>
+                  <option value="all">Todos</option>
                   <option value="Sí">Sí</option>
                   <option value="No">No</option>
                   <option value="No especificado">No especificado</option>
@@ -484,27 +405,28 @@ const ListStudent = () => {
                 </>
               )}
               <div className="download-actions">
-                <button className="download-btn" onClick={handleDownloadExcel} disabled={processedStudents.length === 0 || !hasAppliedFilters}>
+                <button className="download-btn" onClick={handleDownloadExcel} disabled={processedStudents.length === 0 || (!conceptFilter && !categoryFilter && !leagueFilter)}>
                   <FaDownload /> Excel
                 </button>
-                <button className="download-btn pdf-btn" onClick={handleDownloadPDF} disabled={processedStudents.length === 0 || !hasAppliedFilters}>
+                <button className="download-btn pdf-btn" onClick={handleDownloadPDF} disabled={processedStudents.length === 0 || (!conceptFilter && !categoryFilter && !leagueFilter)}>
                   <FaFilePdf /> PDF
                 </button>
               </div>
             </div>
           </section>
 
-          {hasAppliedFilters && (
+          {(categoryFilter || leagueFilter || (conceptFilter && startDate && endDate)) && (
             <section className="students-table-payment animate-fade-in">
               <div className="table-wrapper">
                 <table className="students-payment">
                   <thead>
                     <tr>
                       <th>#</th>
-                      {availableColumns
-                        .filter(col => selectedColumns.includes(col.key))
-                        .map(col => <th key={col.key}>{col.label}</th>)}
-                      {conceptFilter && (
+                      <th>Nombre Completo</th>
+                      <th>Fecha de Nacimiento</th>
+                      <th>Categoría</th>
+                      <th>Liga</th>
+                      {conceptFilter && startDate && endDate && (
                         <th>Monto {conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}</th>
                       )}
                     </tr>
@@ -514,21 +436,11 @@ const ListStudent = () => {
                       paginatedStudents.map((student, index) => (
                         <tr key={student._id}>
                           <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                          {availableColumns
-                            .filter(col => selectedColumns.includes(col.key))
-                            .map(col => (
-                              <td key={col.key}>
-                                {(() => {
-                                  switch (col.key) {
-                                    case 'nombre': return `${student.name} ${student.lastName}`;
-                                    case 'fechaNacimiento': return formatDate(student.birthDate);
-                                    case 'categoria': return new Date(student.birthDate).getFullYear();
-                                    default: return '';
-                                  }
-                                })()}
-                              </td>
-                            ))}
-                          {conceptFilter && (
+                          <td>{`${student.name} ${student.lastName}`}</td>
+                          <td>{formatDate(student.birthDate)}</td>
+                          <td>{new Date(student.birthDate).getFullYear()}</td>
+                          <td>{student.leagueDisplay}</td>
+                          {conceptFilter && startDate && endDate && (
                             <td>
                               {student.montoConcepto === 'Pendiente' 
                                 ? 'Pendiente' 
@@ -539,7 +451,7 @@ const ListStudent = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={selectedColumns.length + (conceptFilter ? 2 : 1)} className="empty-table-message">
+                        <td colSpan={conceptFilter && startDate && endDate ? 6 : 5} className="empty-table-message">
                           {getEmptyMessage()}
                         </td>
                       </tr>
@@ -563,4 +475,3 @@ const ListStudent = () => {
 };
 
 export default ListStudent;
-

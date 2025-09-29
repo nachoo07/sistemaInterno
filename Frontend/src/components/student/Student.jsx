@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
-  FaSearch, FaBars, FaList, FaTimes, FaUsers, FaClipboardList, FaMoneyBill, FaExchangeAlt, FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle,
+  FaSearch, FaBars, FaList, FaTimes, FaUsers, FaClipboardList, FaMoneyBill, FaExchangeAlt, FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaUserCircle,
   FaChevronDown, FaPlus, FaEdit, FaTrash, FaTimes as FaTimesClear, FaFileExcel
 } from "react-icons/fa";
 import { StudentsContext } from "../../context/student/StudentContext";
@@ -12,13 +12,13 @@ import "./student.css";
 import AppNavbar from '../navbar/AppNavbar';
 import logo from "../../assets/logoyoclaudio.png";
 import { Spinner } from "react-bootstrap";
-import { format, parse, parseISO, isValid } from 'date-fns';
+import { format, parse, isValid } from 'date-fns';
 import * as XLSX from 'xlsx';
 
 const Student = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { estudiantes, obtenerEstudiantes, addEstudiante, updateEstudiante, deleteEstudiante, importStudents, } = useContext(StudentsContext);
+  const { estudiantes, obtenerEstudiantes, addEstudiante, updateEstudiante, deleteEstudiante, importStudents } = useContext(StudentsContext);
   const { auth, logout, userData } = useContext(LoginContext);
   const [student, setStudent] = useState(null);
   const { id } = useParams();
@@ -37,25 +37,20 @@ const Student = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [isImporting, setIsImporting] = useState(false);
+  const [isInitialMount, setIsInitialMount] = useState(true);
   const studentsPerPage = 10;
-
-  const tempState = useRef({
-    currentPage: 1,
-    searchTerm: "",
-    filterState: "todos",
-  });
 
   const menuItems = [
     { name: "Inicio", route: "/", icon: <FaHome />, category: "principal" },
     { name: "Alumnos", route: "/student", icon: <FaUsers />, category: "principal" },
     { name: "Cuotas", route: "/share", icon: <FaMoneyBill />, category: "finanzas" },
-    { name: "Movimientos", route: "/motion", icon: <FaExchangeAlt />, category: "finanzas", },
-    { name: "Asistencia", route: "/attendance", icon: <FaCalendarCheck />, category: "principal", },
+    { name: 'Reporte', route: '/listeconomic', icon: <FaList />, category: 'finanzas' },
+    { name: "Movimientos", route: "/motion", icon: <FaExchangeAlt />, category: "finanzas" },
+    { name: "Asistencia", route: "/attendance", icon: <FaCalendarCheck />, category: "principal" },
     { name: "Usuarios", route: "/user", icon: <FaUserCog />, category: "configuración" },
     { name: "Ajustes", route: "/settings", icon: <FaCog />, category: "configuración" },
-    { name: "Envíos de correo", route: "/email-notifications", icon: <FaEnvelope />, category: "comunicación", },
-    { name: "Listado de alumnos", route: "/liststudent", icon: <FaClipboardList />, category: "informes", },
-    { name: "Lista de movimientos", route: "/listeconomic", icon: <FaList />, category: "finanzas", },
+    { name: "Envíos de correo", route: "/email-notifications", icon: <FaEnvelope />, category: "comunicación" },
+    { name: "Listado de alumnos", route: "/liststudent", icon: <FaClipboardList />, category: "informes" }
   ];
 
   useEffect(() => {
@@ -69,11 +64,6 @@ const Student = () => {
   }, []);
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const page = parseInt(queryParams.get('page')) || 1;
-    setCurrentPage(page);
-    obtenerEstudiantes();
-
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
@@ -86,22 +76,42 @@ const Student = () => {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [obtenerEstudiantes, location.search]);
+  }, []);
 
   useEffect(() => {
-    if (location.pathname !== "/student" && location.state?.fromStudent) {
-      setCurrentPage(1);
-      setSearchTerm("");
-      setFilterState("todos");
-    } else if (
-      location.pathname === "/student" &&
-      location.state?.fromDetail
-    ) {
-      setCurrentPage(tempState.current.currentPage);
-      setSearchTerm(tempState.searchTerm);
-      setFilterState(tempState.filterState);
+    // Leer query params
+    const queryParams = new URLSearchParams(location.search);
+    const page = parseInt(queryParams.get('page')) || 1;
+    const search = queryParams.get('search') || "";
+    const state = queryParams.get('state') || "todos";
+
+    setCurrentPage(page);
+    setSearchTerm(search);
+    setFilterState(state);
+
+    // Cargar estudiantes
+    obtenerEstudiantes();
+
+    // Marcar que el montaje inicial ha finalizado
+    setIsInitialMount(false);
+  }, []); // Ejecutar solo al montar
+
+  useEffect(() => {
+    if (isInitialMount) return; // Evitar actualizar la URL durante el montaje inicial
+
+    // Actualizar la URL con los filtros actuales
+    const queryParams = new URLSearchParams();
+    if (currentPage !== 1) queryParams.set('page', currentPage);
+    if (searchTerm) queryParams.set('search', searchTerm);
+    if (filterState !== 'todos') queryParams.set('state', filterState);
+
+    const queryString = queryParams.toString();
+    const newUrl = queryString ? `/student?${queryString}` : '/student';
+    
+    if (location.pathname + location.search !== newUrl) {
+      navigate(newUrl, { replace: true });
     }
-  }, [location]);
+  }, [currentPage, searchTerm, filterState, navigate, location.pathname, location.search, isInitialMount]);
 
   const handleImportExcel = async (e) => {
     const file = e.target.files[0];
@@ -165,7 +175,7 @@ const Student = () => {
               profileImage,
               state: row.Estado || 'Activo',
               hasSiblingDiscount: row['Descuento por Hermano'] === 'Sí' || false,
-              rowNumber: index + 2, // Incluir el número de fila (comienza en 2)
+              rowNumber: index + 2,
             };
           });
 
@@ -191,8 +201,14 @@ const Student = () => {
     }
   };
 
-  const handleViewPayments = () => {
-    navigate(`/paymentstudent/${estudiante._id}`);
+  const handleViewPayments = (estudianteId) => {
+    const queryParams = new URLSearchParams();
+    if (currentPage !== 1) queryParams.set('page', currentPage);
+    if (searchTerm) queryParams.set('search', searchTerm);
+    if (filterState !== 'todos') queryParams.set('state', filterState);
+
+    const queryString = queryParams.toString();
+    navigate(`/paymentstudent/${estudianteId}${queryString ? `?${queryString}` : ''}`);
   };
 
   const filteredStudents = estudiantes.filter((estudiante) => {
@@ -231,6 +247,7 @@ const Student = () => {
   const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -239,7 +256,7 @@ const Student = () => {
   const handleShow = (student = null) => {
     if (student) {
       setEditStudent(student);
-      const dateInputValue = student.birthDate || ''; // Mantener yyyy-MM-dd
+      const dateInputValue = student.birthDate || '';
       setFormData({
         ...student,
         birthDate: dateInputValue,
@@ -278,7 +295,7 @@ const Student = () => {
     if (name === 'dateInputValue') {
       setFormData({
         ...formData,
-        birthDate: value, // Mantener yyyy-MM-dd
+        birthDate: value,
         dateInputValue: value,
       });
     } else {
@@ -292,9 +309,8 @@ const Student = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validar formato de imagen en el frontend
     if (formData.profileImage instanceof File) {
-      const validImageTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp', 'image/gif',];
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp', 'image/gif'];
       if (!validImageTypes.includes(formData.profileImage.type)) {
         Swal.fire({
           title: '¡Error!',
@@ -304,7 +320,7 @@ const Student = () => {
         });
         return;
       }
-      if (formData.profileImage.size > 5 * 1024 * 1024) { // 5MB
+      if (formData.profileImage.size > 5 * 1024 * 1024) {
         Swal.fire({
           title: '¡Error!',
           text: 'La imagen de perfil no debe exceder los 5MB.',
@@ -384,7 +400,13 @@ const Student = () => {
   };
 
   const handleViewDetail = (studentId) => {
-    navigate(`/detailstudent/${studentId}?page=${currentPage}`);
+    const queryParams = new URLSearchParams();
+    if (currentPage !== 1) queryParams.set('page', currentPage);
+    if (searchTerm) queryParams.set('search', searchTerm);
+    if (filterState !== 'todos') queryParams.set('state', filterState);
+
+    const queryString = queryParams.toString();
+    navigate(`/detailstudent/${studentId}${queryString ? `?${queryString}` : ''}`);
   };
 
   return (
@@ -475,11 +497,8 @@ const Student = () => {
                 {menuItems.map((item, index) => (
                   <li
                     key={index}
-                    className={`sidebar-menu-item ${item.route === "/student" ? "active" : ""}`
-                    }
-                    onClick={() =>
-                      item.route && navigate(item.route)
-                    }
+                    className={`sidebar-menu-item ${item.route === "/student" ? "active" : ""}`}
+                    onClick={() => item.route && navigate(item.route)}
                   >
                     <span className="menu-icon">{item.icon}</span>
                     <span className="menu-text">{item.name}</span>
@@ -618,7 +637,7 @@ const Student = () => {
                           </button>
                           <button
                             className="action-btn-student"
-                            onClick={() => navigate(`/paymentstudent/${estudiante._id}`)}
+                            onClick={() => handleViewPayments(estudiante._id)}
                             title="Ver Pagos"
                           >
                             <FaMoneyBill />
@@ -646,8 +665,8 @@ const Student = () => {
                         {searchTerm
                           ? `No se encontraron alumnos que coincidan con "${searchTerm}"`
                           : filterState !== "todos"
-                            ? `No hay alumnos con estado "${filterState}"`
-                            : "No hay alumnos registrados en el sistema"}
+                          ? `No hay alumnos con estado "${filterState}"`
+                          : "No hay alumnos registrados en el sistema"}
                       </td>
                     </tr>
                   )}
@@ -666,8 +685,7 @@ const Student = () => {
                 (number) => (
                   <button
                     key={number}
-                    className={`pagination-btn ${currentPage === number ? "active" : ""}`
-                    }
+                    className={`pagination-btn ${currentPage === number ? "active" : ""}`}
                     onClick={() => paginate(number)}
                   >
                     {number}

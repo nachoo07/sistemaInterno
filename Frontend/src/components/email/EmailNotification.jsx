@@ -55,13 +55,13 @@ const EmailNotification = () => {
     { name: "Inicio", route: "/", icon: <FaHome /> },
     { name: "Alumnos", route: "/student", icon: <FaUsers /> },
     { name: "Cuotas", route: "/share", icon: <FaMoneyBill /> },
+    { name: 'Reporte', route: '/listeconomic', icon: <FaList />, category: 'finanzas' },
     { name: "Movimientos", route: "/motion", icon: <FaExchangeAlt /> },
     { name: "Asistencia", route: "/attendance", icon: <FaCalendarCheck /> },
     { name: "Usuarios", route: "/user", icon: <FaUserCog /> },
     { name: "Ajustes", route: "/settings", icon: <FaCog /> },
     { name: "Envios de Mail", route: "/email-notifications", icon: <FaEnvelope /> },
     { name: "Listado de Alumnos", route: "/liststudent", icon: <FaClipboardList /> },
-    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
   ];
 
   useEffect(() => {

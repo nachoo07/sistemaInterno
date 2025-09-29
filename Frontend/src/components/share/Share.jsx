@@ -2,8 +2,7 @@ import { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaSearch, FaBars, FaTimes, FaList, FaUsers, FaClipboardList, FaMoneyBill, FaExchangeAlt,
-  FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle,
-  FaChevronDown, FaTimes as FaTimesClear
+  FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaUserCircle, FaChevronDown, FaTimes as FaTimesClear
 } from "react-icons/fa";
 import { StudentsContext } from "../../context/student/StudentContext";
 import { SharesContext } from "../../context/share/ShareContext";
@@ -21,23 +20,24 @@ const Share = () => {
   const profileRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [currentPage, setCurrentPage] = useState(1);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [isInitialMount, setIsInitialMount] = useState(true);
   const itemsPerPage = 10;
 
   const menuItems = [
     { name: "Inicio", route: "/", icon: <FaHome />, category: "principal" },
     { name: "Alumnos", route: "/student", icon: <FaUsers />, category: "principal" },
     { name: "Cuotas", route: "/share", icon: <FaMoneyBill />, category: "finanzas" },
+    { name: "Reporte", route: "/listeconomic", icon: <FaList />, category: "finanzas" },
     { name: "Movimientos", route: "/motion", icon: <FaExchangeAlt />, category: "finanzas" },
     { name: "Asistencia", route: "/attendance", icon: <FaCalendarCheck />, category: "principal" },
     { name: "Usuarios", route: "/user", icon: <FaUserCog />, category: "configuracion" },
     { name: "Ajustes", route: "/settings", icon: <FaCog />, category: "configuracion" },
-    { name: "Envios de Mail", route: "/email-notifications", icon: <FaEnvelope />, category: "comunicacion" },
-    { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes' },
-    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
+    { name: "Envíos de Mail", route: "/email-notifications", icon: <FaEnvelope />, category: "comunicacion" },
+    { name: "Listado de Alumnos", route: "/liststudent", icon: <FaClipboardList />, category: "informes" }
   ];
 
   useEffect(() => {
@@ -46,29 +46,45 @@ const Share = () => {
         setIsProfileOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
+    // Leer query params
     const queryParams = new URLSearchParams(location.search);
-    const page = parseInt(queryParams.get('page')) || 1;
+    const page = parseInt(queryParams.get("page")) || 1;
+    const search = queryParams.get("search") || "";
+    const state = queryParams.get("state") || "todos";
+
     setCurrentPage(page);
+    setSearchTerm(search);
+    setStatusFilter(state);
+
+    // Cargar datos
     obtenerEstudiantes();
     obtenerCuotas();
-    const handleResize = () => {
-      const newWidth = window.innerWidth;
-      setWindowWidth(newWidth);
-      if (newWidth <= 576) {
-        setIsMenuOpen(false);
-      } else {
-        setIsMenuOpen(true);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [obtenerEstudiantes, obtenerCuotas, location.search]);
+
+    // Marcar que el montaje inicial ha finalizado
+    setIsInitialMount(false);
+  }, [obtenerEstudiantes, obtenerCuotas]);
+
+  useEffect(() => {
+    if (isInitialMount) return; // Evitar actualizar la URL durante el montaje inicial
+
+    // Actualizar la URL con los filtros actuales
+    const queryParams = new URLSearchParams();
+    if (currentPage !== 1) queryParams.set("page", currentPage);
+    if (searchTerm) queryParams.set("search", searchTerm);
+    if (statusFilter !== "todos") queryParams.set("state", statusFilter);
+
+    const queryString = queryParams.toString();
+    const newUrl = queryString ? `/share?${queryString}` : "/share";
+
+    if (location.pathname + location.search !== newUrl) {
+      navigate(newUrl, { replace: true });
+    }
+  }, [currentPage, searchTerm, statusFilter, navigate, location.pathname, location.search, isInitialMount]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -77,7 +93,7 @@ const Share = () => {
 
   const filteredData = useMemo(() => {
     return estudiantes.filter((student) => {
-      const searchNormalized = String(searchTerm || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const searchNormalized = String(searchTerm || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const nameNormalized = student.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const lastNameNormalized = student.lastName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const fullName = `${nameNormalized} ${lastNameNormalized}`;
@@ -87,11 +103,19 @@ const Share = () => {
       const studentCuotas = cuotas.filter((cuota) => cuota.student?._id === student._id);
       const hasCuotas = studentCuotas.length > 0;
 
-      // Verificar si el alumno tiene al menos una cuota con el estado filtrado
+      // Encontrar la última cuota (basada en la fecha más reciente)
+      const lastCuota = hasCuotas
+        ? studentCuotas.reduce((latest, current) =>
+            new Date(current.date) > new Date(latest.date) ? current : latest,
+            studentCuotas[0]
+          )
+        : null;
+
+      // Verificar si el alumno cumple con el filtro de estado
       const matchesStatus =
         statusFilter === "todos" ||
         (!hasCuotas && statusFilter === "sin cuotas") ||
-        (statusFilter === "pagado" && studentCuotas.some(cuota => cuota.state.toLowerCase() === "pagado")) ||
+        (statusFilter === "pagado" && lastCuota?.state.toLowerCase() === "pagado") ||
         (statusFilter === "pendiente" && studentCuotas.some(cuota => cuota.state.toLowerCase() === "pendiente")) ||
         (statusFilter === "vencido" && studentCuotas.some(cuota => cuota.state.toLowerCase() === "vencido"));
 
@@ -101,8 +125,30 @@ const Share = () => {
 
   const handleViewCuotas = async (studentId) => {
     await obtenerCuotasPorEstudiante(studentId);
-    navigate(`/share/${studentId}?page=${currentPage}`);
+    const queryParams = new URLSearchParams();
+    if (currentPage !== 1) queryParams.set("page", currentPage);
+    if (searchTerm) queryParams.set("search", searchTerm);
+    if (statusFilter !== "todos") queryParams.set("state", statusFilter);
+    const queryString = queryParams.toString();
+    navigate(`/share/${studentId}${queryString ? `?${queryString}` : ""}`);
+  };
 
+  const handleViewDetail = (studentId) => {
+    const queryParams = new URLSearchParams();
+    if (currentPage !== 1) queryParams.set("page", currentPage);
+    if (searchTerm) queryParams.set("search", searchTerm);
+    if (statusFilter !== "todos") queryParams.set("state", statusFilter);
+    const queryString = queryParams.toString();
+    navigate(`/detailstudent/${studentId}${queryString ? `?${queryString}` : ""}`);
+  };
+
+  const handleViewPayments = (studentId) => {
+    const queryParams = new URLSearchParams();
+    if (currentPage !== 1) queryParams.set("page", currentPage);
+    if (searchTerm) queryParams.set("search", searchTerm);
+    if (statusFilter !== "todos") queryParams.set("state", statusFilter);
+    const queryString = queryParams.toString();
+    navigate(`/paymentstudent/${studentId}${queryString ? `?${queryString}` : ""}`);
   };
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
@@ -128,7 +174,7 @@ const Share = () => {
   };
 
   return (
-    <div className={`app-container ${windowWidth <= 576 ? 'mobile-view' : ''}`}>
+    <div className={`app-container ${windowWidth <= 576 ? "mobile-view" : ""}`}>
       {windowWidth <= 576 && (
         <AppNavbar
           isMenuOpen={isMenuOpen}
@@ -139,8 +185,8 @@ const Share = () => {
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="header-logo" onClick={() => navigate('/')}>
-            <img src={logo} alt="Yo claudio" className="logo-image" />
+          <div className="header-logo" onClick={() => navigate("/")}>
+            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
           </div>
           <div className="search-box">
             <FaSearch className="search-symbol" />
@@ -160,16 +206,16 @@ const Share = () => {
             >
               <FaUserCircle className="profile-icon" />
               <span className="profile-greeting">
-                Hola, {userData?.name || 'Usuario'}
+                Hola, {userData?.name || "Usuario"}
               </span>
-              <FaChevronDown className={`arrow-icon ${isProfileOpen ? 'rotated' : ''}`} />
+              <FaChevronDown className={`arrow-icon ${isProfileOpen ? "rotated" : ""}`} />
               {isProfileOpen && (
                 <div className="profile-menu">
                   <div
                     className="menu-option"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate('/user');
+                      navigate("/user");
                       setIsProfileOpen(false);
                     }}
                   >
@@ -179,7 +225,7 @@ const Share = () => {
                     className="menu-option"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate('/settings');
+                      navigate("/settings");
                       setIsProfileOpen(false);
                     }}
                   >
@@ -203,7 +249,7 @@ const Share = () => {
         </header>
       )}
       <div className="dashboard-layout">
-        <aside className={`sidebar ${isMenuOpen ? 'open' : 'closed'}`}>
+        <aside className={`sidebar ${isMenuOpen ? "open" : "closed"}`}>
           <nav className="sidebar-nav">
             <div className="sidebar-section">
               <button className="menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -213,8 +259,8 @@ const Share = () => {
                 {menuItems.map((item, index) => (
                   <li
                     key={index}
-                    className={`sidebar-menu-item ${item.route === '/share' ? 'active' : ''}`}
-                    onClick={() => (item.action ? item.action() : navigate(item.route))}
+                    className={`sidebar-menu-item ${item.route === "/share" ? "active" : ""}`}
+                    onClick={() => item.route && navigate(item.route)}
                   >
                     <span className="menu-icon">{item.icon}</span>
                     <span className="menu-text">{item.name}</span>
@@ -244,7 +290,7 @@ const Share = () => {
                 {searchTerm && (
                   <button
                     className="mobile-search-clear"
-                    onClick={() => setSearchTerm('')}
+                    onClick={() => setSearchTerm("")}
                   >
                     <FaTimesClear />
                   </button>
@@ -324,9 +370,9 @@ const Share = () => {
                       );
                       const lastCuota = studentCuotas.length > 0
                         ? studentCuotas.reduce((latest, current) =>
-                          new Date(current.date) > new Date(latest.date) ? current : latest,
-                          studentCuotas[0]
-                        )
+                            new Date(current.date) > new Date(latest.date) ? current : latest,
+                            studentCuotas[0]
+                          )
                         : null;
                       const cuotaStatus = lastCuota ? lastCuota.state : "Sin cuotas";
 
@@ -338,7 +384,7 @@ const Share = () => {
                           <td>{student.cuil}</td>
                           <td>{cuotaStatus}</td>
                           <td className="action-buttons-share">
-                               <button
+                            <button
                               className="action-btn-share"
                               onClick={() => handleViewCuotas(student._id)}
                               title="Ver Cuotas"
@@ -347,19 +393,18 @@ const Share = () => {
                             </button>
                             <button
                               className="action-btn-student"
-                              onClick={() => navigate(`/detailstudent/${student._id}`)}
+                              onClick={() => handleViewDetail(student._id)}
                               title="Ver Detalle Alumno"
                             >
                               <FaUserCircle />
                             </button>
                             <button
                               className="action-btn-student"
-                              onClick={() => navigate(`/paymentstudent/${student._id}`)}
+                              onClick={() => handleViewPayments(student._id)}
                               title="Ver Pagos"
                             >
                               <FaMoneyBill />
                             </button>
-                         
                           </td>
                         </tr>
                       );
@@ -367,13 +412,11 @@ const Share = () => {
                   ) : (
                     <tr>
                       <td colSpan="6" className="empty-table-message">
-                        {searchTerm ? (
-                          `No hay cuotas que coincidan con "${searchTerm}"`
-                        ) : statusFilter !== 'todos' ? (
-                          `No hay cuotas con estado "${statusFilter === 'sin cuotas' ? 'Sin cuotas' : statusFilter}"`
-                        ) : (
-                          "No hay cuotas registradas en el sistema"
-                        )}
+                        {searchTerm
+                          ? `No hay cuotas que coincidan con "${searchTerm}"`
+                          : statusFilter !== "todos"
+                          ? `No hay cuotas con estado "${statusFilter === "sin cuotas" ? "Sin cuotas" : statusFilter}"`
+                          : "No hay cuotas registradas en el sistema"}
                       </td>
                     </tr>
                   )}
@@ -391,7 +434,7 @@ const Share = () => {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
                 <button
                   key={number}
-                  className={`pagination-btn ${currentPage === number ? 'active' : ''}`}
+                  className={`pagination-btn ${currentPage === number ? "active" : ""}`}
                   onClick={() => paginate(number)}
                 >
                   {number}

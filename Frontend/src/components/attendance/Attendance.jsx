@@ -52,13 +52,13 @@ const Attendance = () => {
     ...(auth === 'admin' ? [
       { name: 'Alumnos', route: '/student', icon: <FaUsers />, category: 'principal' },
       { name: 'Cuotas', route: '/share', icon: <FaMoneyBill />, category: 'finanzas' },
+      { name: 'Reporte', route: '/listeconomic', icon: <FaList />, category: 'finanzas' },
       { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt />, category: 'finanzas' },
       { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal' },
       { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },
       { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion' },
       { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' },
       { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes' },
-      { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
     ] : [
       { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal' }
     ])

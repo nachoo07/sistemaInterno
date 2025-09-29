@@ -29,13 +29,13 @@ const AppNavbar = ({ setIsMenuOpen, isMenuOpen }) => {
     { name: 'Inicio', route: '/', icon: <FaHome />, category: 'principal', adminOnly: false },
     { name: 'Alumnos', route: '/student', icon: <FaUsers />, category: 'principal', adminOnly: true },
     { name: 'Cuotas', route: '/share', icon: <FaMoneyBill />, category: 'finanzas', adminOnly: true },
+    { name: 'Reporte', route: '/listeconomic', icon: <FaList />, category: 'finanzas', adminOnly: true },
     { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt />, category: 'finanzas', adminOnly: true },
     { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal', adminOnly: false },
     { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion', adminOnly: true },
     { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion', adminOnly: true },
     { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes', adminOnly: true },
-    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion', adminOnly: true },
-    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas', adminOnly: true }
+    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion', adminOnly: true }
   ];
 
     // Filtra los elementos del menú según el rol del usuario

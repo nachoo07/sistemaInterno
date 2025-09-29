@@ -58,12 +58,12 @@ const PaymentStudent = () => {
     { name: "Inicio", route: "/", icon: <FaHome />, category: "principal" },
     { name: "Alumnos", route: "/student", icon: <FaUsers />, category: "principal" },
     { name: "Cuotas", route: "/share", icon: <FaMoneyBill />, category: "finanzas" },
+    { name: 'Reporte', route: '/listeconomic', icon: <FaList />, category: 'finanzas' },
     { name: "Movimientos", route: "/motion", icon: <FaExchangeAlt />, category: "finanzas" },
     { name: "Usuarios", route: "/user", icon: <FaUserCog />, category: "configuracion" },
     { name: "Ajustes", route: "/settings", icon: <FaCog />, category: "configuracion" },
     { name: "Envios de Mail", route: "/email-notifications", icon: <FaEnvelope />, category: "comunicacion" },
-    { name: "Listado de Alumnos", route: "/liststudent", icon: <FaClipboardList />, category: "informes" },
-    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
+    { name: "Listado de Alumnos", route: "/liststudent", icon: <FaClipboardList />, category: "informes" }
   ];
 
   useEffect(() => {
@@ -168,6 +168,11 @@ const PaymentStudent = () => {
     } catch (error) {
       Swal.fire("¡Error!", error.response?.data?.message || (editMode ? "No se pudo actualizar el pago." : "No se pudo registrar el pago."), "error");
     }
+  };
+
+   const handleViewShares = () => {
+    const queryString = location.search;
+    navigate(`/share/${id}${queryString}`);
   };
 
   const resetForm = () => {
@@ -430,6 +435,13 @@ const PaymentStudent = () => {
                     <h2 className="panel-title">Acciones Rápidas</h2>
                   </div>
                   <div className="quick-actions-grid">
+                    <button 
+                      className="quick-action-btn"
+                      onClick={handleViewShares}
+                    >
+                      <FaMoneyBill className="btn-icon" />
+                      Cuotas
+                    </button>
                     <button 
                       className="quick-action-btn" 
                       onClick={handleOpenModal}

@@ -12,7 +12,7 @@ import SendVoucherEmail from "../voucherEmail/SendVoucherEmail";
 import ShareFormModal from "../modalShare/ShareFormModal";
 import AppNavbar from "../navbar/AppNavbar";
 import AlertCustom from "../alert/AlertCustom";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import "./shareDetail.css";
 import logo from "../../assets/logoyoclaudio.png";
 
@@ -41,20 +41,17 @@ const ShareDetail = () => {
   const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   const availableYears = ["2025", "2026", "2027"];
 
-  const queryParams = new URLSearchParams(location.search);
-  const page = queryParams.get('page') || 1;
-
   const menuItems = [
     { name: "Inicio", route: "/", icon: <FaHome />, category: "principal" },
     { name: "Alumnos", route: "/student", icon: <FaUsers />, category: "principal" },
     { name: "Cuotas", route: "/share", icon: <FaMoneyBill />, category: "finanzas" },
+    { name: "Reporte", route: "/listeconomic", icon: <FaList />, category: "finanzas" },
     { name: "Movimientos", route: "/motion", icon: <FaExchangeAlt />, category: "finanzas" },
     { name: "Asistencia", route: "/attendance", icon: <FaCalendarCheck />, category: "principal" },
     { name: "Usuarios", route: "/user", icon: <FaUserCog />, category: "configuracion" },
     { name: "Ajustes", route: "/settings", icon: <FaCog />, category: "configuracion" },
-    { name: "Envios de Mail", route: "/email-notifications", icon: <FaEnvelope />, category: "comunicacion" },
-    { name: "Listado de Alumnos", route: "/liststudent", icon: <FaClipboardList />, category: "informes" },
-    { name: 'Lista de Movimientos', route: '/listeconomic', icon: <FaList />, category: 'finanzas' }
+    { name: "Envíos de Mail", route: "/email-notifications", icon: <FaEnvelope />, category: "comunicacion" },
+    { name: "Listado de Alumnos", route: "/liststudent", icon: <FaClipboardList />, category: "informes" }
   ];
 
   useEffect(() => {
@@ -214,7 +211,7 @@ const ShareDetail = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
-    const [year, month, day] = dateString.split('T')[0].split('-');
+    const [year, month, day] = dateString.split("T")[0].split("-");
     return `${day}-${month}-${year}`;
   };
 
@@ -230,6 +227,11 @@ const ShareDetail = () => {
     }
   };
 
+  const handleViewPayments = () => {
+    const queryString = location.search;
+    navigate(`/paymentstudent/${studentId}${queryString}`);
+  };
+
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -241,7 +243,9 @@ const ShareDetail = () => {
     setIsProfileOpen(false);
   };
 
-  const handleBack = () => navigate(`/share?page=${page}`);
+  const handleBack = () => {
+    navigate(`/share${location.search}`);
+  };
 
   const handleAlertClose = () => {
     setShowAlert(false);
@@ -257,7 +261,7 @@ const ShareDetail = () => {
       )}
       {windowWidth > 576 && (
         <header className="desktop-nav-header">
-          <div className="header-logo-setting" onClick={() => navigate('/')}>
+          <div className="header-logo-setting" onClick={() => navigate("/")}>
             <img src={logo} alt="Valladares Fútbol" className="logo-image" />
           </div>
           <div className="nav-right-section">
@@ -321,7 +325,7 @@ const ShareDetail = () => {
                   <li
                     key={index}
                     className={`sidebar-menu-item ${item.route === "/share" ? "active" : ""}`}
-                    onClick={() => (item.action ? item.action() : navigate(item.route))}
+                    onClick={() => item.route && navigate(item.route)}
                   >
                     <span className="menu-icon">{item.icon}</span>
                     <span className="menu-text">{item.name}</span>
@@ -363,6 +367,12 @@ const ShareDetail = () => {
                     ))}
                   </div>
                   <div className="action-buttons">
+                    <button
+                      className="add-btn-detail-share"
+                      onClick={handleViewPayments}
+                    >
+                      <FaMoneyBillWave /> Ver Pagos
+                    </button>
                     <button className="add-btn-detail-share" onClick={handleCreateClick} disabled={isLoading}>
                       <FaPlus /> Crear Cuota
                     </button>
