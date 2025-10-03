@@ -10,7 +10,7 @@ const router = express.Router();
 const validateStudent = [
   body('name').notEmpty().withMessage('Nombre es obligatorio'),
   body('lastName').notEmpty().withMessage('Apellido es obligatorio'),
-  body('cuil').matches(/^\d{8,10}$/).withMessage('CUIL debe tener entre 10 u 11 dígitos'),
+  body('cuil').matches(/^\d{10,11}$/).withMessage('CUIL debe tener entre 10 u 11 dígitos'),
   body('birthDate').notEmpty().isDate().withMessage('Fecha de nacimiento válida es obligatoria'),
   body('address').notEmpty().withMessage('Dirección es obligatoria'),
   body('category').notEmpty().withMessage('Categoría es obligatoria'),

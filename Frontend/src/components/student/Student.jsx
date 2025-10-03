@@ -18,8 +18,8 @@ import * as XLSX from 'xlsx';
 const Student = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { estudiantes, obtenerEstudiantes, addEstudiante, updateEstudiante, deleteEstudiante, importStudents } = useContext(StudentsContext);
-  const { auth, logout, userData } = useContext(LoginContext);
+  const { estudiantes, obtenerEstudiantes, addEstudiante, updateEstudiante, deleteEstudiante, importStudents, loading } = useContext(StudentsContext);
+  const { auth, logout, userData, authReady } = useContext(LoginContext);
   const [student, setStudent] = useState(null);
   const { id } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
@@ -79,7 +79,14 @@ const Student = () => {
   }, []);
 
   useEffect(() => {
-    // Leer query params
+    if (!authReady) {
+      return;
+    }
+    if (!auth || (auth !== 'admin' && auth !== 'user')) {
+      Swal.fire('¡Error!', 'No estás autorizado. Por favor, inicia sesión nuevamente.', 'error');
+      navigate('/login');
+      return;
+    }
     const queryParams = new URLSearchParams(location.search);
     const page = parseInt(queryParams.get('page')) || 1;
     const search = queryParams.get('search') || "";
@@ -89,17 +96,33 @@ const Student = () => {
     setSearchTerm(search);
     setFilterState(state);
 
-    // Cargar estudiantes
-    obtenerEstudiantes();
+    const fetchData = async () => {
+      try {
+        await obtenerEstudiantes();
+      } catch (error) {
+        console.error('Student: Error fetching students:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+        if (error.response?.status === 401) {
+          Swal.fire('¡Error!', 'No estás autorizado. Por favor, inicia sesión nuevamente.', 'error');
+          navigate('/login');
+        } else if (error.response?.status === 404) {
+          Swal.fire('¡Error!', 'No se encontraron estudiantes.', 'error');
+        } else {
+          Swal.fire('¡Error!', error.response?.data?.message || 'No se pudieron cargar los estudiantes.', 'error');
+        }
+      }
+    };
+    fetchData();
 
-    // Marcar que el montaje inicial ha finalizado
     setIsInitialMount(false);
-  }, []); // Ejecutar solo al montar
+  }, [auth, authReady, navigate, location.search, obtenerEstudiantes]);
 
   useEffect(() => {
-    if (isInitialMount) return; // Evitar actualizar la URL durante el montaje inicial
+    if (isInitialMount) return;
 
-    // Actualizar la URL con los filtros actuales
     const queryParams = new URLSearchParams();
     if (currentPage !== 1) queryParams.set('page', currentPage);
     if (searchTerm) queryParams.set('search', searchTerm);
@@ -182,11 +205,38 @@ const Student = () => {
           if (studentList.length === 0) {
             throw new Error('El archivo Excel no contiene datos válidos');
           }
-          await importStudents(studentList);
+          const result = await importStudents(studentList);
+          Swal.fire({
+            title: result.icon === 'success' ? '¡Éxito!' : '¡Error!',
+            html: result.message,
+            icon: result.icon,
+            confirmButtonText: 'Aceptar',
+            width: '600px',
+            customClass: {
+              htmlContainer: 'swal2-html-container-scroll',
+            },
+          });
         } catch (error) {
-          console.error('Error al procesar el Excel:', error);
-          setAlertMessage(error.message || 'Error al procesar el archivo Excel');
-          setShowAlert(true);
+          console.error('handleImportExcel: Error processing Excel:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+          });
+          if (error.response?.status === 401) {
+            Swal.fire('¡Error!', 'No estás autorizado. Por favor, inicia sesión nuevamente.', 'error');
+            navigate('/login');
+          } else {
+            Swal.fire({
+              title: '¡Error!',
+              html: error.message || 'Error al procesar el archivo Excel',
+              icon: 'error',
+              confirmButtonText: 'Aceptar',
+              width: '600px',
+              customClass: {
+                htmlContainer: 'swal2-html-container-scroll',
+              },
+            });
+          }
         } finally {
           setIsImporting(false);
           e.target.value = '';
@@ -195,9 +245,14 @@ const Student = () => {
 
       reader.readAsArrayBuffer(file);
     } catch (error) {
-      console.error('Error al importar:', error);
+      console.error('handleImportExcel: Error importing:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       setIsImporting(false);
       e.target.value = '';
+      Swal.fire('¡Error!', 'Error al procesar el archivo Excel', 'error');
     }
   };
 
@@ -308,85 +363,85 @@ const Student = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (formData.profileImage instanceof File) {
-      const validImageTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp', 'image/gif'];
-      if (!validImageTypes.includes(formData.profileImage.type)) {
-        Swal.fire({
-          title: '¡Error!',
-          text: 'La imagen de perfil debe ser un archivo JPEG, PNG, HEIC, WEBP o GIF.',
-          icon: 'error',
-          confirmButtonText: 'Aceptar',
-        });
-        return;
-      }
-      if (formData.profileImage.size > 5 * 1024 * 1024) {
-        Swal.fire({
-          title: '¡Error!',
-          text: 'La imagen de perfil no debe exceder los 5MB.',
-          icon: 'error',
-          confirmButtonText: 'Aceptar',
-        });
-        return;
-      }
-    }
-
-    const formattedData = {
-      ...formData,
-      birthDate: formData.dateInputValue,
-    };
-
     try {
+      if (formData.profileImage instanceof File) {
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp', 'image/gif'];
+        if (!validImageTypes.includes(formData.profileImage.type)) {
+          Swal.fire('¡Error!', 'La imagen de perfil debe ser un archivo JPEG, PNG, HEIC, WEBP o GIF.', 'error');
+          return;
+        }
+        if (formData.profileImage.size > 5 * 1024 * 1024) {
+          Swal.fire('¡Error!', 'La imagen de perfil no debe exceder los 5MB.', 'error');
+          return;
+        }
+      }
+
+      const formattedData = {
+        ...formData,
+        birthDate: formData.dateInputValue,
+      };
+
       let result;
       if (editStudent) {
         result = await updateEstudiante(formattedData);
         if (result.success) {
-          Swal.fire({
-            title: '¡Éxito!',
-            text: 'El perfil del estudiante ha sido actualizado correctamente.',
-            icon: 'success',
-            confirmButtonText: 'Aceptar',
-          });
+          Swal.fire('¡Éxito!', 'El perfil del estudiante ha sido actualizado correctamente.', 'success');
         } else {
           throw new Error(result.message);
         }
       } else {
         result = await addEstudiante(formattedData);
         if (result.success) {
-          Swal.fire({
-            title: '¡Éxito!',
-            text: 'El estudiante ha sido agregado correctamente.',
-            icon: 'success',
-            confirmButtonText: 'Aceptar',
-          });
+          Swal.fire('¡Éxito!', 'El estudiante ha sido agregado correctamente.', 'success');
         } else {
           throw new Error(result.message);
         }
       }
       setShow(false);
     } catch (error) {
-      console.error('Error capturado en handleSubmit:', error);
-      Swal.fire({
-        title: '¡Error!',
-        text: error.message || 'Ocurrió un problema al guardar el estudiante. Por favor, intenta de nuevo.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
+      console.error('handleSubmit: Error submitting student:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
       });
+      if (error.response?.status === 401) {
+        Swal.fire('¡Error!', 'No estás autorizado. Por favor, inicia sesión nuevamente.', 'error');
+        navigate('/login');
+      } else if (error.response?.status === 400) {
+        Swal.fire('¡Error!', error.response?.data?.message || 'Los datos del estudiante son inválidos.', 'error');
+      } else if (error.response?.status === 404) {
+        Swal.fire('¡Error!', 'Estudiante no encontrado.', 'error');
+      } else {
+        Swal.fire('¡Error!', error.response?.data?.message || (editStudent ? 'No se pudo actualizar el estudiante.' : 'No se pudo agregar el estudiante.'), 'error');
+      }
     }
   };
 
   const handleDelete = async (studentId) => {
     try {
       await deleteEstudiante(studentId);
+      Swal.fire('¡Éxito!', 'El estudiante ha sido eliminado correctamente.', 'success');
     } catch (error) {
-      Swal.fire("Error", "Hubo un problema al eliminar el alumno.", "error");
+      console.error('handleDelete: Error deleting student:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      if (error.response?.status === 401) {
+        Swal.fire('¡Error!', 'No estás autorizado. Por favor, inicia sesión nuevamente.', 'error');
+        navigate('/login');
+      } else {
+        Swal.fire('¡Error!', error.response?.data?.message || 'No se pudo eliminar el estudiante.', 'error');
+      }
     }
   };
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   const handleLogout = async () => {
-    logout();
+    await logout();
     navigate("/login");
     setIsMenuOpen(false);
   };
@@ -408,6 +463,17 @@ const Student = () => {
     const queryString = queryParams.toString();
     navigate(`/detailstudent/${studentId}${queryString ? `?${queryString}` : ''}`);
   };
+
+  if (loading) {
+    return (
+      <div className="app-container">
+        <div className="loading-overlay">
+          <Spinner animation="border" variant="primary" />
+          <p>Cargando estudiantes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`app-container ${windowWidth <= 576 ? "mobile-view" : ""}`}>
@@ -432,6 +498,7 @@ const Student = () => {
               className="search-field"
               value={searchTerm}
               onChange={handleSearchChange}
+              disabled={loading}
             />
           </div>
           <div className="nav-right-section">
@@ -524,11 +591,13 @@ const Student = () => {
                   className="mobile-search-input"
                   value={searchTerm}
                   onChange={handleSearchChange}
+                  disabled={loading}
                 />
                 {searchTerm && (
                   <button
                     className="mobile-search-clear"
                     onClick={() => setSearchTerm("")}
+                    disabled={loading}
                   >
                     <FaTimesClear />
                   </button>
@@ -545,6 +614,7 @@ const Student = () => {
                     name="todos"
                     checked={filterState === "todos"}
                     onChange={handleFilterChange}
+                    disabled={loading}
                   />
                   <span className="checkbox-custom">Todos</span>
                 </label>
@@ -554,6 +624,7 @@ const Student = () => {
                     name="activo"
                     checked={filterState === "activo"}
                     onChange={handleFilterChange}
+                    disabled={loading}
                   />
                   <span className="checkbox-custom">Activo</span>
                 </label>
@@ -563,12 +634,13 @@ const Student = () => {
                     name="inactivo"
                     checked={filterState === "inactivo"}
                     onChange={handleFilterChange}
+                    disabled={loading}
                   />
                   <span className="checkbox-custom">Inactivo</span>
                 </label>
               </div>
               <div className="btn-student-add">
-                <button className="add-btn-student" onClick={() => handleShow()}>
+                <button className="add-btn-student" onClick={() => handleShow()} disabled={loading}>
                   <FaPlus /> Agregar estudiante
                 </button>
                 <label htmlFor="import-excel" className="add-btn-student">
@@ -580,7 +652,7 @@ const Student = () => {
                   accept=".xlsx, .xls"
                   style={{ display: "none" }}
                   onChange={handleImportExcel}
-                  disabled={isImporting}
+                  disabled={isImporting || loading}
                 />
               </div>
             </div>
@@ -616,7 +688,13 @@ const Student = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentStudents.length > 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan="6" className="empty-table-message">
+                        Cargando estudiantes...
+                      </td>
+                    </tr>
+                  ) : currentStudents.length > 0 ? (
                     currentStudents.map((estudiante, index) => (
                       <tr
                         key={estudiante._id}
@@ -632,6 +710,7 @@ const Student = () => {
                             className="action-btn-student"
                             onClick={() => handleViewDetail(estudiante._id)}
                             title="Ver Detalle"
+                            disabled={loading}
                           >
                             <FaUserCircle />
                           </button>
@@ -639,6 +718,7 @@ const Student = () => {
                             className="action-btn-student"
                             onClick={() => handleViewPayments(estudiante._id)}
                             title="Ver Pagos"
+                            disabled={loading}
                           >
                             <FaMoneyBill />
                           </button>
@@ -646,6 +726,7 @@ const Student = () => {
                             className="action-btn-student"
                             onClick={() => handleShow(estudiante)}
                             title="Editar"
+                            disabled={loading}
                           >
                             <FaEdit />
                           </button>
@@ -653,6 +734,7 @@ const Student = () => {
                             className="action-btn-student"
                             onClick={() => handleDelete(estudiante._id)}
                             title="Eliminar"
+                            disabled={loading}
                           >
                             <FaTrash />
                           </button>
@@ -661,7 +743,7 @@ const Student = () => {
                     ))
                   ) : (
                     <tr className="empty-table-row">
-                      <td colSpan="8" className="empty-table-message">
+                      <td colSpan="6" className="empty-table-message">
                         {searchTerm
                           ? `No se encontraron alumnos que coincidan con "${searchTerm}"`
                           : filterState !== "todos"
@@ -675,7 +757,7 @@ const Student = () => {
             </div>
             <div className="pagination">
               <button
-                disabled={currentPage === 1}
+                disabled={currentPage === 1 || loading}
                 onClick={() => paginate(currentPage - 1)}
                 className="pagination-btn"
               >
@@ -687,13 +769,14 @@ const Student = () => {
                     key={number}
                     className={`pagination-btn ${currentPage === number ? "active" : ""}`}
                     onClick={() => paginate(number)}
+                    disabled={loading}
                   >
                     {number}
                   </button>
                 )
               )}
               <button
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || loading}
                 onClick={() => paginate(currentPage + 1)}
                 className="pagination-btn"
               >

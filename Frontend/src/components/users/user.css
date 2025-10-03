@@ -101,7 +101,7 @@
   margin-bottom: 20px;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: space-around;
 }
 
 .welcome-text h1 {
@@ -176,8 +176,7 @@
 
 .filter-actions {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
+
   gap: 15px;
   margin: 0 10px;
 }
@@ -335,14 +334,14 @@
   z-index: 1050;
 }
 
-/*.modal-content {
+.modal-content-user {
   background: var(--card-bg);
   border-radius: var(--radius-md);
   box-shadow: var(--card-shadow);
   max-width: 500px;
   width: 90%;
   overflow: hidden;
-}*/
+}
 
 .modal-header-user {
   display: flex;

@@ -516,8 +516,8 @@ export const importStudents = async (req, res) => {
         return;
       }
 
-      if (!/^\d{9,11}$/.test(cuil)) {
-        errors.push(`Fila ${row}, CUIL ${cuil}: CUIL debe contener 9 a 11 dígitos`);
+      if (!/^\d{10,11}$/.test(cuil)) {
+        errors.push(`Fila ${row}, CUIL ${cuil}: CUIL debe contener 10 a 11 dígitos`);
         return;
       }
 

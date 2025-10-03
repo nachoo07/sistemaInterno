@@ -186,6 +186,10 @@
 .modal-body {
   padding: 20px;
   background-color: white;
+  /* Bordes redondeados solo cuando no hay footer */
+}
+
+.content-modal:not(.concept-modal) .modal-body {
   border-bottom-right-radius: 10px;
   border-bottom-left-radius: 10px;
 }
@@ -314,8 +318,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 15px;
-  height: 15px;
+
+  height: 20px;
   background-color: #ea268f;
   color: white;
   border: none;
@@ -323,7 +327,7 @@
   /* Oval shape */
   cursor: pointer;
   transition: var(--transition);
-  margin-left: 15px;
+  margin-left: 10px;
 }
 
 .concept-delete-btn:hover {
@@ -342,6 +346,10 @@
 .modal-footer {
   text-align: right;
   padding: 20px;
+  background-color: white;
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+  border-top: 1px solid var(--border-color);
 }
 
 .dashboard-sidebar-payment {

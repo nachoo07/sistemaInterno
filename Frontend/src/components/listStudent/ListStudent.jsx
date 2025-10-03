@@ -14,9 +14,9 @@ import logo from "../../assets/logoyoclaudio.png";
 
 const ListStudent = () => {
   const navigate = useNavigate();
-  const { estudiantes, loading: studentsLoading } = useContext(StudentsContext);
+  const { estudiantes, loading: studentsLoading, obtenerEstudiantes } = useContext(StudentsContext);
   const { payments, concepts, fetchConcepts, fetchAllPayments, loadingPayments } = useContext(PaymentContext);
-  const { auth, logout, userData } = useContext(LoginContext);
+  const { auth, logout, userData, authReady } = useContext(LoginContext);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [leagueFilter, setLeagueFilter] = useState('');
   const [conceptFilter, setConceptFilter] = useState('');
@@ -54,6 +54,14 @@ const ListStudent = () => {
   }, []);
 
   useEffect(() => {
+    if (auth === 'admin' && authReady) {
+      obtenerEstudiantes();
+      fetchConcepts();
+      fetchAllPayments();
+    }
+  }, [auth, authReady, obtenerEstudiantes, fetchConcepts, fetchAllPayments]);
+
+  useEffect(() => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
@@ -64,13 +72,6 @@ const ListStudent = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  useEffect(() => {
-    if (auth === 'admin') {
-      fetchConcepts();
-      fetchAllPayments();
-    }
-  }, [auth, fetchConcepts, fetchAllPayments]);
 
   useEffect(() => {
     if (conceptFilter) {
@@ -138,7 +139,7 @@ const ListStudent = () => {
   const processedStudents = useMemo(() => {
     if (!estudiantes || estudiantes.length === 0) return [];
 
-    let filtered = [...estudiantes];
+    let filtered = [...estudiantes.filter((student) => student.state === 'Activo')]; // Excluir inactivos
 
     if (categoryFilter && categoryFilter !== 'all') {
       filtered = filtered.filter((student) => new Date(student.birthDate).getFullYear() === parseInt(categoryFilter));
@@ -195,7 +196,10 @@ const ListStudent = () => {
   const handleDownloadExcel = () => {
     if (processedStudents.length === 0 || (!conceptFilter && !categoryFilter && !leagueFilter)) return;
 
-    const headers = ['Nombre Completo', 'Fecha de Nacimiento', 'Categoría', 'Liga'];
+    const headers = ['Nombre Completo', 'Fecha de Nacimiento', 'Categoría'];
+    if (leagueFilter) {
+      headers.push('Liga');
+    }
     if (conceptFilter && startDate && endDate) {
       headers.push(`Monto ${conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}`);
     }
@@ -204,12 +208,17 @@ const ListStudent = () => {
       const row = [
         `${student.name} ${student.lastName}`,
         formatDate(student.birthDate),
-        new Date(student.birthDate).getFullYear(),
-        student.leagueDisplay
+        new Date(student.birthDate).getFullYear()
       ];
+      
+      if (leagueFilter) {
+        row.push(student.leagueDisplay);
+      }
+      
       if (conceptFilter && startDate && endDate) {
         row.push(student.montoConcepto === 'Pendiente' ? 'Pendiente' : `$${Number(student.montoConcepto).toLocaleString('es-ES')}`);
       }
+      
       return row;
     });
 
@@ -224,7 +233,11 @@ const ListStudent = () => {
     if (processedStudents.length === 0 || (!conceptFilter && !categoryFilter && !leagueFilter)) return;
     const doc = new jsPDF();
     doc.text('Lista de Alumnos', 14, 20);
-    const headers = ['Nombre Completo', 'Fecha de Nacimiento', 'Categoría', 'Liga'];
+    
+    const headers = ['Nombre Completo', 'Fecha de Nacimiento', 'Categoría'];
+    if (leagueFilter) {
+      headers.push('Liga');
+    }
     if (conceptFilter && startDate && endDate) {
       headers.push(`Monto ${conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}`);
     }
@@ -232,12 +245,17 @@ const ListStudent = () => {
       const row = [
         `${student.name} ${student.lastName}`,
         formatDate(student.birthDate),
-        new Date(student.birthDate).getFullYear().toString(),
-        student.leagueDisplay
+        new Date(student.birthDate).getFullYear().toString()
       ];
+      
+      if (leagueFilter) {
+        row.push(student.leagueDisplay);
+      }
+      
       if (conceptFilter && startDate && endDate) {
         row.push(student.montoConcepto === 'Pendiente' ? 'Pendiente' : `$${Number(student.montoConcepto).toLocaleString('es-ES')}`);
       }
+      
       return row;
     });
     autoTable(doc, {
@@ -331,8 +349,8 @@ const ListStudent = () => {
         <main className="main-content">
           <section className="dashboard-welcome">
             <div className="welcome-text">
-              <h1>Lista de Alumnos Personalizada</h1>
-              {(categoryFilter || leagueFilter || (conceptFilter && startDate && endDate)) && <p>Total filtrados: {processedStudents.length}</p>}
+              <h1 className="titulo-panel-alumnos">Lista de Alumnos Personalizada</h1>
+              
             </div>
           </section>
 
@@ -425,7 +443,7 @@ const ListStudent = () => {
                       <th>Nombre Completo</th>
                       <th>Fecha de Nacimiento</th>
                       <th>Categoría</th>
-                      <th>Liga</th>
+                      {leagueFilter && <th>Liga</th>}
                       {conceptFilter && startDate && endDate && (
                         <th>Monto {conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}</th>
                       )}
@@ -439,7 +457,7 @@ const ListStudent = () => {
                           <td>{`${student.name} ${student.lastName}`}</td>
                           <td>{formatDate(student.birthDate)}</td>
                           <td>{new Date(student.birthDate).getFullYear()}</td>
-                          <td>{student.leagueDisplay}</td>
+                          {leagueFilter && <td>{student.leagueDisplay}</td>}
                           {conceptFilter && startDate && endDate && (
                             <td>
                               {student.montoConcepto === 'Pendiente' 
@@ -451,7 +469,11 @@ const ListStudent = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={conceptFilter && startDate && endDate ? 6 : 5} className="empty-table-message">
+                        <td colSpan={
+                          4 + 
+                          (leagueFilter ? 1 : 0) + 
+                          (conceptFilter && startDate && endDate ? 1 : 0)
+                        } className="empty-table-message">
                           {getEmptyMessage()}
                         </td>
                       </tr>

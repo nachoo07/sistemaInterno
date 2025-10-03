@@ -1,6 +1,5 @@
 import { useEffect, useState, useContext, useCallback, useRef, createContext } from 'react';
 import axios from 'axios';
-import Swal from 'sweetalert2';
 import { LoginContext } from '../login/LoginContext';
 
 export const StudentsContext = createContext();
@@ -9,7 +8,7 @@ const StudentsProvider = ({ children }) => {
   const [estudiantes, setEstudiantes] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { auth, waitForAuth } = useContext(LoginContext);
+  const { auth, authReady } = useContext(LoginContext);
   const cache = useRef(new Map());
 
   const capitalizeWords = (str) => {
@@ -46,7 +45,11 @@ const StudentsProvider = ({ children }) => {
       }
       return response.data.secure_url;
     } catch (error) {
-      console.error('Error al subir imagen a Cloudinary:', error);
+      console.error('uploadToCloudinary: Error uploading image:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       let errorMessage = 'No se pudo subir la imagen';
       if (error.response) {
         errorMessage = `Error del servidor: ${error.response.data.message || error.response.statusText}`;
@@ -59,9 +62,21 @@ const StudentsProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+  if (!auth || !authReady) {
+    cache.current.clear();
+    setEstudiantes([]);
+    setSelectedStudent(null);
+  }
+}, [auth, authReady]);
+
   const obtenerEstudiantes = useCallback(async () => {
+    if (!authReady) {
+      return;
+    }
     if (!auth || (auth !== 'admin' && auth !== 'user')) {
-      return; // No intentar obtener estudiantes si no hay autenticación
+      setEstudiantes([]);
+      return;
     }
     if (cache.current.has('estudiantes')) {
       setEstudiantes(cache.current.get('estudiantes'));
@@ -83,22 +98,22 @@ const StudentsProvider = ({ children }) => {
       cache.current.set('estudiantes', formattedData);
       setEstudiantes(formattedData);
     } catch (error) {
-      console.error('Error obteniendo estudiantes:', error);
-      // Solo mostrar alerta si el error no es de autenticación (401)
-      if (error.response?.status !== 401) {
-        Swal.fire({
-          title: '¡Error!',
-          text: 'No se pudieron obtener los estudiantes.',
-          icon: 'error',
-          confirmButtonText: 'Aceptar',
-        });
-      }
+      console.error('obtenerEstudiantes: Error fetching students:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      setEstudiantes([]);
+      throw error; // Let Student.jsx handle the error
     } finally {
       setLoading(false);
     }
-  }, [auth]);
+  }, [auth, authReady]);
 
   const obtenerEstudiantePorId = useCallback(async (studentId) => {
+    if (!authReady) {
+      return;
+    }
     if (!studentId || !auth || (auth !== 'admin' && auth !== 'user')) {
       return;
     }
@@ -117,29 +132,21 @@ const StudentsProvider = ({ children }) => {
       cache.current.set(studentId, student);
       setSelectedStudent(student);
     } catch (error) {
-      console.error('Error obteniendo estudiante por ID:', error);
-      if (error.response?.status !== 401) {
-        Swal.fire({
-          title: '¡Error!',
-          text: 'No se pudo obtener el estudiante.',
-          icon: 'error',
-          confirmButtonText: 'Aceptar',
-        });
-      }
+      console.error('obtenerEstudiantePorId: Error fetching student:', {
+        studentId,
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       setSelectedStudent(null);
+      throw error; // Let calling component handle the error
     } finally {
       setLoading(false);
     }
-  }, [auth]);
+  }, [auth, authReady]);
 
   const addEstudiante = useCallback(async (estudiante) => {
-    if (auth !== 'admin') {
-      Swal.fire({
-        title: '¡Error!',
-        text: 'No tienes permisos para agregar estudiantes.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
-      });
+    if (!authReady || auth !== 'admin') {
       return { success: false, message: 'No tienes permisos para agregar estudiantes.' };
     }
     try {
@@ -181,74 +188,37 @@ const StudentsProvider = ({ children }) => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      if (response.status === 201) {
-        if (response.data?.student) {
-          const newStudent = response.data.student;
-          const formattedStudent = {
-            ...newStudent,
-            name: capitalizeWords(newStudent.name),
-            lastName: capitalizeWords(newStudent.lastName),
-            guardianName: capitalizeWords(newStudent.guardianName),
-            birthDate: newStudent.birthDate ? new Date(newStudent.birthDate).toISOString().split('T')[0] : '',
-          };
-          setEstudiantes(prev => [...(Array.isArray(prev) ? prev : []), formattedStudent]);
-          cache.current.set('estudiantes', [...(cache.current.get('estudiantes') || []), formattedStudent]);
-          Swal.fire({
-            title: '¡Éxito!',
-            text: 'Estudiante creado correctamente.',
-            icon: 'success',
-            confirmButtonText: 'Aceptar',
-          });
-          return { success: true, student: formattedStudent };
-        } else {
-          throw new Error('Respuesta del servidor no contiene datos del estudiante.');
-        }
+      if (response.status === 201 && response.data?.student) {
+        const newStudent = response.data.student;
+        const formattedStudent = {
+          ...newStudent,
+          name: capitalizeWords(newStudent.name),
+          lastName: capitalizeWords(newStudent.lastName),
+          guardianName: capitalizeWords(newStudent.guardianName),
+          birthDate: newStudent.birthDate ? new Date(newStudent.birthDate).toISOString().split('T')[0] : '',
+        };
+        setEstudiantes(prev => [...(Array.isArray(prev) ? prev : []), formattedStudent]);
+        cache.current.set('estudiantes', [...(cache.current.get('estudiantes') || []), formattedStudent]);
+        return { success: true, student: formattedStudent };
       } else {
         throw new Error(response.data?.error || response.data?.message || 'Error desconocido del servidor.');
       }
     } catch (error) {
-      console.error('Error detallado al crear el estudiante:', {
+      console.error('addEstudiante: Error creating student:', {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
       });
-      let errorMessage = 'Ha ocurrido un error al crear el estudiante.';
-      const rawMessage = error.response?.data?.error || error.response?.data?.message || error.message;
-
-      if (typeof rawMessage === 'string' && rawMessage.includes('El CUIL ya está registrado')) {
-        errorMessage = 'El CUIL ya está registrado. Por favor, usa un CUIL diferente.';
-      } else if (typeof rawMessage === 'string' && rawMessage.includes('Faltan datos obligatorios')) {
-        errorMessage = rawMessage;
-      } else if (typeof rawMessage === 'string' && rawMessage.includes('CUIL debe contener entre 10 u 11 dígitos')) {
-        errorMessage = 'El CUIL debe contener entre 10 u 11 dígitos.';
-      } else if (typeof rawMessage === 'string' && rawMessage.includes('Formato de fecha de nacimiento inválido')) {
-        errorMessage = 'La fecha de nacimiento tiene un formato inválido. Usa el formato yyyy-MM-dd.';
-      } else if (typeof rawMessage === 'string' && rawMessage.includes('Formato de correo electrónico no válido')) {
-        errorMessage = 'El correo electrónico tiene un formato inválido.';
-      } else if (typeof rawMessage === 'string' && rawMessage.includes('El número de teléfono del tutor')) {
-        errorMessage = 'El número de teléfono del tutor debe tener entre 10 y 15 dígitos.';
-      } else if (typeof rawMessage === 'string' && rawMessage.includes('Error al procesar imagen')) {
-        errorMessage = 'Hubo un problema al subir la imagen de perfil. Asegúrate de que sea un archivo JPEG, PNG, HEIC, WEBP o GIF y no exceda los 5MB.';
-      } else if (typeof rawMessage === 'string' && rawMessage.includes('Errores de validación')) {
-        errorMessage = rawMessage;
-      } else {
-        errorMessage = `Error interno: ${rawMessage}`;
-      }
-
-      Swal.fire({
-        title: '¡Error!',
-        text: errorMessage,
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
-      });
-      return { success: false, message: errorMessage };
+      throw error; // Let Student.jsx handle the error
     } finally {
       setLoading(false);
     }
-  }, [auth]);
+  }, [auth, authReady]);
 
   const deleteEstudiante = useCallback(async (id) => {
-    if (auth !== 'admin') return;
+    if (!authReady || auth !== 'admin') {
+      return;
+    }
     try {
       const confirmacion = await Swal.fire({
         title: '¿Estás seguro que deseas eliminar el estudiante?',
@@ -270,31 +240,19 @@ const StudentsProvider = ({ children }) => {
         if (selectedStudent?._id === id) {
           setSelectedStudent(null);
         }
-        Swal.fire({
-          title: '¡Eliminado!',
-          text: 'El estudiante ha sido eliminado correctamente',
-          icon: 'success',
-        });
       }
     } catch (error) {
-      console.error('Error al eliminar estudiante:', error);
-      Swal.fire({
-        title: '¡Error!',
-        text: 'No se pudo eliminar el estudiante',
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
+      console.error('deleteEstudiante: Error deleting student:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
       });
+      throw error; // Let Student.jsx handle the error
     }
-  }, [auth, selectedStudent]);
+  }, [auth, authReady, selectedStudent]);
 
   const updateEstudiante = useCallback(async (estudiante) => {
-    if (auth !== 'admin') {
-      Swal.fire({
-        title: '¡Error!',
-        text: 'No tienes permisos para actualizar estudiantes.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
-      });
+    if (!authReady || auth !== 'admin') {
       return { success: false, message: 'No tienes permisos para actualizar estudiantes.' };
     }
     try {
@@ -354,62 +312,29 @@ const StudentsProvider = ({ children }) => {
         if (selectedStudent?._id === estudiante._id) {
           setSelectedStudent(formattedStudent);
         }
-        Swal.fire({
-          title: '¡Éxito!',
-          text: 'Estudiante actualizado correctamente.',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-        });
         return { success: true, student: formattedStudent };
       } else {
         throw new Error('Respuesta inesperada del servidor al actualizar el estudiante.');
       }
     } catch (error) {
-      console.error('Error al actualizar estudiante:', error);
-      let errorMessage = 'Ha ocurrido un error al actualizar el estudiante.';
-      const rawMessage = error.response?.data?.error || error.message;
-
-      if (rawMessage.includes('El CUIL ya está registrado')) {
-        errorMessage = 'El CUIL ya está registrado en otro estudiante. Por favor, usa un CUIL diferente.';
-      } else if (rawMessage.includes('Faltan datos obligatorios')) {
-        errorMessage = rawMessage;
-      } else if (rawMessage.includes('CUIL debe contener entre 10 u 11 dígitos')) {
-        errorMessage = 'El CUIL debe contener entre 10 u 11 dígitos.';
-      } else if (rawMessage.includes('Formato de fecha de nacimiento inválido')) {
-        errorMessage = 'La fecha de nacimiento tiene un formato inválido. Usa el formato yyyy-MM-dd.';
-      } else if (rawMessage.includes('Formato de correo electrónico no válido')) {
-        errorMessage = 'El correo electrónico tiene un formato inválido.';
-      } else if (rawMessage.includes('El número de teléfono del tutor')) {
-        errorMessage = 'El número de teléfono del tutor debe tener entre 10 y 15 dígitos.';
-      } else if (rawMessage.includes('Error al procesar imagen')) {
-        errorMessage = 'Hubo un problema al procesar la imagen de perfil. Asegúrate de que sea un archivo JPEG, PNG, HEIC, WEBP o GIF y no exceda los 5MB.';
-      } else if (rawMessage.includes('Errores de validación')) {
-        errorMessage = rawMessage;
-      } else if (rawMessage.includes('Estudiante no encontrado')) {
-        errorMessage = 'El estudiante no fue encontrado.';
-      } else {
-        errorMessage = `Error interno: ${rawMessage}`;
-      }
-      Swal.fire({
-        title: '¡Error!',
-        text: errorMessage,
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
+      console.error('updateEstudiante: Error updating student:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
       });
-      return { success: false, message: errorMessage };
+      throw error; // Let Student.jsx handle the error
     } finally {
       setLoading(false);
     }
-  }, [auth, selectedStudent]);
+  }, [auth, authReady, selectedStudent]);
 
   const importStudents = useCallback(async (studentList) => {
-    if (auth !== 'admin') {
+    if (!authReady || auth !== 'admin') {
       throw new Error('No tienes permisos para importar estudiantes. Inicia sesión como administrador.');
     }
 
     try {
       setLoading(true);
-
       const formattedStudentList = studentList.map(student => ({
         ...student,
         name: capitalizeWords(student.name),
@@ -436,7 +361,6 @@ const StudentsProvider = ({ children }) => {
           }
         }
       }
-
       const response = await axios.post('/api/students/import', { students: formattedStudentList }, {
         withCredentials: true,
         headers: { 'Content-Type': 'application/json' },
@@ -508,114 +432,23 @@ const StudentsProvider = ({ children }) => {
         }
         swalMessage += '</ul>';
       }
-
-      Swal.fire({
-        title: icon === 'success' ? '¡Éxito!' : '¡Error!',
-        html: swalMessage,
-        icon,
-        confirmButtonText: 'Aceptar',
-        width: '600px',
-        customClass: {
-          htmlContainer: 'swal2-html-container-scroll',
-        },
-      });
-
-      await obtenerEstudiantes();
+      return { success: icon === 'success', message: swalMessage, icon };
     } catch (error) {
-      console.error('Error al importar estudiantes:', error);
-
-      let errorMessage = 'Ha ocurrido un error al importar estudiantes. Por favor, intenta de nuevo.';
-      let icon = 'error';
-
-      if (error.response?.data?.errors?.length > 0) {
-        errorMessage = '';
-        if (error.response.data.message) {
-          errorMessage += `${error.response.data.message}<br /><br />`;
-        }
-        errorMessage += '<strong>Errores encontrados:</strong><ul>';
-        const errorGroups = error.response.data.errors.reduce((acc, error) => {
-          const rowMatch = error.match(/Fila (\d+)/);
-          const row = rowMatch ? rowMatch[1] : 'Desconocida';
-          const cuilMatch = error.match(/CUIL (\d+)/);
-          const cuil = cuilMatch ? cuilMatch[1] : 'Desconocido';
-          let errorType = 'Otros errores';
-          let customizedMessage = error;
-
-          if (error.includes('CUIL ya existe')) {
-            errorType = 'CUIL duplicado';
-            customizedMessage = `Fila ${row}, CUIL ${cuil}: El CUIL ya está registrado. Usa un CUIL diferente.`;
-          } else if (error.includes('Error al procesar la imagen')) {
-            errorType = 'Error en imagen';
-            customizedMessage = `Fila ${row}, CUIL ${cuil}: Hubo un problema al procesar la imagen de perfil. Asegúrate de que sea un archivo JPEG, PNG, HEIC, WEBP o GIF y no exceda los 5MB.`;
-          } else if (error.includes('CUIL debe contener')) {
-            errorType = 'CUIL inválido';
-            customizedMessage = `Fila ${row}, CUIL ${cuil}: El CUIL debe contener entre 8 y 10 dígitos.`;
-          } else if (error.includes('Faltan campos obligatorios')) {
-            errorType = 'Campos faltantes';
-            customizedMessage = `Fila ${row}, CUIL ${cuil}: Faltan campos obligatorios.`;
-          } else if (error.includes('Formato de fecha de nacimiento inválido')) {
-            errorType = 'Fecha inválida';
-            customizedMessage = `Fila ${row}, CUIL ${cuil}: La fecha de nacimiento tiene un formato inválido.`;
-          }
-
-          if (!acc[errorType]) acc[errorType] = [];
-          acc[errorType].push(customizedMessage);
-          return acc;
-        }, {});
-
-        for (const [errorType, errorMessages] of Object.entries(errorGroups)) {
-          errorMessage += `<li><strong>${errorType}:</strong> ${errorMessages.length} casos<ul>`;
-          errorMessages.slice(0, 5).forEach(msg => {
-            errorMessage += `<li>${msg}</li>`;
-          });
-          if (errorMessages.length > 5) {
-            errorMessage += `<li>(y ${errorMessages.length - 5} errores más...)</li>`;
-          }
-          errorMessage += '</ul></li>';
-        }
-        errorMessage += '</ul>';
-      } else {
-        const rawMessage = error.response?.data?.message || error.response?.data?.error || error.message;
-        if (rawMessage.includes('CUIL ya existe')) {
-          errorMessage = 'Uno o más estudiantes tienen un CUIL duplicado. Por favor, revisa los CUILs en el archivo Excel.';
-        } else if (rawMessage.includes('Error al procesar la imagen')) {
-          errorMessage = 'Hubo un problema al procesar una o más imágenes en el archivo Excel. Asegúrate de que sean archivos JPEG, PNG, HEIC, WEBP o GIF y no excedan los 5MB.';
-        } else {
-          errorMessage = rawMessage;
-        }
-      }
-
-      Swal.fire({
-        title: '¡Error!',
-        html: errorMessage,
-        icon,
-        confirmButtonText: 'Aceptar',
-        width: '600px',
-        customClass: {
-          htmlContainer: 'swal2-html-container-scroll',
-        },
+      console.error('importStudents: Error importing students:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
       });
+      throw error; // Let Student.jsx handle the error
     } finally {
       setLoading(false);
     }
-  }, [auth, obtenerEstudiantes]);
+  }, [auth, authReady]);
 
   const countStudentsByState = useCallback((state) => {
     const studentsArray = Array.isArray(estudiantes) ? estudiantes : [];
     return studentsArray.filter(student => student.state === state).length;
   }, [estudiantes]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await waitForAuth();
-      if (auth === 'admin' || auth === 'user') {
-        await obtenerEstudiantes();
-      } else {
-        setEstudiantes([]); // Limpia estudiantes si no está autenticado
-      }
-    };
-    fetchData();
-  }, [auth, obtenerEstudiantes, waitForAuth]);
 
   return (
     <StudentsContext.Provider

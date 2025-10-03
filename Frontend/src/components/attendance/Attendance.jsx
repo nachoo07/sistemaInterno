@@ -535,8 +535,8 @@ const Attendance = () => {
         </aside>
         <main className="main-content">
           <section className="dashboard-welcome">
-            <div className="welcome-text-attendance">
-              <h1>Registro de Asistencia</h1>
+            <div className="welcome-text">
+              <h1 className="titulo-panel-alumnos">Registro de Asistencia</h1>
             </div>
           </section>
           {windowWidth <= 576 && (

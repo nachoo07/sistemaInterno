@@ -331,10 +331,10 @@ const Users = () => {
         <main className="main-content">
           <section className="dashboard-welcome-user">
             <div className="welcome-text">
-              <h1>Panel de Usuarios</h1>
+              <h1 className="titulo-panel-alumnos">Panel de Usuarios</h1>
             </div>
             <div className="filter-actions">
-              <button className="add-btn" onClick={handleShowAddUser}>
+              <button className="add-btn-student" onClick={handleShowAddUser}>
                 <FaPlus /> Agregar Usuario
               </button>
             </div>
@@ -441,7 +441,7 @@ const Users = () => {
           </section>
           {show && (
             <div className="custom-modal">
-              <div className="modal-content">
+              <div className="modal-content-user">
                 <div className="modal-header-user">
                   <h2>{formData._id ? 'Editar Usuario' : 'Agregar Usuario'}</h2>
                   <button className="modal-close" onClick={handleClose}>
