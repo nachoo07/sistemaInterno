@@ -40,7 +40,7 @@ const Attendance = () => {
   const profileRef = useRef(null);
   const modalRef = useRef(null);
   const navigate = useNavigate();
-  const { estudiantes } = useContext(StudentsContext);
+  const { estudiantes, obtenerEstudiantes } = useContext(StudentsContext);
   const { auth, logout, userData } = useContext(LoginContext);
   const { agregarAsistencia, actualizarAsistencia, ObtenerAsistencia, asistencias } = useContext(AttendanceContext);
 
@@ -81,6 +81,13 @@ const Attendance = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Cargar estudiantes cuando cambie la autenticación
+  useEffect(() => {
+    if (auth === 'admin' || auth === 'user') {
+      obtenerEstudiantes();
+    }
+  }, [auth, obtenerEstudiantes]);
 
   useEffect(() => {
     const handleResize = () => {

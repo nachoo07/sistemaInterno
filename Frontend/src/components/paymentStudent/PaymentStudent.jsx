@@ -290,8 +290,7 @@ const PaymentStudent = () => {
           Swal.fire('¡Error!', error.response?.data?.message || 'No se pudo eliminar el pago.', 'error');
         }
       }
-    } else {
-    }
+    } 
   };
 
   const formatDate = (dateString) => {

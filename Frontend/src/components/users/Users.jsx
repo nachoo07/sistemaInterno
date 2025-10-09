@@ -29,16 +29,10 @@ const Users = () => {
     role: 'user',
     state: 'Activo'
   });
-  const [formErrors, setFormErrors] = useState({}); // Nuevo estado para errores
+  const [formErrors, setFormErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const usersPerPage = 10;
-
-  useEffect(() => {
-    if (auth !== "admin") {
-      navigate("/login");
-    }
-  }, [auth, navigate]);
 
   const menuItems = [
     { name: 'Inicio', route: '/', icon: <FaHome />, category: 'principal' },

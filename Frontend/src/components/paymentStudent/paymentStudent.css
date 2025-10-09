@@ -107,7 +107,6 @@
   gap: 10px;
 }
 
-
 .payment-summary {
   background-color: var(--card-bg);
   border-radius: var(--radius-md);
@@ -149,7 +148,7 @@
 }
 
 .modal-header-payment {
-    background: linear-gradient(90deg, #ea268f 60%, #b71b6e 100%);
+  background: linear-gradient(90deg, #ea268f 60%, #b71b6e 100%);
   color: white;
   padding: 15px;
   display: flex;
@@ -311,7 +310,6 @@
   font-size: 14px;
   font-weight: normal;
   color: #333;
-
 }
 
 .concept-delete-btn {
