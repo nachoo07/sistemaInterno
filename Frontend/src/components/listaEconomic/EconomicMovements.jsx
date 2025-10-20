@@ -39,13 +39,13 @@ const EconomicMovements = () => {
     return saved
       ? JSON.parse(saved)
       : {
-          includeCuotas: true,
-          includePagos: true,
-          paymentConcepts: [], // "Todos" es array vacío
-          includeIngresos: true,
-          includeEgresos: true,
-          paymentMethod: "Ambos",
-        };
+        includeCuotas: true,
+        includePagos: true,
+        paymentConcepts: [], // "Todos" es array vacío
+        includeIngresos: true,
+        includeEgresos: true,
+        paymentMethod: "Ambos",
+      };
   });
   const [searchName, setSearchName] = useState("");
   const [paymentConceptsList, setPaymentConceptsList] = useState([]); // Lista dinámica de conceptos
@@ -224,7 +224,7 @@ const EconomicMovements = () => {
       const inSearch = (debouncedSearchName === "" ||
         (m.name && m.name.toLowerCase().includes(debouncedSearchName.toLowerCase())));
 
-   
+
 
       return inDateRange && inMethod && inSearch;
     });
@@ -337,33 +337,35 @@ const EconomicMovements = () => {
   // Exportar a Excel (actualizado para manejar signedAmount)
   const handleExportExcel = () => {
     const exportData = [
-    ...data.map((m) => ({
-      Fecha: new Date(new Date(m.paymentDate || m.date).getTime() + 3 * 60 * 60 * 1000).toLocaleDateString(
-        "es-ES",
-        { timeZone: "America/Argentina/Buenos_Aires", day: "2-digit", month: "2-digit", year: "numeric" }
-      ),
-      Concepto: capitalizeFirstLetter(m.concept || "-"),
-      Monto: m.signedAmount || m.amount,
-      Método: capitalizeFirstLetter(m.paymentMethod || "-"),
-      Tipo: capitalizeFirstLetter(m.type || "-"),
-      Nombre: capitalizeFirstLetter(m.name || "-"),
-    })),
-    {
-      Fecha: "Neto",
-      Concepto: "",
-      Monto: netTotal,
-      Método: "",
-      Tipo: "",
-      Nombre: "",
-    },
-  ];
+      ...data.map((m) => ({
+        Fecha: new Date(new Date(m.paymentDate || m.date).getTime() + 3 * 60 * 60 * 1000).toLocaleDateString(
+          "es-ES",
+          { timeZone: "America/Argentina/Buenos_Aires", day: "2-digit", month: "2-digit", year: "numeric" }
+        ),
+        Monto: m.signedAmount || m.amount,
+        Método: capitalizeFirstLetter(m.paymentMethod || "-"),
+        Pago: m.type === "Cuota"
+          ? "Cuota"
+          : m.type === "Pago"
+            ? capitalizeFirstLetter(m.concept || "Otros")
+            : capitalizeFirstLetter(m.type || "-"),
+        Nombre: capitalizeFirstLetter(m.name || "-"),
+      })),
+      {
+        Fecha: "Neto",
+        Monto: netTotal,
+        Método: "",
+        Pago: "",
+        Nombre: "",
+      },
+    ];
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const headerStyle = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "e31fa8" } }, border: { style: "thin" }, alignment: { horizontal: "center" } };
     const cellStyle = { border: { style: "thin" }, alignment: { horizontal: "left" } };
     const totalRowStyle = { font: { bold: true }, fill: { fgColor: { rgb: "D3D3D3" } }, border: { style: "thin" }, alignment: { horizontal: "left" } };
 
-    const headers = ["Fecha", "Concepto", "Monto", "Método", "Tipo", "Nombre"];
+    const headers = ["Fecha", "Monto", "Método", "Pago", "Nombre"];
     headers.forEach((header, index) => {
       const cellRef = XLSX.utils.encode_cell({ r: 0, c: index });
       if (ws[cellRef]) ws[cellRef].s = headerStyle;
@@ -450,50 +452,53 @@ const EconomicMovements = () => {
           <div className="welcome-text">
             <h1>Movimientos Económicos</h1>
           </div>
-           <div className="stats-grid">
-                <div className="stat-card">
-                  <h3 className="titulo-card color-card">Alumnos Activos</h3>
-                  <p className="stat-value">{countStudentsByState('Activo') || 0}</p>
-                </div>
-                <div className="stat-card">
-                  <h3 className="titulo-card color-card">Alumnos Inactivos</h3>
-                  <p className="stat-value">{countStudentsByState('Inactivo') || 0}</p>
-                </div>
-                <div className="stat-card">
-                  <h3 className="titulo-card color-card">Cuotas Pendientes</h3>
-                  <p className="stat-value">{cuotasStatusCount.pendientes}</p>
-                </div>
-                <div className="stat-card">
-                  <h3 className="titulo-card color-card">Cuotas Vencidas</h3>
-                  <p className="stat-value">{cuotasStatusCount.vencidas}</p>
-                </div>
-              </div>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <h3 className="titulo-card color-card">Alumnos Activos</h3>
+              <p className="stat-value">{countStudentsByState('Activo') || 0}</p>
+            </div>
+            <div className="stat-card">
+              <h3 className="titulo-card color-card">Alumnos Inactivos</h3>
+              <p className="stat-value">{countStudentsByState('Inactivo') || 0}</p>
+            </div>
+            <div className="stat-card">
+              <h3 className="titulo-card color-card">Cuotas Pendientes</h3>
+              <p className="stat-value">{cuotasStatusCount.pendientes}</p>
+            </div>
+            <div className="stat-card">
+              <h3 className="titulo-card color-card">Cuotas Vencidas</h3>
+              <p className="stat-value">{cuotasStatusCount.vencidas}</p>
+            </div>
+          </div>
           <div className="filter-section-economic">
             <div className="filter-group">
               <h3>Rango de Fechas</h3>
               <div className="date-inputs">
-                <label>
-                  Desde:
-                  <input
-                    type="date"
-                    name="start"
-                    value={dateRange.start}
-                    onChange={handleDateChange}
-                    max={dateRange.end}
-                    disabled={isLoading}
-                  />
-                </label>
-                <label>
-                  Hasta:
-                  <input
-                    type="date"
-                    name="end"
-                    value={dateRange.end}
-                    onChange={handleDateChange}
-                    max={new Date().toISOString().split("T")[0]}
-                    disabled={isLoading}
-                  />
-                </label>
+                <div className="date-input-wrapper">
+                  <label>
+                    Desde:
+                    <input
+                      type="date"
+                      name="start"
+                      value={dateRange.start}
+                      onChange={handleDateChange}
+                      max={dateRange.end}
+                      disabled={isLoading}
+                    />
+                  </label>
+
+                  <label>
+                    Hasta:
+                    <input
+                      type="date"
+                      name="end"
+                      value={dateRange.end}
+                      onChange={handleDateChange}
+                      max={new Date().toISOString().split("T")[0]}
+                      disabled={isLoading}
+                    />
+                  </label>
+                </div>
                 <div className="quick-ranges">
                   <button className="quick-range-btn" onClick={() => handleQuickRange("today")} disabled={isLoading}>
                     Hoy
@@ -580,38 +585,39 @@ const EconomicMovements = () => {
                 <option value="Efectivo">Efectivo</option>
                 <option value="Transferencia">Transferencia</option>
               </select>
-            </div>
-            
-            <div className="filter-group">
-              <h3>Buscar por Nombre</h3>
-              <div className="search-input">
-                <FaSearch />
-                <input
-                  type="text"
-                  value={searchName}
-                  onChange={(e) => setSearchName(e.target.value)}
-                  placeholder="Buscar por nombre..."
-                  disabled={isLoading}
-                />
+
+              <div className="search-by-name">
+                <h3>Buscar por Nombre</h3>
+                <div className="search-input">
+                  <FaSearch />
+                  <input
+                    type="text"
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
+                    placeholder="Buscar por nombre..."
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
             </div>
-            <div className="filter-actions">
+            <div className="filter-actions-list-economic">
               <button className="quick-range-btn" onClick={resetFilters} disabled={isLoading}>
                 Resetear Filtros
               </button>
-              <button className="export-btn" onClick={handleExportExcel} disabled={isLoading || data.length === 0}>
+              <button className="quick-range-btn" onClick={handleExportExcel} disabled={isLoading || data.length === 0}>
                 <FaFileExport /> Exportar a Excel
               </button>
             </div>
           </div>
           <div className="summary-section">
-            <p><span role="img" aria-label="movimientos">📊</span> <strong>Total Movimientos:</strong> {data.length}</p>
             <p><span role="img" aria-label="neto">💰</span> <strong>Total Neto:</strong> ${netTotal.toLocaleString("es-ES")}</p>
-            <p><span role="img" aria-label="ingresos">⬆️</span> <strong>Total Ingresos:</strong> ${ (breakdown.cuotas.total + Object.values(breakdown.pagos).reduce((sum, c) => sum + c.total, 0) + breakdown.ingresos.total).toLocaleString("es-ES") }</p>
-            <p><span role="img" aria-label="egresos">⬇️</span> <strong>Total Egresos:</strong> ${ breakdown.egresos.total.toLocaleString("es-ES") }</p>
+            <p><span role="img" aria-label="ingresos">⬆️</span> <strong>Total Ingresos:</strong> ${(breakdown.cuotas.total + Object.values(breakdown.pagos).reduce((sum, c) => sum + c.total, 0) + breakdown.ingresos.total).toLocaleString("es-ES")}</p>
+            <p><span role="img" aria-label="egresos">⬇️</span> <strong>Total Egresos:</strong> ${breakdown.egresos.total.toLocaleString("es-ES")}</p>
+            <p><span role="img" aria-label="efectivo">💵</span> <strong>Total Efectivo:</strong> ${(breakdown.cuotas.efectivo + Object.values(breakdown.pagos).reduce((sum, c) => sum + c.efectivo, 0) + breakdown.ingresos.efectivo).toLocaleString("es-ES")}</p>
+            <p><span role="img" aria-label="transferencia">💳</span> <strong>Total Transferencia:</strong> ${(breakdown.cuotas.transferencia + Object.values(breakdown.pagos).reduce((sum, c) => sum + c.transferencia, 0) + breakdown.ingresos.transferencia).toLocaleString("es-ES")}</p>
           </div>
           <div className="breakdown-section">
-            <div>
+            <div >
               <h3><span role="img" aria-label="cuotas">🧾</span> Cuotas</h3>
               <p><strong>Total:</strong> <span role="img" aria-label="dinero">💵</span> ${breakdown.cuotas.total.toLocaleString("es-ES")}</p>
               <p><span role="img" aria-label="efectivo">💵</span> Efectivo: ${breakdown.cuotas.efectivo.toLocaleString("es-ES")}</p>
@@ -619,15 +625,22 @@ const EconomicMovements = () => {
             </div>
             <div>
               <h3><span role="img" aria-label="pagos">💸</span> Pagos por Concepto</h3>
-              {Object.entries(breakdown.pagos).length === 0 && <p style={{color:'#bdbdbd'}}>Sin pagos registrados</p>}
-              {Object.entries(breakdown.pagos).map(([concept, values]) => (
-                <div key={concept} style={{marginBottom:8}}>
-                  <h4><span role="img" aria-label="concepto">🏷️</span> {concept}</h4>
-                  <p><strong>Total:</strong> <span role="img" aria-label="dinero">💵</span> ${values.total.toLocaleString("es-ES")}</p>
-                  <p><span role="img" aria-label="efectivo">💵</span> Efectivo: ${values.efectivo.toLocaleString("es-ES")}</p>
-                  <p><span role="img" aria-label="transferencia">💳</span> Transferencia: ${values.transferencia.toLocaleString("es-ES")}</p>
+              {Object.keys(breakdown.pagos).length > 0 ? (
+                Object.entries(breakdown.pagos).map(([concept, values]) => (
+                  <div key={concept} >
+                    <h4><span role="img" aria-label="concepto">🏷️</span> {concept}</h4>
+                    <p><strong>Total:</strong> <span role="img" aria-label="dinero">💵</span> ${values.total.toLocaleString("es-ES")}</p>
+                    <p><span role="img" aria-label="efectivo">💵</span> Efectivo: ${values.efectivo.toLocaleString("es-ES")}</p>
+                    <p><span role="img" aria-label="transferencia">💳</span> Transferencia: ${values.transferencia.toLocaleString("es-ES")}</p>
+                  </div>
+                ))
+              ) : (
+                <div style={{ marginBottom: 8 }}>
+                  <p><strong>Total:</strong> <span role="img" aria-label="dinero">💵</span> $0</p>
+                  <p><span role="img" aria-label="efectivo">💵</span> Efectivo: $0</p>
+                  <p><span role="img" aria-label="transferencia">💳</span> Transferencia: $0</p>
                 </div>
-              ))}
+              )}
             </div>
             <div>
               <h3><span role="img" aria-label="ingresos">⬆️</span> Ingresos</h3>
@@ -647,10 +660,9 @@ const EconomicMovements = () => {
               <thead>
                 <tr>
                   <th>Fecha</th>
-                  <th>Concepto</th>
                   <th>Monto</th>
                   <th>Método</th>
-                  <th>Tipo</th>
+                  <th>Pago</th>
                   <th>Nombre</th>
                 </tr>
               </thead>
@@ -659,27 +671,32 @@ const EconomicMovements = () => {
                   <>
                     {paginatedData.map((item, index) => (
                       <tr key={index}>
-                   
-                          <td>
-                            {new Date(new Date(item.paymentDate || item.date).getTime() + 3 * 60 * 60 * 1000).toLocaleDateString(
-                              "es-ES",
-                              { timeZone: "America/Argentina/Buenos_Aires", day: "2-digit", month: "2-digit", year: "numeric" }
-                            )}
-                          </td>
-                        
-                        <td>{capitalizeFirstLetter(item.concept || "-")}</td>
+
+                        <td>
+                          {new Date(new Date(item.paymentDate || item.date).getTime() + 3 * 60 * 60 * 1000).toLocaleDateString(
+                            "es-ES",
+                            { timeZone: "America/Argentina/Buenos_Aires", day: "2-digit", month: "2-digit", year: "numeric" }
+                          )}
+                        </td>
+
                         <td>${(item.signedAmount || item.amount).toLocaleString("es-ES")}</td>
                         <td>{capitalizeFirstLetter(item.paymentMethod || "-")}</td>
-                        <td>{capitalizeFirstLetter(item.type || "-")}</td>
+                        <td>
+                          {item.type === "Cuota"
+                            ? "Cuota"
+                            : item.type === "Pago"
+                              ? capitalizeFirstLetter(item.concept || "Otros")
+                              : capitalizeFirstLetter(item.type || "-")
+                          }
+                        </td>
                         <td>{capitalizeFirstLetter(item.name || "-")}</td>
                       </tr>
                     ))}
                     <tr className="summary-row">
                       <td>Neto</td>
-                      <td></td>
-                     
-                        <td>${netTotal.toLocaleString("es-ES")}</td>
-                   
+
+                      <td>${netTotal.toLocaleString("es-ES")}</td>
+
                       <td></td>
                       <td></td>
                       <td></td>
@@ -687,7 +704,7 @@ const EconomicMovements = () => {
                   </>
                 ) : (
                   <tr className="empty-table-row">
-                    <td colSpan={6} className="empty-table-message">
+                    <td colSpan={5} className="empty-table-message">
                       {isLoading ? "Cargando movimientos..." : "No hay movimientos para los filtros seleccionados."}
                     </td>
                   </tr>
@@ -715,9 +732,9 @@ const EconomicMovements = () => {
             </div>
           )}
         </main>
-     
-        </div>
+
       </div>
+    </div>
 
   );
 };

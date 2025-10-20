@@ -48,6 +48,13 @@ app.use(cors({
 }));
 app.use(cookieParser());
 
+// NUEVO: Middleware para timeouts en requests (30 segundos max)
+app.use((req, res, next) => {
+  req.setTimeout(30000); // Timeout para la request
+  res.setTimeout(30000); // Timeout para la response
+  next();
+});
+
 // Configura rateLimit con trustProxy explícito
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos

@@ -450,7 +450,6 @@ const EmailNotification = () => {
            
             <div className="search-wrapper">
               <div className="search-container">
-                <FaSearch className="search-icon" />
                 <input
                   type="text"
                   value={searchTerm}

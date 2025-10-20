@@ -464,17 +464,6 @@ const Student = () => {
     navigate(`/detailstudent/${studentId}${queryString ? `?${queryString}` : ''}`);
   };
 
-  if (loading) {
-    return (
-      <div className="app-container">
-        <div className="loading-overlay">
-          <Spinner animation="border" variant="primary" />
-          <p>Cargando estudiantes...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={`app-container ${windowWidth <= 576 ? "mobile-view" : ""}`}>
       {windowWidth <= 576 && (
@@ -688,13 +677,7 @@ const Student = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan="6" className="empty-table-message">
-                        Cargando estudiantes...
-                      </td>
-                    </tr>
-                  ) : currentStudents.length > 0 ? (
+                  {currentStudents.length > 0 ? (
                     currentStudents.map((estudiante, index) => (
                       <tr
                         key={estudiante._id}
@@ -791,6 +774,7 @@ const Student = () => {
             handleChange={handleChange}
             formData={formData}
           />
+         
         </main>
       </div>
     </div>

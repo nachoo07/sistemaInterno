@@ -102,12 +102,8 @@ const StudentDetail = () => {
     navigate(`/student${location.search}`);
   };
 
-  if (loading) {
-    return <div className="loading-text">Cargando...</div>;
-  }
-
   if (!selectedStudent || selectedStudent._id !== id) {
-    return <div className="loading-text">Estudiante no encontrado</div>;
+    return ;
   }
 
   return (

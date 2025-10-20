@@ -11,14 +11,14 @@
 
 .filter-section-economic {
   margin-bottom: 28px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 12px #e7e7e7;
-  padding: 24px 18px 10px 18px;
+  padding: 24px;
+  position: relative;
 }
 
 
@@ -112,12 +112,52 @@
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   background: #f9f6fa;
   border-radius: 8px;
-  padding: 14px 12px 10px 12px;
-  min-width: 180px;
+  padding: 16px;
   box-shadow: 0 1px 4px #f3e6f1;
+  transition: all 0.2s ease;
+}
+
+.filter-group:hover {
+  box-shadow: 0 2px 8px rgba(234, 38, 143, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Elementos de formulario dentro de filter-group */
+.filter-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.filter-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #ea268f;
+  cursor: pointer;
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border: 1.5px solid #ea268f;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #333;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: #b71b6e;
+  box-shadow: 0 0 0 2px rgba(234, 38, 143, 0.1);
 }
 
 .filter-group h3 {
@@ -129,35 +169,43 @@
 
 
 .date-inputs {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 12px;
-  align-items: center;
+  margin-bottom: 12px;
 }
 
 .date-inputs label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 0.98rem;
+  gap: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
 }
 
+.date-input-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 6px;
+}
 
 .quick-ranges {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-top: 23px;
+  margin-top: 18px;
 }
 
 .quick-ranges .quick-range-btn {
-  padding: 8px 14px;
+  padding: 4px 7px;
   background: linear-gradient(90deg, #e31fa8 60%, #b71b6e 100%);
   color: #fff;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.98rem;
+  font-size: 15px;
   transition: background 0.2s;
 }
 
@@ -193,6 +241,17 @@
   margin-top: 8px;
 }
 
+/* Sección de acciones principales (resetear y exportar) */
+.filter-actions-list-economic {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f0e6f3;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -226,19 +285,23 @@
   box-shadow: 0 2px 12px #e7e7e7;
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 10px;
   align-items: center;
   justify-content: flex-start;
 }
 
 .summary-section p {
-  margin: 0 18px 0 0;
+  margin: 0 5px 0 0;
   font-size: 1.08rem;
   color: #b71b6e;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.search-by-name {
+  margin-top: 45px;
 }
 
 
@@ -292,6 +355,18 @@
   padding: 8px;
   margin: 0px;
 }
+@media (max-width: 768px) and (min-width: 577px) {
+  .filter-section-economic {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 20px 16px;
+  }
+
+  .filter-actions-list-economic {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 576px) {
   .sidebar {
     display: none;
@@ -308,10 +383,24 @@
   }
 
   .filter-section-economic {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px 12px;
+  }
+
+  .date-inputs {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .quick-ranges {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .filter-actions-list-economic {
+    flex-direction: row;
     gap: 12px;
-    padding: 12px 6px 6px 6px;
   }
 
   .filter-section-economic input[type="date"],
@@ -337,8 +426,11 @@
   }
 
   .filter-group {
-    min-width: unset;
-    padding: 8px 4px 4px 4px;
+    padding: 12px;
+  }
+
+  .filter-group h3 {
+    font-size: 1rem;
   }
 
    .stats-grid {
@@ -348,14 +440,20 @@
     .stat-card {
     padding: 10px;
   }
+
+  .breakdown-section {
+    flex-direction: column;
+    height: 440px;
+    gap: 12px;
+  }
+
 }
 
 .breakdown-section {
   margin-bottom: 24px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
 }
+
 
 .breakdown-section > div, .breakdown-section > h3, .breakdown-section > h2, .breakdown-section > p {
   flex: 1 1 220px;

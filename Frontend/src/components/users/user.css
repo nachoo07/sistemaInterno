@@ -483,13 +483,6 @@
     margin: 0px;
   }
 
-
-
-  .pagination-btn {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-
   .filter-actions {
     flex-direction: row !important;
     margin-top: 10px !important;

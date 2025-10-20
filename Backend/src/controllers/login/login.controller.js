@@ -72,10 +72,16 @@ export const loginUser = async (req, res) => {
             user: { name: user.name, role: user.role, mail: user.mail }
         });
     } catch (error) {
-        logger.error({ error: error.message, mail }, 'Error en login');
-        res.status(500).json({ message: 'Error al iniciar sesión' });
+    logger.error({ error: error.message, mail }, 'Error en login');
+    // NUEVO: Detecta errores de conexión (DB o red)
+    if (error.name === 'MongoNetworkError' || 
+        error.message.includes('connection') || 
+        error.message.includes('ETIMEDOUT')) {
+        return res.status(503).json({ message: 'Error de conexión al servidor. Verifica tu internet.' });
     }
+    res.status(500).json({ message: 'Error al iniciar sesión' });
 };
+}
 
 // Logout
 export const logout = (req, res) => {
@@ -102,6 +108,12 @@ export const logout = (req, res) => {
         res.status(200).json({ message: 'Usuario deslogueado exitosamente' });
     } catch (error) {
         logger.error({ error: error.message }, 'Error durante el logout');
+        // NUEVO: Detecta errores de conexión
+        if (error.name === 'MongoNetworkError' || 
+            error.message.includes('connection') || 
+            error.message.includes('ETIMEDOUT')) {
+            return res.status(503).json({ message: 'Error de conexión al servidor. Verifica tu internet.' });
+        }
         res.status(500).json({ message: 'Error durante logout' });
     }
 };
@@ -142,10 +154,16 @@ export const refreshAccessToken = async (req, res) => {
         logger.info({ userId: decoded.userId }, 'Access token refrescado');
         res.status(200).json({ message: 'Access token refrescado' });
     } catch (error) {
-        logger.error({ error: error.message }, 'Error al refrescar token');
-        if (error.name === 'TokenExpiredError') {
-            return res.status(403).json({ message: 'Refresh token expirado, por favor inicie sesión nuevamente' });
-        }
-        return res.status(403).json({ message: 'Refresh token inválido, por favor inicie sesión nuevamente' });
+    logger.error({ error: error.message }, 'Error al refrescar token');
+    // NUEVO: Detecta errores de conexión
+    if (error.name === 'MongoNetworkError' || 
+        error.message.includes('connection') || 
+        error.message.includes('ETIMEDOUT')) {
+        return res.status(503).json({ message: 'Error de conexión al servidor. Verifica tu internet.' });
     }
+    if (error.name === 'TokenExpiredError') {
+        return res.status(403).json({ message: 'Refresh token expirado, por favor inicie sesión nuevamente' });
+    }
+    return res.status(403).json({ message: 'Refresh token inválido, por favor inicie sesión nuevamente' });
 };
+}

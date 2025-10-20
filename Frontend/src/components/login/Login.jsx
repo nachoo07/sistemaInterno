@@ -2,12 +2,13 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Button } from 'react-bootstrap';
 import { LoginContext } from '../../context/login/LoginContext';
+import { FaExclamationTriangle, FaTimesCircle, FaWifi } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './login.css';
 import logo from "../../assets/logoyoclaudio.png";
 
 const Login = () => {
-    const { login, auth } = useContext(LoginContext);
+    const { login, auth, isOffline } = useContext(LoginContext); // Agregado: isOffline del contexto
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -37,9 +38,17 @@ const Login = () => {
             }
         } catch (err) {
             console.error('Error en login:', err);
-            setError(err || 'Error al iniciar sesión');
+            setError(err.message || err || 'Error al iniciar sesión'); // Captura el mensaje específico de offline o error
         }
     };
+
+    // Componente para alert personalizado
+    const CustomAlert = ({ type, message, icon }) => (
+        <div className={`login-alert login-alert-${type}`}>
+            <span className="login-alert-icon">{icon}</span>
+            {message}
+        </div>
+    );
 
     return (
         <div className="login-page-container">
@@ -51,6 +60,7 @@ const Login = () => {
                 <div className="login-page-title-container">
                     <h2 className="login-page-title">Bienvenido</h2>
                 </div>
+
                 <Form onSubmit={handleSubmit} className="login-page-form">
                     <Form.Group className="login-page-form-input" controlId="emailInput">
                         <Form.Label className="login-page-form-label">Usuario</Form.Label>
@@ -74,10 +84,30 @@ const Login = () => {
                         />
                     </Form.Group>
 
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    {/* Alerts personalizados */}
+                    {error && (
+                        <CustomAlert 
+                            type="error" 
+                            message={error} 
+                            icon={<FaTimesCircle />} 
+                        />
+                    )}
+                    
+                    {isOffline && (
+                        <CustomAlert 
+                            type="warning" 
+                            message="Sin conexión a internet. Verifica tu conexión e inténtalo de nuevo." 
+                            icon={<FaWifi />} 
+                        />
+                    )}
 
                     <div className="login-page-button-container">
-                        <Button variant="primary" type="submit" className="login-page-submit-button">
+                        <Button 
+                            variant="primary" 
+                            type="submit" 
+                            className="login-page-submit-button"
+                            disabled={isOffline} // Deshabilita si está offline
+                        >
                             Iniciar sesión
                         </Button>
                     </div>
