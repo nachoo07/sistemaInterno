@@ -25,10 +25,14 @@ const shareSchema = new mongoose.Schema({
     enum: ['Efectivo', 'Tarjeta', 'Transferencia'],
     required: function () { return this.state === 'Pagado'; }
   },
-
   paymentdate: {
     type: Date,
     required: function () { return this.state === 'Pagado'; }
+  },
+  proofUrl: {
+    type: String,
+    trim: true,
+    default: ''
   },
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,

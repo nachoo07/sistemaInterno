@@ -2,7 +2,7 @@
 import Student from '../../models/student/student.model.js';
 import Share from '../../models/share/share.model.js';
 import Attendance from '../../models/attendance/attendance.model.js';
-import { Payment } from '../../models/payment/payment.model.js';
+import Payment from '../../models/payment/payment.model.js';
 import mongoose from 'mongoose';
 import multer from 'multer';
 import cloudinary from 'cloudinary';

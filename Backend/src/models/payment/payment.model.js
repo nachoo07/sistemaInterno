@@ -49,3 +49,4 @@ const PaymentConcept = mongoose.model('PaymentConcept', paymentConceptSchema);
 
 // Exportar ambos modelos
 export { Payment, PaymentConcept };
+export default Payment;
