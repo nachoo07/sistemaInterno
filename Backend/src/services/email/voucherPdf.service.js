@@ -30,8 +30,34 @@ const formatAmount = (amount) => {
   const cacheKey = `amount_${amount}`;
   if (formatCache.has(cacheKey)) return formatCache.get(cacheKey);
 
-  const numericAmount = amount.toString().replace(/CLP/gi, "").trim();
-  const numAmount = parseFloat(numericAmount.replace(/\./g, "").replace(",", "."));
+  if (typeof amount === "number" && Number.isFinite(amount)) {
+    const formattedNumber = `$${amount.toLocaleString("es-AR")}`;
+    formatCache.set(cacheKey, formattedNumber);
+    return formattedNumber;
+  }
+
+  const sanitizedAmount = String(amount)
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(/[^\d,.-]/g, "");
+
+  if (!sanitizedAmount) return "N/A";
+
+  let normalizedNumeric = sanitizedAmount;
+
+  if (sanitizedAmount.includes(",")) {
+    normalizedNumeric = sanitizedAmount.replace(/\./g, "").replace(",", ".");
+  } else if (sanitizedAmount.includes(".")) {
+    const dotParts = sanitizedAmount.split(".");
+    if (dotParts.length > 2) {
+      normalizedNumeric = sanitizedAmount.replace(/\./g, "");
+    } else {
+      const [left, right] = dotParts;
+      normalizedNumeric = right && right.length === 3 ? `${left}${right}` : sanitizedAmount;
+    }
+  }
+
+  const numAmount = Number(normalizedNumeric);
 
   if (isNaN(numAmount)) return "N/A";
 

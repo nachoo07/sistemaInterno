@@ -124,7 +124,7 @@ export const sendEmail = async (req, res) => {
     initEmailProgress({ progressId, total });
 
     const mailOptions = buildMailOptions({
-      to: buildFromAddress(),
+      to: "undisclosed-recipients:;",
       subject: normalizedEmail.subject,
       message: normalizedEmail.message,
     });

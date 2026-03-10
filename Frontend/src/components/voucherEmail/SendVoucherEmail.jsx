@@ -71,7 +71,7 @@ const SendVoucherEmail = ({
             ? new Date(cuota.date).toLocaleString('es-ES', { month: 'long', year: 'numeric', timeZone: 'America/Argentina/Tucuman' }).replace(/^\w/, (c) => c.toUpperCase())
             : 'N/A',
           amount: cuota.amount !== undefined && cuota.amount !== null
-            ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(cuota.amount)
+            ? Number(cuota.amount)
             : 'N/A',
           paymentmethod: cuota.paymentmethod || 'N/A',
           paymentdate: cuota.paymentdate,
