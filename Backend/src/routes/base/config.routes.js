@@ -5,15 +5,21 @@ import { protect, admin } from '../../middlewares/login/protect.js';
 
 const router = express.Router();
 
-router.get('/:key', [
-    param('key').notEmpty().withMessage('Key is required'),
-    protect, admin
+router.get('/:key', protect, admin, [
+    param('key').isString().trim().notEmpty().withMessage('Key is required'),
   ], getConfig);
-  
-  router.post('/set', [
-    body('key').notEmpty().withMessage('Key is required'),
-    body('value').notEmpty().withMessage('Value is required'),
-    protect, admin
+
+router.put('/:key', protect, admin, [
+    param('key').isString().trim().notEmpty().withMessage('Key is required'),
+    body('value').exists().withMessage('Value is required')
+  ], (req, _res, next) => {
+    req.body.key = req.params.key;
+    next();
+  }, setConfig);
+
+router.post('/set', protect, admin, [
+    body('key').isString().trim().notEmpty().withMessage('Key is required'),
+    body('value').exists().withMessage('Value is required'),
   ], setConfig);
 
 export default router;

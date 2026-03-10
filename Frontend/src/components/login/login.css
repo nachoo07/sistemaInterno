@@ -80,6 +80,36 @@
     transform: translateY(-2px);
 }
 
+.login-password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.login-password-wrapper input {
+    padding-right: 48px;
+}
+
+.login-password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #b71b6e;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.login-password-toggle:disabled {
+    color: #b8b8b8;
+    cursor: not-allowed;
+}
+
 .login-page-form input::placeholder {
     color: rgba(51, 51, 51, 0.6);
     font-size: 14px;

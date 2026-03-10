@@ -1,20 +1,19 @@
 // Users.js
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  FaSearch, FaBars, FaList, FaTimes, FaUsers, FaClipboardList, FaMoneyBill, FaExchangeAlt,
-  FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle,
-  FaChevronDown, FaPlus, FaEdit, FaTrash, FaTimes as FaTimesClear
-} from 'react-icons/fa';
+import { FaSearch, FaPlus, FaTimes, FaTimes as FaTimesClear } from "react-icons/fa";
+import { FiEdit3, FiTrash2 } from "react-icons/fi";
 import { UsersContext } from '../../context/user/UserContext';
 import Swal from 'sweetalert2';
 import './user.css';
 import AppNavbar from '../navbar/AppNavbar';
 import { LoginContext } from '../../context/login/LoginContext';
 import logo from "../../assets/logoyoclaudio.png";
+import DesktopNavbar from '../navbar/DesktopNavbar';
+import Sidebar from '../sidebar/Sidebar';
 
 const Users = () => {
-  const { usuarios, obtenerUsuarios, addUsuarioAdmin, updateUsuarioAdmin, deleteUsuarioAdmin } = useContext(UsersContext);
+  const { usuarios, obtenerUsuarios, addUsuarioAdmin, updateUsuarioAdmin, deleteUsuarioAdmin, isLoading = false } = useContext(UsersContext);
   const { userData, logout, auth } = useContext(LoginContext);
   const navigate = useNavigate();
   const profileRef = useRef(null);
@@ -22,6 +21,7 @@ const Users = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterState, setFilterState] = useState('todos');
   const [formData, setFormData] = useState({
     name: '',
     mail: '',
@@ -33,19 +33,7 @@ const Users = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const usersPerPage = 10;
-
-  const menuItems = [
-    { name: 'Inicio', route: '/', icon: <FaHome />, category: 'principal' },
-    { name: 'Alumnos', route: '/student', icon: <FaUsers />, category: 'principal' },
-    { name: 'Cuotas', route: '/share', icon: <FaMoneyBill />, category: 'finanzas' },
-    { name: 'Reporte', route: '/listeconomic', icon: <FaList />, category: 'finanzas' },
-    { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt />, category: 'finanzas' },
-    { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal' },
-    { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },
-    { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion' },
-    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' },
-    { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes' }
-  ];
+  const FILTER_OPTIONS = ["todos", "activo", "inactivo"];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -58,7 +46,6 @@ const Users = () => {
   }, []);
 
   useEffect(() => {
-    obtenerUsuarios();
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
@@ -71,7 +58,7 @@ const Users = () => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [obtenerUsuarios]);
+  }, []);
 
   const handleClose = () => {
     setShow(false);
@@ -142,6 +129,25 @@ const Users = () => {
     }
   };
 
+  const usersCountByState = useMemo(() => {
+    return usuarios.reduce((acc, usuario) => {
+      acc.todos += 1;
+      if (usuario.state) {
+        acc.activo += 1;
+      } else {
+        acc.inactivo += 1;
+      }
+      return acc;
+    }, { todos: 0, activo: 0, inactivo: 0 });
+  }, [usuarios]);
+
+  const activeAdminsCount = useMemo(
+    () => usuarios.filter((u) => u.role === "admin" && !!u.state).length,
+    [usuarios]
+  );
+
+  const totalUsersCount = useMemo(() => usuarios.length, [usuarios]);
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -176,6 +182,14 @@ const Users = () => {
   };
 
   const handleDelete = async (id) => {
+    const usuario = usuarios.find((u) => String(u._id) === String(id));
+    if (!usuario) return;
+
+    if (totalUsersCount <= 1) {
+      Swal.fire('Restricción', 'Debe quedar al menos un usuario cargado.', 'warning');
+      return;
+    }
+
     try {
       await deleteUsuarioAdmin(id);
       await obtenerUsuarios(); // Refrescar la lista
@@ -193,12 +207,26 @@ const Users = () => {
     setCurrentPage(1);
   };
 
-  const filteredUsers = usuarios.filter((usuario) =>
-    usuario.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
-      searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    ) ||
-    usuario.mail.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleFilterChange = (nextFilter) => {
+    setFilterState(nextFilter);
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setFilterState('todos');
+    setCurrentPage(1);
+  };
+
+  const filteredUsers = usuarios.filter((usuario) => {
+    const normalizedSearch = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const normalizedName = usuario.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    const matchesSearch = normalizedName.includes(normalizedSearch) || usuario.mail.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesState = filterState === 'todos' || (filterState === 'activo' ? !!usuario.state : !usuario.state);
+
+    return matchesSearch && matchesState;
+  });
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage) || 1;
   const indexOfLastUser = currentPage * usersPerPage;
@@ -225,136 +253,97 @@ const Users = () => {
     }
   };
 
+  const getDeleteDisabledReason = (usuario) => {
+    if (usuario.fixed) return 'Este usuario no puede ser eliminado';
+    if (userData?.id && String(userData.id) === String(usuario._id)) {
+      return 'No puedes eliminar el usuario con sesión activa';
+    }
+    if (totalUsersCount <= 1) {
+      return 'Debe quedar al menos un usuario cargado';
+    }
+    if (usuario.role === 'admin' && !!usuario.state && activeAdminsCount <= 1) {
+      return 'Debe quedar al menos un administrador activo';
+    }
+    return '';
+  };
+
   return (
     <div className={`app-container ${windowWidth <= 576 ? 'mobile-view' : ''}`}>
       {windowWidth <= 576 && (
-        <AppNavbar
-          isMenuOpen={isMenuOpen}
-          setIsMenuOpen={setIsMenuOpen}
-          searchQuery={searchTerm}
-          setSearchQuery={setSearchTerm}
+        <AppNavbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} searchQuery={searchTerm} setSearchQuery={setSearchTerm} />
+      )}
+       {windowWidth > 576 && (
+        <DesktopNavbar
+          logoSrc={logo}
+          showSearch={true}
         />
       )}
-      {windowWidth > 576 && (
-        <header className="desktop-nav-header">
-          <div className="header-logo" onClick={() => navigate('/')}>
-            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
-          </div>
-          <div className="search-box">
-            <FaSearch className="search-symbol" />
-            <input
-              type="text"
-              placeholder="Buscar usuarios..."
-              className="search-field"
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-          </div>
-          <div className="nav-right-section">
-            <div
-              className="profile-container"
-              ref={profileRef}
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-            >
-              <FaUserCircle className="profile-icon" />
-              <span className="profile-greeting">
-                Hola, {userData?.name || 'Usuario'}
-              </span>
-              <FaChevronDown className={`arrow-icon ${isProfileOpen ? 'rotated' : ''}`} />
-              {isProfileOpen && (
-                <div className="profile-menu">
-                  <div
-                    className="menu-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/user');
-                      setIsProfileOpen(false);
-                    }}
-                  >
-                    <FaUserCog className="option-icon" /> Mi Perfil
-                  </div>
-                  <div
-                    className="menu-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/settings');
-                      setIsProfileOpen(false);
-                    }}
-                  >
-                    <FaCog className="option-icon" /> Configuración
-                  </div>
-                  <div className="menu-separator"></div>
-                  <div
-                    className="menu-option logout-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLogout();
-                      setIsProfileOpen(false);
-                    }}
-                  >
-                    <FaUserCircle className="option-icon" /> Cerrar Sesión
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-      )}
       <div className="dashboard-layout">
-        <aside className={`sidebar ${isMenuOpen ? 'open' : 'closed'}`}>
-          <nav className="sidebar-nav">
-            <div className="sidebar-section">
-              <button className="menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                {isMenuOpen ? <FaTimes /> : <FaBars />}
-              </button>
-              <ul className="sidebar-menu">
-                {menuItems.map((item, index) => (
-                  <li
-                    key={index}
-                    className={`sidebar-menu-item ${item.route === '/user' ? 'active' : ''}`}
-                    onClick={() => item.action ? item.action() : navigate(item.route)}
-                  >
-                    <span className="menu-icon">{item.icon}</span>
-                    <span className="menu-text">{item.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </nav>
-        </aside>
+        <Sidebar
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+          activeRoute="/user"
+        />
         <main className="main-content">
-          <section className="dashboard-welcome-user">
-            <div className="welcome-text">
-              <h1 className="titulo-panel-alumnos">Panel de Usuarios</h1>
-            </div>
+        
             <div className="filter-actions">
-              <button className="add-btn-student" onClick={handleShowAddUser}>
-                <FaPlus /> Agregar Usuario
-              </button>
-            </div>
-          </section>
-          {windowWidth <= 576 && (
-            <section className="mobile-search-section">
-              <div className="mobile-search-container">
-                <FaSearch className="mobile-search-icon" />
+              <div className="search-box">
+                <FaSearch className="search-symbol" />
                 <input
                   type="text"
-                  placeholder="Buscar usuarios..."
-                  className="mobile-search-input"
+                  className="search-field"
+                  placeholder="Buscar por nombre o mail"
                   value={searchTerm}
                   onChange={handleSearchChange}
                 />
                 {searchTerm && (
                   <button
+                    type="button"
                     className="mobile-search-clear"
-                    onClick={() => setSearchTerm('')}
+                    onClick={() => {
+                      setSearchTerm('');
+                      setCurrentPage(1);
+                    }}
+                    disabled={isLoading}
+                    aria-label="Limpiar búsqueda"
                   >
                     <FaTimesClear />
                   </button>
                 )}
               </div>
-            </section>
-          )}
+              <button className="add-btn-student" onClick={handleShowAddUser}>
+                <FaPlus /> Agregar Usuario
+              </button>
+            </div>
+        
+
+          <section className="students-filter">
+            <div className="filter-actions-user">
+              <div className="checkbox-filters" role="tablist" aria-label="Filtro de estado de usuarios">
+                {FILTER_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`filter-pill ${filterState === option ? "active" : ""}`}
+                    onClick={() => handleFilterChange(option)}
+                    aria-pressed={filterState === option}
+                    disabled={isLoading}
+                  >
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                    <span className="filter-count">{usersCountByState[option] || 0}</span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="filter-reset"
+                  onClick={handleClearFilters}
+                  disabled={isLoading || (!searchTerm && filterState === "todos")}
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            </div>
+          </section>
           <section className="users-table-section">
             <div className="table-wrapper">
               <table className="users-table">
@@ -378,22 +367,31 @@ const Users = () => {
                         <td>{getRoleName(usuario.role)}</td>
                         <td>{usuario.state ? 'Activo' : 'Inactivo'}</td>
                         <td className="action-buttons">
+                          {(() => {
+                            const deleteDisabledReason = getDeleteDisabledReason(usuario);
+                            const isDeleteDisabled = !!deleteDisabledReason;
+
+                            return (
+                              <>
                           <button
-                            className="action-btn-user"
+                            className="action-btn-student action-edit"
                             onClick={() => handleEdit(usuario._id)}
                             disabled={usuario.fixed}
                             title="Editar"
                           >
-                            <FaEdit />
+                            <FiEdit3 />
                           </button>
                           <button
-                            className="action-btn-user"
+                            className="action-btn-student action-delete"
                             onClick={() => handleDelete(usuario._id)}
-                            disabled={usuario.fixed}
-                            title="Eliminar"
+                            disabled={isDeleteDisabled}
+                            title={isDeleteDisabled ? deleteDisabledReason : 'Eliminar'}
                           >
-                            <FaTrash />
+                            <FiTrash2 />
                           </button>
+                              </>
+                            );
+                          })()}
                         </td>
                       </tr>
                     ))

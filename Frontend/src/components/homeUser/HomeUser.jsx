@@ -8,8 +8,10 @@ import { LoginContext } from '../../context/login/LoginContext';
 import "./homeUser.css"
 import AppNavbar from '../navbar/AppNavbar';
 import logo from '../../assets/logoyoclaudio.png';
-const HomeUser = () => {
+import DesktopNavbar from '../navbar/DesktopNavbar';
+import Sidebar from '../sidebar/Sidebar';
 
+const HomeUser = () => {
   const navigate = useNavigate();
   const { auth, logout, userData } = useContext(LoginContext);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
@@ -70,100 +72,24 @@ const HomeUser = () => {
 
   return (
     <div className={`app-container ${window.innerWidth <= 576 ? 'mobile-view' : ''}`}>
-      {window.innerWidth <= 576 && (
-        <AppNavbar
-          isMenuOpen={isMenuOpen}
-          setIsMenuOpen={setIsMenuOpen}
+       {windowWidth <= 576 && (
+        <AppNavbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen}/>
+      )}
+       {windowWidth > 576 && (
+        <DesktopNavbar
+          logoSrc={logo}
+          showSearch={true}
         />
       )}
-      {window.innerWidth > 576 && (
-        <header className="desktop-nav-header">
-          <div className="header-logo" onClick={() => navigate('/')}>
-            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
-          </div>
-
-          <div className="search-box">
-            <FaSearch className="search-symbol" />
-            <input
-              type="text"
-              placeholder="Buscar módulos..."
-              className="search-field"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="nav-right-section">
-            <div
-              className="profile-container"
-              ref={profileRef}
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-            >
-              <FaUserCircle className="profile-icon" />
-              <span className="profile-greeting">
-                Hola, {userData?.name || 'Usuario'}
-              </span>
-              <FaChevronDown className={`arrow-icon ${isProfileOpen ? 'rotated' : ''}`} />
-              {isProfileOpen && (
-                <div className="profile-menu">
-                  <div
-                    className="menu-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/user');
-                      setIsProfileOpen(false);
-                    }}
-                  >
-                    <FaUserCog className="option-icon" /> Mi Perfil
-                  </div>
-                  <div className="menu-separator"></div>
-                  <div
-                    className="menu-option logout-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLogout();
-                      setIsProfileOpen(false);
-                    }}
-                  >
-                    <FaUserCircle className="option-icon" /> Cerrar Sesión
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-      )
-      }
       <div className="dashboard-layout">
-        <aside className={`sidebar ${isMenuOpen ? 'open' : 'closed'}`}>
-          <nav className="sidebar-nav">
-            <div className="sidebar-section">
-              <button className="menu-toggle" onClick={toggleMenu}>
-                {isMenuOpen ? <FaTimes /> : <FaBars />}
-              </button>
-              <ul className="sidebar-menu">
-                {menuItems.map((item, index) => (
-                  <li
-                    key={index}
-                    className={`sidebar-menu-item `}
-                    onClick={() => item.action ? item.action() : navigate(item.route)}
-                  >
-                    <span className="menu-icon">{item.icon}</span>
-                    <span className="menu-text">{item.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </nav>
-        </aside>
+         <Sidebar
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+          activeRoute="/homeuser"
+        />
         <main className="main-content">
           <div className="content-columns">
             <div className="main-column">
-              <section className="dashboard-welcome">
-                <div className="welcome-text">
-                  <h1>Bienvenido al Sistema</h1>
-                  <p>Panel de control | <span className="current-date">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
-                </div>
-              </section>
               <section className="dashboard-modules">
                 <div className="modules-container">
                   <h2 className="section-title">Módulos del Sistema</h2>

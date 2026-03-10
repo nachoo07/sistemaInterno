@@ -1,5 +1,5 @@
 import { createContext, useState, useCallback, useContext, useEffect } from 'react';
-import axios from 'axios';
+import client from '../../api/axios';
 import { LoginContext } from '../login/LoginContext';
 
 export const PaymentContext = createContext();
@@ -7,51 +7,82 @@ export const PaymentContext = createContext();
 export const PaymentProvider = ({ children }) => {
   const [payments, setPayments] = useState([]);
   const [concepts, setConcepts] = useState([]);
-  const [loadingPayments, setLoadingPayments] = useState(false);
-  const [loadingConcepts, setLoadingConcepts] = useState(false);
+  const [pendingPaymentsRequests, setPendingPaymentsRequests] = useState(0);
+  const [pendingConceptsRequests, setPendingConceptsRequests] = useState(0);
   const { auth, authReady } = useContext(LoginContext);
+  const loadingPayments = pendingPaymentsRequests > 0;
+  const loadingConcepts = pendingConceptsRequests > 0;
+
+  const startPaymentsRequest = useCallback(() => {
+    setPendingPaymentsRequests((prev) => prev + 1);
+  }, []);
+
+  const endPaymentsRequest = useCallback(() => {
+    setPendingPaymentsRequests((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  const startConceptsRequest = useCallback(() => {
+    setPendingConceptsRequests((prev) => prev + 1);
+  }, []);
+
+  const endConceptsRequest = useCallback(() => {
+    setPendingConceptsRequests((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  const withPaymentsRequest = useCallback(async (requestFn) => {
+    startPaymentsRequest();
+    try {
+      return await requestFn();
+    } finally {
+      endPaymentsRequest();
+    }
+  }, [startPaymentsRequest, endPaymentsRequest]);
+
+  const withConceptsRequest = useCallback(async (requestFn) => {
+    startConceptsRequest();
+    try {
+      return await requestFn();
+    } finally {
+      endConceptsRequest();
+    }
+  }, [startConceptsRequest, endConceptsRequest]);
 
   const fetchConcepts = useCallback(async () => {
-  if (!authReady || auth !== 'admin') {
-    setConcepts([]);
-    return [];
-  }
-  try {
-    setLoadingConcepts(true);
-    const response = await axios.get('/api/payments/concepts', {
-      withCredentials: true,
-    });
-    const data = Array.isArray(response.data) ? response.data : [];
-    setConcepts(data);
-    return data;
-  } catch (error) {
-    console.error('fetchConcepts: Error fetching concepts:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    });
-    setConcepts([]);
-    return [];
-  } finally {
-    setLoadingConcepts(false);
-  }
-}, [auth, authReady]);
+    if (!authReady || auth !== 'admin') {
+      setConcepts([]);
+      return [];
+    }
+    try {
+      const response = await withConceptsRequest(() => client.get('/payments/concepts'));
+      const data = Array.isArray(response.data) ? response.data : [];
+      setConcepts(data);
+      return data;
+    } catch (error) {
+      console.error('fetchConcepts: Error fetching concepts:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      setConcepts([]);
+      return [];
+    }
+  }, [auth, authReady, withConceptsRequest]);
 
-useEffect(() => {
-  if (!auth || !authReady) {
-    setPayments([]);
-    setConcepts([]);
-  }
-}, [auth, authReady]);
+  useEffect(() => {
+    if (!auth || !authReady) {
+      setPayments([]);
+      setConcepts([]);
+      setPendingPaymentsRequests(0);
+      setPendingConceptsRequests(0);
+    }
+  }, [auth, authReady]);
 
   const createConcept = useCallback(async (name) => {
     if (!authReady || auth !== 'admin') {
       return null;
     }
     try {
-      const response = await axios.post('/api/payments/concepts', { name }, {
-        withCredentials: true,
-      });
+      const response = await withConceptsRequest(() => client.post('/payments/concepts', { name }));
       const newConcept = response.data.concept;
       setConcepts((prev) => [...prev, newConcept]);
       return newConcept;
@@ -59,7 +90,7 @@ useEffect(() => {
       console.error('createConcept: Error creating concept:', error.response?.data || error.message);
       throw error;
     }
-  }, [auth, authReady]);
+  }, [auth, authReady, withConceptsRequest]);
 
   const deleteConcept = useCallback(async (conceptId) => {
     if (!authReady || auth !== 'admin') {
@@ -70,9 +101,7 @@ useEffect(() => {
       throw new Error('ID de concepto inválido');
     }
     try {
-      const response = await axios.delete(`/api/payments/concepts/${conceptId}`, {
-        withCredentials: true,
-      });
+      await withConceptsRequest(() => client.delete(`/payments/concepts/${conceptId}`));
       setConcepts((prev) => {
         return prev.filter((concept) => concept._id !== conceptId);
       });
@@ -84,21 +113,16 @@ useEffect(() => {
       });
       throw error;
     }
-  }, [auth, authReady]);
+  }, [auth, authReady, withConceptsRequest]);
 
   const fetchPaymentsByStudent = useCallback(async (studentId) => {
-    if (!authReady) {
-      return [];
-    }
-    if (auth !== 'admin') {
+    if (!authReady || auth !== 'admin') {
+      setPayments([]);
       return [];
     }
     try {
-      setLoadingPayments(true);
       setPayments([]); // Clear payments to prevent showing stale data
-      const response = await axios.get(`/api/payments/student/${studentId}`, {
-        withCredentials: true,
-      });
+      const response = await withPaymentsRequest(() => client.get(`/payments/student/${studentId}`));
       const data = Array.isArray(response.data) 
         ? response.data 
         : response.data.message 
@@ -115,23 +139,16 @@ useEffect(() => {
       });
       setPayments([]);
       throw error;
-    } finally {
-      setLoadingPayments(false);
     }
-  }, [auth, authReady]);
+  }, [auth, authReady, withPaymentsRequest]);
 
   const fetchAllPayments = useCallback(async () => {
-    if (!authReady) {
-      return [];
-    }
-    if (auth !== 'admin') {
+    if (!authReady || auth !== 'admin') {
+      setPayments([]);
       return [];
     }
     try {
-      setLoadingPayments(true);
-      const response = await axios.get('/api/payments', {
-        withCredentials: true,
-      });
+      const response = await withPaymentsRequest(() => client.get('/payments'));
       const data = Array.isArray(response.data) 
         ? response.data 
         : response.data.message 
@@ -147,23 +164,19 @@ useEffect(() => {
       });
       setPayments([]);
       throw error;
-    } finally {
-      setLoadingPayments(false);
     }
-  }, [auth, authReady]);
+  }, [auth, authReady, withPaymentsRequest]);
 
   const fetchPaymentsByDateRange = useCallback(async (startDate, endDate) => {
-    if (!authReady) {
-      return [];
-    }
-    if (auth !== 'admin') {
+    if (!authReady || auth !== 'admin') {
+      setPayments([]);
       return [];
     }
     try {
-      setLoadingPayments(true);
-      const response = await axios.get(
-        `/api/payments/date-range?startDate=${startDate}&endDate=${endDate}`,
-        { withCredentials: true }
+      const response = await withPaymentsRequest(() =>
+        client.get('/payments/date-range', {
+          params: { startDate, endDate },
+        })
       );
       const data = Array.isArray(response.data) ? response.data : [];
       setPayments(data);
@@ -176,19 +189,15 @@ useEffect(() => {
       });
       setPayments([]);
       throw error;
-    } finally {
-      setLoadingPayments(false);
     }
-  }, [auth, authReady]);
+  }, [auth, authReady, withPaymentsRequest]);
 
   const createPayment = useCallback(async (paymentData) => {
     if (!authReady || auth !== 'admin') {
       return;
     }
     try {
-      const response = await axios.post('/api/payments/create', paymentData, {
-        withCredentials: true,
-      });
+      const response = await withPaymentsRequest(() => client.post('/payments/create', paymentData));
       const newPayment = response.data.payment;
       setPayments((prev) => [...prev, newPayment]);
       return newPayment;
@@ -196,33 +205,28 @@ useEffect(() => {
       console.error('createPayment: Error creating payment:', error.response?.data || error.message);
       throw error;
     }
-  }, [auth, authReady]);
+  }, [auth, authReady, withPaymentsRequest]);
 
   const deletePaymentConcept = useCallback(async (paymentId, studentId) => {
     if (!authReady || auth !== 'admin') {
       return;
     }
     try {
-      await axios.delete(`/api/payments/delete/${paymentId}`, {
-        withCredentials: true,
-      });
+      await withPaymentsRequest(() => client.delete(`/payments/delete/${paymentId}`));
       const freshPayments = await fetchPaymentsByStudent(studentId);
-      setPayments(freshPayments);
       return freshPayments;
     } catch (error) {
       console.error('deletePaymentConcept: Error deleting payment:', error.response?.data || error.message);
       throw error;
     }
-  }, [auth, authReady, fetchPaymentsByStudent]);
+  }, [auth, authReady, fetchPaymentsByStudent, withPaymentsRequest]);
 
   const updatePaymentConcept = useCallback(async (paymentId, paymentData) => {
     if (!authReady || auth !== 'admin') {
       return;
     }
     try {
-      const response = await axios.put(`/api/payments/update/${paymentId}`, paymentData, {
-        withCredentials: true,
-      });
+      const response = await withPaymentsRequest(() => client.put(`/payments/update/${paymentId}`, paymentData));
       const updatedPayment = response.data.payment;
       setPayments((prev) =>
         prev.map((payment) => (payment._id === paymentId ? updatedPayment : payment))
@@ -232,7 +236,7 @@ useEffect(() => {
       console.error('updatePaymentConcept: Error updating payment:', error.response?.data || error.message);
       throw error;
     }
-  }, [auth, authReady]);
+  }, [auth, authReady, withPaymentsRequest]);
 
   return (
     <PaymentContext.Provider

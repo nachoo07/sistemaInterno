@@ -15,6 +15,8 @@ import MotionFormModal from '../modalMotion/MotionFormModal';
 import './motion.css';
 import AppNavbar from '../navbar/AppNavbar';
 import logo from "../../assets/logoyoclaudio.png";
+import DesktopNavbar from '../navbar/DesktopNavbar';
+import Sidebar from '../sidebar/Sidebar';
 
 dayjs.locale('es');
 dayjs.extend(utc);
@@ -41,19 +43,6 @@ const Motion = () => {
   const [alertMessage, setAlertMessage] = useState('');
 
   const today = dayjs().format('YYYY-MM-DD');
-
-  const menuItems = [
-    { name: 'Inicio', route: '/', icon: <FaHome />, category: 'principal' },
-    { name: 'Alumnos', route: '/student', icon: <FaUsers />, category: 'principal' },
-    { name: 'Cuotas', route: '/share', icon: <FaMoneyBill />, category: 'finanzas' },
-    { name: 'Reporte', route: '/listeconomic', icon: <FaList />, category: 'finanzas' },
-    { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt />, category: 'finanzas' },
-    { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal' },
-    { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion' },
-    { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion' },
-    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion' },
-    { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes' },
-  ];
 
   useEffect(() => {
     if (filters.startDate && filters.endDate) {
@@ -158,92 +147,24 @@ const Motion = () => {
 
   return (
     <div className={`app-container ${windowWidth <= 576 ? 'mobile-view' : ''}`}>
-      {windowWidth <= 576 && (
-        <AppNavbar
-          isMenuOpen={isMenuOpen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
-      )}
+         {windowWidth <= 576 && (
+             <AppNavbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} searchQuery={searchTerm} setSearchQuery={setSearchTerm} />
+             
+           )}
       {windowWidth > 576 && (
-        <header className="desktop-nav-header">
-          <div className="header-logo-setting" onClick={() => navigate('/')}>
-            <img src={logo} alt="Valladares Fútbol" className="logo-image" />
-          </div>
-          <div className="nav-right-section">
-            <div
-              className="profile-container"
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-            >
-              <FaUserCircle className="profile-icon" />
-              <span className="profile-greeting">
-                Hola, {userData?.name || 'Usuario'}
-              </span>
-              <FaChevronDown className={`arrow-icon ${isProfileOpen ? 'rotated' : ''}`} />
-              {isProfileOpen && (
-                <div className="profile-menu">
-                  <div
-                    className="menu-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/user');
-                      setIsProfileOpen(false);
-                    }}
-                  >
-                    <FaUserCog className="option-icon" /> Mi Perfil
-                  </div>
-                  <div
-                    className="menu-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/settings');
-                      setIsProfileOpen(false);
-                    }}
-                  >
-                    <FaCog className="option-icon" /> Configuración
-                  </div>
-                  <div className="menu-separator"></div>
-                  <div
-                    className="menu-option logout-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLogout();
-                      setIsProfileOpen(false);
-                    }}
-                  >
-                    <FaUserCircle className="option-icon" /> Cerrar Sesión
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
+           <DesktopNavbar
+                 logoSrc={logo}
+                 showSearch={true}
+               />
       )}
       <div className="dashboard-layout">
-        <aside className={`sidebar ${isMenuOpen ? 'open' : 'closed'}`}>
-          <nav className="sidebar-nav">
-            <div className="sidebar-section">
-              <button className="menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                {isMenuOpen ? <FaTimes /> : <FaBars />}
-              </button>
-              <ul className="sidebar-menu">
-                {menuItems.map((item, index) => (
-                  <li
-                    key={index}
-                    className={`sidebar-menu-item ${item.route === '/motion' ? 'active' : ''}`}
-                    onClick={() => item.action ? item.action() : navigate(item.route)}
-                  >
-                    <span className="menu-icon">{item.icon}</span>
-                    <span className="menu-text">{item.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </nav>
-        </aside>
+        <Sidebar
+                 isMenuOpen={isMenuOpen}
+                 setIsMenuOpen={setIsMenuOpen}
+                 activeRoute="/motion"
+               />
         <div className="main-content">
-          <div className="welcome-text">
-            <h1 className="title-motion">Movimientos</h1>
-          </div>
+       
           {windowWidth > 576 && (
             <section className="search-section">
               <div className="search-container">
@@ -307,7 +228,7 @@ const Motion = () => {
                 </div>
               </div>
               <div className="motion-filter-row">
-                <div className="motion-filter-item checkbox-filters">
+                <div className="motion-filter-item checkbox-filters-motion">
                   <label className="filter-label">Tipo:</label>
                   <div className="checkbox-group">
                     <label className="checkbox-label">

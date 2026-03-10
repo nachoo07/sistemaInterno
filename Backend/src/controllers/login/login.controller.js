@@ -1,9 +1,39 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import User from "../../models/users/user.model.js";
 import RefreshToken from '../../models/refreshToken/refreshToken.models.js';
 import pino from 'pino';
+import { validationResult } from 'express-validator';
+import {
+    sendBadRequest,
+    sendForbidden,
+    sendInternalServerError,
+    sendUnauthorized
+} from '../_shared/controller.utils.js';
 const logger = pino();
+const INVALID_CREDENTIALS_MESSAGE = 'Credenciales inválidas';
+
+const buildCookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    path: '/'
+});
+
+const clearAuthCookies = (res) => {
+    const cookieOptions = buildCookieOptions();
+    res.clearCookie('token', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
+};
+
+const handleValidationErrors = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return sendBadRequest(res, 'Datos inválidos', { errors: errors.array() });
+    }
+    return null;
+};
 
 // Generar Access Token
 const generateAccessToken = (payload) => {
@@ -15,21 +45,28 @@ const generateRefreshToken = (payload) => {
     return jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 };
 
+const hashRefreshToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
+
 // Login
 export const loginUser = async (req, res) => {
-    const { mail, password } = req.body;
+    const validationError = handleValidationErrors(req, res);
+    if (validationError) return validationError;
+
+    const mail = typeof req.body?.mail === 'string' ? req.body.mail.trim().toLowerCase() : '';
+    const { password } = req.body;
 
     if (!mail || !password) {
-        return res.status(400).json({ message: 'Se requiere correo electrónico y contraseña.' });
+        return sendBadRequest(res, 'Se requiere correo electrónico y contraseña.');
     }
     try {
         const user = await User.findOne({ mail }).select('+password');
         if (!user || !await bcrypt.compare(password, user.password)) {
-            logger.warn({ mail }, 'Intento de login fallido');
-            return res.status(401).json({ message: 'Credenciales inválidas' });
+            logger.warn({ mail }, 'Intento de login fallido: Credenciales inválidas');
+            return sendUnauthorized(res, INVALID_CREDENTIALS_MESSAGE);
         }
         if (!user.state) {
-            return res.status(403).json({ message: 'Su cuenta está inactiva. Por favor contacte al administrador.' });
+            logger.warn({ mail }, 'Intento de login en cuenta inactiva');
+            return sendUnauthorized(res, INVALID_CREDENTIALS_MESSAGE);
         }
 
         user.lastLogin = new Date();
@@ -37,9 +74,7 @@ export const loginUser = async (req, res) => {
 
         const payload = {
             userId: user._id,
-            role: user.role,
-            name: user.name,
-            mail: user.mail,
+            role: user.role
         };
 
         const accessToken = generateAccessToken(payload);
@@ -47,74 +82,49 @@ export const loginUser = async (req, res) => {
 
         // Almacenar el RefreshToken en la base de datos
         await RefreshToken.create({
-            token: refreshToken,
+            tokenHash: hashRefreshToken(refreshToken),
             userId: user._id,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días
         });
 
-        res.cookie('token', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax', // Cambiado de 'lax' a 'strict'
-            path: '/',
-            maxAge: 2 * 60 * 60 * 1000
-        });
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax', // Cambiado de 'lax' a 'strict'
-            path: '/',
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+        res.cookie('token', accessToken, { ...buildCookieOptions(), maxAge: 2 * 60 * 60 * 1000 });
+
+        res.cookie('refreshToken', refreshToken, { ...buildCookieOptions(), maxAge: 7 * 24 * 60 * 60 * 1000 });
+
         logger.info({ userId: user._id }, 'Login exitoso');
         res.status(200).json({
             message: 'Login exitoso',
-            user: { name: user.name, role: user.role, mail: user.mail }
+            user: { id: user._id, name: user.name, role: user.role, mail: user.mail }
         });
     } catch (error) {
-    logger.error({ error: error.message, mail }, 'Error en login');
-    // NUEVO: Detecta errores de conexión (DB o red)
-    if (error.name === 'MongoNetworkError' || 
-        error.message.includes('connection') || 
-        error.message.includes('ETIMEDOUT')) {
-        return res.status(503).json({ message: 'Error de conexión al servidor. Verifica tu internet.' });
-    }
-    res.status(500).json({ message: 'Error al iniciar sesión' });
-};
+        logger.error({ err: error.message, stack: error.stack, mail }, 'Error crítico durante login');
+        return sendInternalServerError(res, 'Error interno del servidor al iniciar sesión.');
+    };
 }
 
 // Logout
-export const logout = (req, res) => {
+export const logout = async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken;
         if (refreshToken) {
-            RefreshToken.deleteOne({ token: refreshToken }).exec(); // Eliminar de la base de datos
-            logger.info('Refresh token eliminado durante logout');
+            const refreshTokenHash = hashRefreshToken(refreshToken);
+            await RefreshToken.deleteOne({
+                $or: [
+                    { tokenHash: refreshTokenHash },
+                    { token: refreshToken } // Compatibilidad con sesiones legacy.
+                ]
+            });
         }
 
-        res.clearCookie('token', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax', // Cambiado de 'strict' a 'lax'
-            path: '/'
-        });
-        res.clearCookie('refreshToken', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax', // Cambiado de 'strict' a 'lax'
-            path: '/'
-        });
-        logger.info('Usuario deslogueado');
-        res.status(200).json({ message: 'Usuario deslogueado exitosamente' });
+        clearAuthCookies(res);
+        logger.info('Usuario deslogueado correctamente');
+        res.status(200).json({ message: 'Sesión cerrada exitosamente' });
+
     } catch (error) {
-        logger.error({ error: error.message }, 'Error durante el logout');
-        // NUEVO: Detecta errores de conexión
-        if (error.name === 'MongoNetworkError' || 
-            error.message.includes('connection') || 
-            error.message.includes('ETIMEDOUT')) {
-            return res.status(503).json({ message: 'Error de conexión al servidor. Verifica tu internet.' });
-        }
-        res.status(500).json({ message: 'Error durante logout' });
+       logger.error({ err: error.message }, 'Error menor durante logout');
+        // Incluso si falla el borrado en BD, limpiamos cookies en cliente
+        clearAuthCookies(res);
+        res.status(200).json({ message: 'Sesión cerrada' });
     }
 };
 
@@ -123,47 +133,91 @@ export const refreshAccessToken = async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-        return res.status(401).json({ message: 'Refresh token no encontrado, por favor inicie sesión nuevamente' });
+        return sendUnauthorized(res, 'No autenticado');
     }
 
     try {
-        const storedToken = await RefreshToken.findOne({ token: refreshToken });
-        if (!storedToken) {
-            logger.warn('Refresh token no válido o revocado');
-            return res.status(403).json({ message: 'Refresh token no válido o revocado, por favor inicie sesión nuevamente' });
-        }
-
-        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        const payload = {
-            userId: decoded.userId,
-            role: decoded.role,
-            name: decoded.name,
-            mail: decoded.mail
-        };
-
-        const accessToken = generateAccessToken(payload);
-
-        res.cookie('token', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 2 * 60 * 60 * 1000
+        // 1. Buscamos el token en la BD
+        const refreshTokenHash = hashRefreshToken(refreshToken);
+        const storedToken = await RefreshToken.findOne({
+            $or: [
+                { tokenHash: refreshTokenHash },
+                { token: refreshToken } // Compatibilidad con sesiones legacy.
+            ]
         });
 
-        logger.info({ userId: decoded.userId }, 'Access token refrescado');
-        res.status(200).json({ message: 'Access token refrescado' });
+        // Detección de robo de token:
+        // Si el token verifica por JWT pero no está en la BD, significa que ya fue usado (rotado)
+        // y alguien está intentando reusarlo. Deberíamos invalidar todas las sesiones del usuario (opcional pero recomendado).
+        if (!storedToken) {
+            // Intentamos decodificar para saber QUIÉN fue (si es posible) y loguear la alerta
+            const decoded = jwt.decode(refreshToken); 
+            logger.warn({ userId: decoded?.userId }, 'Alerta de Seguridad: Intento de uso de Refresh Token inválido o reutilizado');
+            
+            return sendForbidden(res, 'Sesión inválida, por favor inicie sesión nuevamente');
+        }
+
+        // NUEVO: Validación explícita de fecha
+        if (storedToken.expiresAt < new Date()) {
+            // Eliminar por si el TTL de Mongo aún no corrió
+            await RefreshToken.deleteOne({ _id: storedToken._id });
+            return sendForbidden(res, 'Sesión expirada');
+        }
+
+        // 2. Verificar validez criptográfica
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+        const user = await User.findById(decoded.userId).select('_id role state').lean();
+        if (!user || !user.state) {
+            await RefreshToken.deleteMany({ userId: decoded.userId });
+            clearAuthCookies(res);
+            return sendForbidden(res, 'Su sesión ya no es válida');
+        }
+
+        // 3. ELIMINAR el token usado (Rotación)
+        await RefreshToken.deleteOne({ _id: storedToken._id });
+
+        // 4. Generar NUEVOS tokens (Access y Refresh)
+        const payload = {
+            userId: String(user._id),
+            role: user.role
+        };
+
+        const newAccessToken = generateAccessToken(payload);
+        const newRefreshToken = generateRefreshToken(payload);
+
+        // 5. Guardar el NUEVO refresh token
+        await RefreshToken.create({
+            tokenHash: hashRefreshToken(newRefreshToken),
+            userId: decoded.userId,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        });
+
+        // 6. Enviar ambas cookies nuevas
+        res.cookie('token', newAccessToken, { ...buildCookieOptions(), maxAge: 2 * 60 * 60 * 1000 });
+
+        res.cookie('refreshToken', newRefreshToken, { ...buildCookieOptions(), maxAge: 7 * 24 * 60 * 60 * 1000 });
+
+        logger.info({ userId: decoded.userId }, 'Sesión renovada (Token Rotado)');
+        res.status(200).json({ message: 'Sesión renovada' });
+
     } catch (error) {
-    logger.error({ error: error.message }, 'Error al refrescar token');
-    // NUEVO: Detecta errores de conexión
-    if (error.name === 'MongoNetworkError' || 
-        error.message.includes('connection') || 
-        error.message.includes('ETIMEDOUT')) {
-        return res.status(503).json({ message: 'Error de conexión al servidor. Verifica tu internet.' });
+      if (error.name === 'TokenExpiredError') {
+             // Aquí sí somos específicos porque el frontend necesita saberlo para limpiar estado
+             logger.info('Intento de refresh con token expirado');
+             // Aseguramos limpieza si existe en BD
+             const refreshTokenHash = hashRefreshToken(refreshToken);
+             await RefreshToken.deleteOne({
+                $or: [
+                    { tokenHash: refreshTokenHash },
+                    { token: refreshToken } // Compatibilidad con sesiones legacy.
+                ]
+             }).catch(() => {});
+             clearAuthCookies(res);
+             return sendForbidden(res, 'Sesión expirada');
+        }
+        clearAuthCookies(res);
+        logger.error({ err: error.message, stack: error.stack }, 'Error procesando refresh token');
+        return sendForbidden(res, 'No se pudo renovar la sesión');
     }
-    if (error.name === 'TokenExpiredError') {
-        return res.status(403).json({ message: 'Refresh token expirado, por favor inicie sesión nuevamente' });
-    }
-    return res.status(403).json({ message: 'Refresh token inválido, por favor inicie sesión nuevamente' });
-};
 }

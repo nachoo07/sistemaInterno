@@ -1,40 +1,54 @@
-import { validationResult } from 'express-validator';
 import pino from 'pino';
+import { AppError } from '../../utils/errors/appError.js';
 const logger = pino();
 
 export const errorHandler = (err, req, res, next) => {
-  // Log mejorado: agrega url y method para más contexto
-  logger.error({ 
-    error: err.message, 
-    stack: err.stack, 
-    url: req.url,
-    method: req.method 
-  }, 'Error en la solicitud');
-
-  // Manejar errores de express-validator (sin cambios)
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Errores de validación',
-      errors: validationErrors.array()
-    });
+  if (res.headersSent) {
+    return next(err);
   }
 
-  // Otros errores: NUEVO - Detecta errores de conexión/red
-  if (err.name === 'MongoNetworkError' || 
-      err.message.includes('ECONNRESET') || 
-      err.message.includes('ETIMEDOUT') || 
-      err.message.includes('connection')) {
+  logger.error({
+    error: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method
+  }, 'Error en la solicitud');
+
+  if (err.name === 'MongoNetworkError' || err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
     return res.status(503).json({
       success: false,
       message: 'Error de conexión al servidor. Verifica tu conexión a internet.'
     });
   }
 
-  // Fallback para otros errores (sin cambios)
-  const statusCode = err.status || 500;
-  const message = err.message || 'Internal Server Error';
+  if (err.name === 'CastError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Identificador inválido'
+    });
+  }
+
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Error de validación de datos',
+      errors: Object.values(err.errors || {}).map((e) => e.message)
+    });
+  }
+
+  if (err?.code === 11000) {
+    const duplicatedField = Object.keys(err.keyPattern || {})[0] || 'campo';
+    return res.status(409).json({
+      success: false,
+      message: `El valor de ${duplicatedField} ya existe`
+    });
+  }
+
+  const statusCode = err.statusCode || err.status || 500;
+  const message = err instanceof AppError
+    ? err.message
+    : 'Error interno del servidor';
+
   res.status(statusCode).json({
     success: false,
     message

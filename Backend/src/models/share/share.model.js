@@ -42,7 +42,7 @@ const shareSchema = new mongoose.Schema({
   timestamps: true
 });
 
-shareSchema.index({ student: 1, date: 1 });
+shareSchema.index({ student: 1, date: 1 }, { unique: true });
 
 const Share = mongoose.model('Share', shareSchema);
 export default Share;

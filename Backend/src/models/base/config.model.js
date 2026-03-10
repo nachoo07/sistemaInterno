@@ -12,7 +12,7 @@ const configSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: (v) => {
-        return typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'object';
+        return v !== null && (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'object');
       },
       message: 'Value must be a string, number, boolean, or object'
     }

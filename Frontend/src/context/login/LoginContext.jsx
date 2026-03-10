@@ -1,83 +1,148 @@
 import { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import client from '../../api/axios'; 
 
 export const LoginContext = createContext();
 
 export const LoginProvider = ({ children }) => {
-  const [auth, setAuth] = useState(localStorage.getItem('authRole') || null);
-  const [userData, setUserData] = useState(
-    localStorage.getItem('authName') ? { name: localStorage.getItem('authName') } : null
+  const [auth, setAuth] = useState(() => localStorage.getItem('authRole') || null);
+  const [userData, setUserData] = useState(() => 
+    localStorage.getItem('authName')
+      ? {
+          id: localStorage.getItem('authUserId') || null,
+          name: localStorage.getItem('authName'),
+          mail: localStorage.getItem('authMail') || null,
+        }
+      : null
   );
-  const [loading, setLoading] = useState(true); // Siempre inicia con loading true
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [authReady, setAuthReady] = useState(false); // Nuevo estado para indicar que la autenticación está lista
-  const [isOffline, setIsOffline] = useState(!navigator.onLine); // Estado para el modo offline
+  
+  const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  
   const navigate = useNavigate();
 
-  // Promesa para esperar a que la autenticación esté lista
-  let authPromiseResolve;
-  const authPromise = new Promise((resolve) => {
-    authPromiseResolve = resolve;
-  });
-
-  // Verificar autenticación al montar el componente
+  // --- 1. VERIFICACIÓN INICIAL (Check Auth) ---
   const checkAuth = async () => {
-    const authRole = localStorage.getItem('authRole');
-    const authName = localStorage.getItem('authName');
-
     if (isOffline) {
       setLoading(false);
       setAuthReady(true);
-      authPromiseResolve();
-      return; // No intentar peticiones si está offline
+      return;
     }
 
-    if (!authRole || !authName) {
+    const storedRole = localStorage.getItem('authRole');
+    const storedName = localStorage.getItem('authName');
+    const storedMail = localStorage.getItem('authMail');
+    const storedId = localStorage.getItem('authUserId');
+
+    // Si no hay sesión local, no intentamos refresh en pantalla de login.
+    if (!storedRole || !storedName) {
       setAuth(null);
       setUserData(null);
       setLoading(false);
       setAuthReady(true);
-      authPromiseResolve();
-      if (window.location.pathname !== '/login') {
-        navigate('/login', { replace: true });
-      }
       return;
     }
 
     try {
       setLoading(true);
-      await axios.post('/api/auth/refresh', {}, { withCredentials: true });
-      setAuth(authRole);
-      setUserData({ name: authName });
-    } catch (error) {
-      console.error('Error al verificar autenticación:', error.response?.data || error.message);
-      setAuth(null);
-      setUserData(null);
-      localStorage.removeItem('authRole');
-      localStorage.removeItem('authName');
-      if (window.location.pathname !== '/login') {
-        navigate('/login', { replace: true });
+      // Usamos 'client' que ya tiene las credenciales configuradas
+      await client.post('/auth/refresh');
+      
+      // Si pasa, validamos lo que tenemos en localStorage
+      if (storedRole && storedName) {
+        setAuth(storedRole);
+        setUserData({ id: storedId || null, name: storedName, mail: storedMail || null });
+      } else {
+        // Inconsistencia: Cookie válida pero sin datos locales -> Limpiar
+        logout(false);
       }
+    } catch (error) {
+      // Si falla el refresh inicial, limpiamos todo
+      handleSessionExpired(); 
     } finally {
       setLoading(false);
       setAuthReady(true);
-      authPromiseResolve();
     }
   };
 
-  // Listener para cambios de conexión
+  // --- 2. LOGIN ---
+  const login = async (mail, password) => {
+    if (isOffline) throw new Error('Sin conexión.');
+
+    try {
+      // El client gestiona las cookies automáticamente
+      const response = await client.post('/auth/login', { mail, password });
+      const payload = response?.data?.user ?? response?.data ?? {};
+      const role = payload.role || null;
+      const name = payload.name || null;
+      const userMail = payload.mail || null;
+      const id = payload.id || payload._id || null;
+
+      if (!role || !name) {
+        throw new Error('Respuesta de login inválida');
+      }
+      
+      setAuth(role);
+      setUserData({ id, name, mail: userMail });
+      
+      localStorage.setItem('authRole', role);
+      localStorage.setItem('authName', name);
+      if (userMail) localStorage.setItem('authMail', userMail);
+      else localStorage.removeItem('authMail');
+      if (id) localStorage.setItem('authUserId', id);
+      else localStorage.removeItem('authUserId');
+      
+      navigate(role === 'admin' ? '/' : '/homeuser', { replace: true });
+      return role;
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Error al iniciar sesión';
+      throw new Error(msg);
+    }
+  };
+
+  // --- 3. LOGOUT ---
+  const logout = async (callBackend = true) => {
+    // Limpieza de estado Local
+    setAuth(null);
+    setUserData(null);
+    localStorage.removeItem('authRole');
+    localStorage.removeItem('authName');
+    localStorage.removeItem('authMail');
+    localStorage.removeItem('authUserId');
+    
+    if (callBackend && !isOffline) {
+      try {
+        await client.post('/auth/logout');
+      } catch (error) {
+        console.error('Error silencioso en logout:', error);
+      }
+    }
+    navigate('/login', { replace: true });
+  };
+
+  // --- 4. MANEJO DE EXPIRACIÓN (Evento desde Axios) ---
+  const handleSessionExpired = () => {
+    setAuth(null);
+    setUserData(null);
+    localStorage.removeItem('authRole');
+    localStorage.removeItem('authName');
+    localStorage.removeItem('authMail');
+    localStorage.removeItem('authUserId');
+    // No llamamos al backend porque asumimos que la sesión ya murió ahí
+    if (window.location.pathname !== '/login') {
+        navigate('/login', { replace: true });
+    }
+  };
+
+  // --- EFECTOS ---
+  
+  // A. Inicialización y Conectividad
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOffline(false);
-      console.log('Conexión restaurada');
-      // Opcional: reintentar checkAuth si es necesario
-      if (auth) checkAuth();
-    };
-    const handleOffline = () => {
-      setIsOffline(true);
-      console.log('Sin conexión a internet');
-    };
+    checkAuth();
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -86,126 +151,28 @@ export const LoginProvider = ({ children }) => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [auth]);
-
-  useEffect(() => {
-    checkAuth();
   }, []);
 
-  const login = async (mail, password) => {
-    if (isOffline) {
-      throw new Error('Sin conexión a internet. Verifica tu conexión e inténtalo de nuevo.');
-    }
-    try {
-      const response = await axios.post(
-        '/api/auth/login',
-        { mail, password },
-        { withCredentials: true }
-      );
-      const { role, name } = response.data.user;
-      setAuth(role);
-      setUserData({ name });
-      localStorage.setItem('authRole', role);
-      localStorage.setItem('authName', name);
-      setIsLoggingOut(false);
-      navigate(role === 'admin' ? '/home' : '/homeuser', { replace: true });
-      return role;
-    } catch (error) {
-     // Mejora: distingue errores de red
-      if (!navigator.onLine || error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
-        throw new Error('Sin conexión a internet. Verifica tu conexión e inténtalo de nuevo.');
-      }
-      console.error('Error en login:', error.response?.data || error.message);
-      throw error.response?.data?.message || 'Error al iniciar sesión';
-    }
-  };
-
-  const logout = async () => {
-    if (isOffline) {
-      // Limpia localStorage de todos modos, sin petición al backend
-      setAuth(null);
-      setUserData(null);
-      localStorage.removeItem('authRole');
-      localStorage.removeItem('authName');
-      navigate('/login', { replace: true });
-      return;
-    }
-    try {
-      setIsLoggingOut(true);
-      setAuth(null);
-      setUserData(null);
-      localStorage.removeItem('authRole');
-      localStorage.removeItem('authName');
-      await axios.post('/api/auth/logout', {}, { withCredentials: true });
-      navigate('/login', { replace: true });
-    } catch (error) {
-      console.error('Error en logout:', error);
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const refreshAccessToken = async () => {
-    if (isOffline) {
-      throw new Error('Sin conexión para renovar token');
-    }
-    try {
-      await axios.post('/api/auth/refresh', {}, { withCredentials: true });
-    } catch (error) {
-      console.error('Error al renovar token:', error.response?.data || error.message);
-      logout();
-      throw error;
-    }
-  };
-
+  // B. Escuchar al Cliente Axios (Comunicación Modulo -> React)
   useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-        // Nuevo: maneja errores de red inmediatamente
-        if (!navigator.onLine || error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
-          setIsOffline(true);
-          console.error('Error de conexión:', error.message);
-          if (auth && !originalRequest.url.includes('/api/auth/refresh')) {
-            logout(); // Opcional: logout automático en offline persistente
-          }
-          return Promise.reject(new Error('Sin conexión a internet. Verifica tu conexión e inténtalo de nuevo.'));
-        }
-        if (isLoggingOut || !auth || error.response?.status !== 401 || originalRequest._retry) {
-          return Promise.reject(error);
-        }
-        if (originalRequest.url.includes('/api/auth/refresh')) {
-          logout();
-          return Promise.reject(error);
-        }
-        originalRequest._retry = true;
-        try {
-          await refreshAccessToken();
-          return axios(originalRequest);
-        } catch (refreshError) {
-          console.error('Error al renovar token:', refreshError.response?.data || refreshError.message);
-          logout();
-          return Promise.reject(refreshError);
-        }
-      }
-    );
-    return () => axios.interceptors.response.eject(interceptor);
-  }, [auth, isLoggingOut, isOffline]); // Agrega isOffline como dependencia
-
-// Pausa el intervalo de refresh si está offline
-  useEffect(() => {
-    if (isOffline) return; // No refrescar si offline
-    const interval = setInterval(() => {
-      if (auth && !isLoggingOut) {
-        refreshAccessToken();
-      }
-    }, 20 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [auth, isLoggingOut, isOffline]);
+      // Escuchamos el evento personalizado que dispara axiosClient.js
+      window.addEventListener('SESSION_EXPIRED', handleSessionExpired);
+      
+      return () => {
+          window.removeEventListener('SESSION_EXPIRED', handleSessionExpired);
+      };
+  }, []);
 
   return (
-    <LoginContext.Provider value={{ auth, userData, login, logout, loading, authReady, isOffline, waitForAuth: () => authPromise }}>
+    <LoginContext.Provider value={{ 
+        auth, 
+        userData, 
+        login, 
+        logout, 
+        loading, 
+        authReady, 
+        isOffline 
+    }}>
       {children}
     </LoginContext.Provider>
   );

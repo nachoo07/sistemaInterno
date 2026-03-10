@@ -17,23 +17,51 @@ import { protect, admin } from '../../middlewares/login/protect.js';
 
 const router = express.Router();
 
-router.post('/create', [
+// REST principal
+router.post('/', protect, admin, [
     body('student').isMongoId().withMessage('Valid student ID is required'),
-    body('date').isDate().withMessage('Valid date is required'),
-    body('amount').isNumeric().withMessage('Valid amount is required')
-], protect, admin, createShare);
-router.put('/update/:id', [param('id').isMongoId()], protect, admin, updateShare);
-router.delete('/delete/:id', [param('id').isMongoId()], protect, admin, deleteShare);
-router.get('/date/:date', [param('date').isDate()], protect, admin, getSharesByDate);
-router.get('/date-range', [
-    query('startDate').isDate().withMessage('Valid start date is required'),
-    query('endDate').isDate().withMessage('Valid end date is required')
-], protect, admin, getSharesByDateRange);
+    body('date').isISO8601().withMessage('Valid date is required'),
+    body('amount').isFloat({ min: 0 }).toFloat().withMessage('Valid amount is required'),
+    body('paymentmethod').optional().isIn(['Efectivo', 'Tarjeta', 'Transferencia']).withMessage('Método de pago inválido'),
+    body('paymentdate').optional().isISO8601().withMessage('Fecha de pago inválida')
+], createShare);
+
+router.put('/:id', protect, admin, [
+    param('id').isMongoId(),
+    body('amount').optional().isFloat({ min: 0 }).toFloat().withMessage('Valid amount is required'),
+    body('paymentmethod').optional().isIn(['Efectivo', 'Tarjeta', 'Transferencia']).withMessage('Método de pago inválido'),
+    body('paymentdate').optional().isISO8601().withMessage('Fecha de pago inválida')
+], updateShare);
+
+router.delete('/:id', protect, admin, [param('id').isMongoId()], deleteShare);
+router.get('/date/:date', protect, admin, [param('date').isISO8601()], getSharesByDate);
+router.get('/date-range', protect, admin, [
+    query('startDate').isISO8601().withMessage('Valid start date is required'),
+    query('endDate').isISO8601().withMessage('Valid end date is required')
+], getSharesByDateRange);
 router.get('/students-status', protect, admin, getStudentsWithShareStatus);
 router.put('/update-pending', protect, admin, updatePendingShares);
 router.get('/status-count', protect, admin, getSharesStatusCount); // Ruta estática antes de /:id
-router.get('/:id', [param('id').isMongoId().withMessage('Valid MongoDB ID is required')], protect, admin, getShareById);
-router.get('/student/:studentId', [param('studentId').isMongoId()], protect, admin, getSharesByStudent);
+router.get('/:id', protect, admin, [param('id').isMongoId().withMessage('Valid MongoDB ID is required')], getShareById);
+router.get('/student/:studentId', protect, admin, [param('studentId').isMongoId()], getSharesByStudent);
 router.get('/', protect, admin, getAllShares);
+
+// Compatibilidad legacy
+router.post('/create', protect, admin, [
+    body('student').isMongoId().withMessage('Valid student ID is required'),
+    body('date').isISO8601().withMessage('Valid date is required'),
+    body('amount').isFloat({ min: 0 }).toFloat().withMessage('Valid amount is required'),
+    body('paymentmethod').optional().isIn(['Efectivo', 'Tarjeta', 'Transferencia']).withMessage('Método de pago inválido'),
+    body('paymentdate').optional().isISO8601().withMessage('Fecha de pago inválida')
+], createShare);
+
+router.put('/update/:id', protect, admin, [
+    param('id').isMongoId(),
+    body('amount').optional().isFloat({ min: 0 }).toFloat().withMessage('Valid amount is required'),
+    body('paymentmethod').optional().isIn(['Efectivo', 'Tarjeta', 'Transferencia']).withMessage('Método de pago inválido'),
+    body('paymentdate').optional().isISO8601().withMessage('Fecha de pago inválida')
+], updateShare);
+
+router.delete('/delete/:id', protect, admin, [param('id').isMongoId()], deleteShare);
 
 export default router;

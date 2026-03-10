@@ -2,12 +2,56 @@
   margin-bottom: 20px;
 }
 
+.cuotas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 10px 12px;
+}
+
+.cuotas-search-container {
+  position: relative;
+  width: 100%;
+}
+
+.desktop-search-container {
+  max-width: 460px;
+}
+
+.mobile-search-container {
+  position: relative;
+  width: 100%;
+}
+
+.mobile-search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.mobile-search-clear:disabled,
+.mobile-search-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .filter-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 15px;
   margin: 0 10px;
+}
+
+.filter-count {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .cuotas-table-section {
@@ -75,26 +119,6 @@
   justify-content: center;
 }
 
-.title-dashboard-share {
-  font-size: 35px !important;
-  font-weight: 800;
-  color: #ea268f;
-  position: relative;
-  display: inline-block;
-}
-
-.title-dashboard-share::after {
-  content: '';
-  display: block;
-  width: 100%;
-  height: 5px;
-  background: linear-gradient(90deg, #ea268f, #b71b6e);
-  border-radius: 3px;
-  position: absolute;
-  left: 0;
-  bottom: -8px;
-
-}
 @keyframes underline-grow {
   from { width: 0; }
   to { width: 100%; }
@@ -107,9 +131,6 @@
 }
 
 @media (max-width: 576px) {
-  .desktop-nav-header {
-    display: none;
-  }
 
   .cuotas-table th,
   .cuotas-table td {
@@ -123,10 +144,11 @@
     font-size: 18px !important;
   }
 
-  .checkbox-filters {
+  .checkbox-filters-share {
     display: flex;
-    margin-top: 10px;
-    width: 100% !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .filter-actions {
@@ -141,22 +163,17 @@
     padding-left: 20px !important;
   }
 
-
-
   .cuotas-filter {
     margin-top: 10px;
   }
 
-  .search-box {
-    display: none;
-  }
-
-  .title-dashboard-share {
-    font-size: 25px !important;
-  }
-
   .action-buttons-share {
     padding: 4px !important;
+  }
+
+  .filter-pill {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
   }
   
 }

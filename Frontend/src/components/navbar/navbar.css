@@ -121,7 +121,24 @@
 .app-navbar {
   background-color: #ea268f; /* Color de fondo sólido */
   z-index: 1000; /* Asegura que esté encima */
+  padding-top: env(safe-area-inset-top);
 }
+
+.desktop-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 220px;
+}
+
+.ui-title-navbar {
+  margin: 0;
+  font-size: var(--font-size-title-navbar);
+  font-weight: var(--font-weight-title-navbar);
+  color: var(--color-title-navbar);
+  letter-spacing: var(--letter-spacing-title-navbar);
+}
+
 .content-container {
   padding-top: 56px; /* Ajusta según la altura del Navbar */
 }
@@ -159,7 +176,11 @@
   .opciones {
     display: flex;
     width: 100% !important;
-    justify-content: space-between !important;
+    justify-content: flex-start !important;
+  }
+
+  .profile-container {
+    display: none;
   }
 
  

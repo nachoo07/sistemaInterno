@@ -1,12 +1,11 @@
-import React, { useState, useContext } from 'react';
-import { Modal, Button, Form, Alert, Spinner } from 'react-bootstrap';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { StudentsContext } from '../../context/student/StudentContext';
 import './studentModal.css';
 
-const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formData }) => {
+const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formData, formErrors = {} }) => {
   const { loading } = useContext(StudentsContext);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
 
   const capitalizeWords = (str) => {
     if (!str || typeof str !== 'string') return str;
@@ -37,7 +36,13 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    handleChange({ target: { name: 'profileImage', value: file } });
+    handleChange({
+      target: {
+        name: 'profileImage',
+        files: file ? [file] : [],
+        type: 'file',
+      },
+    });
   };
 
   const onSubmit = (e) => {
@@ -46,6 +51,21 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
   };
 
   const today = new Date().toISOString().split('T')[0];
+
+  const previewSource = useMemo(() => {
+    if (!formData.profileImage) return '';
+    if (formData.profileImage instanceof File) return URL.createObjectURL(formData.profileImage);
+    return formData.profileImage;
+  }, [formData.profileImage]);
+
+  useEffect(() => {
+    setPreviewUrl(previewSource);
+    return () => {
+      if (previewSource && previewSource.startsWith('blob:')) {
+        URL.revokeObjectURL(previewSource);
+      }
+    };
+  }, [previewSource]);
 
   return (
     <Modal
@@ -73,8 +93,9 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleInputChange}
               required
               maxLength={50}
-              className="form-control-custom"
+              className={`form-control-custom ${formErrors.name ? 'is-invalid' : ''}`}
             />
+            {formErrors.name && <div className="invalid-feedback">{formErrors.name}</div>}
           </Form.Group>
           <Form.Group controlId="formLastName" className="studentFormModal-form-group">
             <Form.Label>Apellido</Form.Label>
@@ -86,22 +107,24 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleInputChange}
               required
               maxLength={50}
-              className="form-control-custom"
+              className={`form-control-custom ${formErrors.lastName ? 'is-invalid' : ''}`}
             />
+            {formErrors.lastName && <div className="invalid-feedback">{formErrors.lastName}</div>}
           </Form.Group>
-          <Form.Group controlId="formCUIL" className="studentFormModal-form-group">
-            <Form.Label>Cuil</Form.Label>
+          <Form.Group controlId="formDNI" className="studentFormModal-form-group">
+            <Form.Label>DNI</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Cuil"
+              placeholder="Solo números"
               name="cuil"
               value={formData.cuil || ''}
               onChange={handleNumberInput}
               required
-              pattern="\d{11}"
-              title="CUIL debe contener 11 dígitos."
-              className="form-control-custom"
+              pattern="\d{8}"
+              title="El DNI debe contener 8 dígitos."
+              className={`form-control-custom ${formErrors.cuil ? 'is-invalid' : ''}`}
             />
+            {formErrors.cuil && <div className="invalid-feedback">{formErrors.cuil}</div>}
           </Form.Group>
           <Form.Group controlId="formBirthDate" className="studentFormModal-form-group">
             <Form.Label>Fecha de Nacimiento</Form.Label>
@@ -112,8 +135,9 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleChange}
               max={today}
               required
-              className="form-control-custom"
+              className={`form-control-custom ${formErrors.birthDate ? 'is-invalid' : ''}`}
             />
+            {formErrors.birthDate && <div className="invalid-feedback">{formErrors.birthDate}</div>}
           </Form.Group>
           <Form.Group controlId="formDireccion" className="studentFormModal-form-group">
             <Form.Label>Dirección</Form.Label>
@@ -125,8 +149,10 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleChange}
               required
               maxLength={100}
-              className="form-control-custom"
+              minLength={5}
+              className={`form-control-custom ${formErrors.address ? 'is-invalid' : ''}`}
             />
+            {formErrors.address && <div className="invalid-feedback">{formErrors.address}</div>}
           </Form.Group>
           <Form.Group controlId="formMail" className="studentFormModal-form-group">
             <Form.Label>Email</Form.Label>
@@ -136,10 +162,12 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               name="mail"
               value={formData.mail || ''}
               onChange={handleChange}
+              required
               pattern="\S+@\S+\.\S+"
               title="Formato de email inválido."
-              className="form-control-custom"
+              className={`form-control-custom ${formErrors.mail ? 'is-invalid' : ''}`}
             />
+            {formErrors.mail && <div className="invalid-feedback">{formErrors.mail}</div>}
           </Form.Group>
           <Form.Group controlId="formCategoria" className="studentFormModal-form-group">
             <Form.Label>Categoría</Form.Label>
@@ -151,8 +179,9 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               onChange={handleInputChange}
               required
               maxLength={50}
-              className="form-control-custom"
+              className={`form-control-custom ${formErrors.category ? 'is-invalid' : ''}`}
             />
+            {formErrors.category && <div className="invalid-feedback">{formErrors.category}</div>}
           </Form.Group>
           <Form.Group controlId="formGuardianName" className="studentFormModal-form-group">
             <Form.Label>Nombre del Tutor</Form.Label>
@@ -162,9 +191,12 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               name="guardianName"
               value={formData.guardianName || ''}
               onChange={handleInputChange}
+              required
+              minLength={3}
               maxLength={50}
-              className="form-control-custom"
+              className={`form-control-custom ${formErrors.guardianName ? 'is-invalid' : ''}`}
             />
+            {formErrors.guardianName && <div className="invalid-feedback">{formErrors.guardianName}</div>}
           </Form.Group>
           <Form.Group controlId="formGuardianPhone" className="studentFormModal-form-group">
             <Form.Label>Teléfono del Tutor</Form.Label>
@@ -174,10 +206,12 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               name="guardianPhone"
               value={formData.guardianPhone || ''}
               onChange={handleNumberInput}
+              required
               pattern="\d{10,15}"
               title="El número debe tener entre 10 y 15 dígitos."
-              className="form-control-custom"
+              className={`form-control-custom ${formErrors.guardianPhone ? 'is-invalid' : ''}`}
             />
+            {formErrors.guardianPhone && <div className="invalid-feedback">{formErrors.guardianPhone}</div>}
           </Form.Group>
           <Form.Group controlId="formState" className="studentFormModal-form-group">
             <Form.Label>Estado</Form.Label>
@@ -197,14 +231,15 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
             <Form.Control
               as="select"
               name="league"
-              value={formData.league || ''}
+              value={formData.league || 'Sin especificar'}
               onChange={handleChange}
-              className="form-control-custom"
+              className={`form-control-custom ${formErrors.league ? 'is-invalid' : ''}`}
             >
-              <option value="">Seleccionar</option>
+              <option value="Sin especificar">Sin especificar</option>
               <option value="Si">Sí</option>
               <option value="No">No</option>
             </Form.Control>
+            {formErrors.league && <div className="invalid-feedback">{formErrors.league}</div>}
          
            
           </Form.Group>
@@ -213,7 +248,15 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               type="checkbox"
               name="hasSiblingDiscount"
               checked={formData.hasSiblingDiscount || false}
-              onChange={(e) => handleChange({ target: { name: e.target.name, value: e.target.checked } })}
+              onChange={(e) =>
+                handleChange({
+                  target: {
+                    name: e.target.name,
+                    checked: e.target.checked,
+                    type: 'checkbox',
+                  },
+                })
+              }
               label="10% de descuento por hermanos"
               className="studentFormModal-form-check-custom"
             />
@@ -226,15 +269,16 @@ const StudentFormModal = ({ show, handleClose, handleSubmit, handleChange, formD
               <Form.Control
                 type="file"
                 name="profileImage"
+                accept="image/jpeg,image/png,image/heic,image/heif,image/webp,image/gif"
                 onChange={handleFileChange}
                 disabled={loading}
                 className="form-control-custom"
               />
             </div>
-            {formData.profileImage && (
+            {previewUrl && (
               <div className="studentFormModal-image-preview-container">
                 <img
-                  src={formData.profileImage instanceof File ? URL.createObjectURL(formData.profileImage) : formData.profileImage}
+                  src={previewUrl}
                   alt="Vista previa"
                   className="studentFormModal-preview-img"
                   onError={(e) => (e.target.src = 'https://i.pinimg.com/736x/24/f2/25/24f22516ec47facdc2dc114f8c3de7db.jpg')}

@@ -1,10 +1,9 @@
 import React, { useContext, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import { LoginContext } from '../../context/login/LoginContext';
-import { FaUserCircle, FaUsers,FaList, FaMoneyBill, FaExchangeAlt, FaCalendarCheck, FaUserCog, FaCog, FaEnvelope,FaClipboardList, FaChevronDown, FaHome } from 'react-icons/fa';
+import { FaUserCircle, FaUserCog, FaCog, FaChevronDown } from 'react-icons/fa';
 import './navbar.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -24,38 +23,16 @@ const AppNavbar = ({ setIsMenuOpen, isMenuOpen }) => {
     setIsMenuOpen(!isMenuOpen);
   };
 
- // Definir los elementos del menú con una propiedad "adminOnly"
-  const menuItems = [
-    { name: 'Inicio', route: '/', icon: <FaHome />, category: 'principal', adminOnly: false },
-    { name: 'Alumnos', route: '/student', icon: <FaUsers />, category: 'principal', adminOnly: true },
-    { name: 'Cuotas', route: '/share', icon: <FaMoneyBill />, category: 'finanzas', adminOnly: true },
-    { name: 'Reporte', route: '/listeconomic', icon: <FaList />, category: 'finanzas', adminOnly: true },
-    { name: 'Movimientos', route: '/motion', icon: <FaExchangeAlt />, category: 'finanzas', adminOnly: true },
-    { name: 'Asistencia', route: '/attendance', icon: <FaCalendarCheck />, category: 'principal', adminOnly: false },
-    { name: 'Usuarios', route: '/user', icon: <FaUserCog />, category: 'configuracion', adminOnly: true },
-    { name: 'Ajustes', route: '/settings', icon: <FaCog />, category: 'configuracion', adminOnly: true },
-    { name: 'Listado de Alumnos', route: '/liststudent', icon: <FaClipboardList />, category: 'informes', adminOnly: true },
-    { name: 'Envios de Mail', route: '/email-notifications', icon: <FaEnvelope />, category: 'comunicacion', adminOnly: true }
-  ];
-
-    // Filtra los elementos del menú según el rol del usuario
-  const filteredMenuItems = menuItems.filter(item => {
-    // Si el usuario es admin, muestra todos los elementos
-    if (auth === 'admin') return true;
-    // Si el usuario no es admin, solo muestra los elementos que no son exclusivos para admin
-    return !item.adminOnly;
-  });
-
-  const handleMenuItemClick = (route) => {
-    navigate(route);
-    if (window.innerWidth <= 576) {
-      setIsMenuOpen(false);
-    }
-  };
-
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isProfileOpen && profileRef.current && !profileRef.current.contains(event.target)) {
+      const profileNode = profileRef.current;
+      const eventTarget = event?.target;
+      const canCheckOutside =
+        profileNode &&
+        typeof profileNode.contains === 'function' &&
+        eventTarget instanceof Node;
+
+      if (isProfileOpen && canCheckOutside && !profileNode.contains(eventTarget)) {
         setIsProfileOpen(false);
       }
     };
@@ -77,13 +54,14 @@ const AppNavbar = ({ setIsMenuOpen, isMenuOpen }) => {
     <Navbar expand="sm" className="app-navbar" fixed="top">
       <Container fluid className="px-0 ">
         <div className="opciones">
-          <Navbar.Toggle
-            aria-controls="basic-navbar-nav"
+          <button
+            type="button"
+            className="navbar-toggler me-2 border-0 shadow-none"
             onClick={handleMenuToggle}
-            className="me-2 border-0 shadow-none"
+            aria-label="Abrir o cerrar sidebar"
           >
             <span className="navbar-toggler-icon"></span>
-          </Navbar.Toggle>
+          </button>
         
           <div className="profile-container" ref={profileRef}>
             <div
@@ -131,21 +109,6 @@ const AppNavbar = ({ setIsMenuOpen, isMenuOpen }) => {
             )}
           </div>
         </div>
-        <Navbar.Collapse id="basic-navbar-nav" className="bg-dark text-white">
-          <Nav className="flex-column">
-              {filteredMenuItems.map((item, index) => (
-              <Nav.Link
-                key={index}
-                onClick={() => handleMenuItemClick(item.route)}
-                className="sidebar-menu-item text-white"
-              >
-                <span className="menu-icon">{item.icon}</span>
-                <span className="menu-text">{item.name}</span>
-              </Nav.Link>
-            ))}
-          </Nav>
-        </Navbar.Collapse>
-        
       </Container>
     </Navbar>
   );

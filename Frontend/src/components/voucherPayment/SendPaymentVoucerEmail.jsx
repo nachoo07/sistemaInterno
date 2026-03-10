@@ -5,7 +5,13 @@ import { EmailContext } from "../../context/email/EmailContext";
 import { DateTime } from "luxon";
 import "./voucherPayment.css";
 
-const SendPaymentVoucherEmail = ({ student, payment, onSendingStart, onSendingEnd }) => {
+const SendPaymentVoucherEmail = ({
+  student,
+  payment,
+  onSendingStart = () => {},
+  onSendingEnd = () => {},
+  disabled = false,
+}) => {
   const [loading, setLoading] = useState(false);
   const [isDataReady, setIsDataReady] = useState(false);
   const { sendVoucherEmail } = useContext(EmailContext);
@@ -46,9 +52,9 @@ const SendPaymentVoucherEmail = ({ student, payment, onSendingStart, onSendingEn
       },
       payment: {
         concept: payment.concept || "N/A",
-        amount: payment.amount
-          ? new Intl.NumberFormat("es-ES", { style: "currency", currency: "CLP", minimumFractionDigits: 0 }).format(payment.amount)
-          : "N/A",
+        amount: payment.amount !== undefined && payment.amount !== null
+          ? Number(payment.amount)
+          : null,
         paymentMethod: payment.paymentMethod || "N/A",
         paymentDate: payment.paymentDate,
       },
@@ -85,9 +91,9 @@ const SendPaymentVoucherEmail = ({ student, payment, onSendingStart, onSendingEn
   return (
     <>
       <Button
-        className="send-voucher-payment"
+        className="action-btn-student"
         onClick={handleSendVoucher}
-        disabled={loading || !isDataReady}
+        disabled={loading || disabled || !isDataReady}
         title="Enviar comprobante de pago"
       >
         {!loading && <FaFileInvoice />}

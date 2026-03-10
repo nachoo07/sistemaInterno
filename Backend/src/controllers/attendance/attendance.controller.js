@@ -1,112 +1,185 @@
 import Attendance from "../../models/attendance/attendance.model.js";
+import mongoose from 'mongoose';
 import sanitize from 'mongo-sanitize';
 import pino from 'pino';
+import { validationResult } from 'express-validator';
+import {
+  isInvalidDate,
+  sendBadRequest,
+  sendInternalServerError,
+  sendNotFound
+} from '../_shared/controller.utils.js';
 const logger = pino();
+
+const normalizeAttendanceDay = (value) => {
+  const parsedDate = new Date(value);
+  if (isInvalidDate(parsedDate)) return null;
+  parsedDate.setHours(0, 0, 0, 0);
+  return parsedDate;
+};
+
+const getAttendanceDayRange = (value) => {
+  const start = normalizeAttendanceDay(value);
+  if (!start) return null;
+
+  const end = new Date(start);
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+};
+
+const handleValidationErrors = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return sendBadRequest(res, 'Datos inválidos', { errors: errors.array() });
+  }
+  return null;
+};
 
 // Obtener todas las asistencias
 export const getAllAttendances = async (req, res) => {
+  const validationError = handleValidationErrors(req, res);
+  if (validationError) return validationError;
+
   try {
     const attendances = await Attendance.find()
-      .select('date category attendance.idStudent attendance.name attendance.lastName attendance.present')
+      .select('date category attendance')
+      .sort({ date: -1 })
       .lean();
-    res.status(200).json(attendances); // Siempre devuelve un arreglo, incluso si está vacío
+    res.status(200).json(attendances);
   } catch (error) {
     logger.error({ error: error.message }, 'Error al obtener asistencias');
-    res.status(500).json({ message: 'Error al obtener asistencias' });
+    return sendInternalServerError(res, 'Error al obtener asistencias');
   }
 };
 
-// Registrar asistencias para una categoría en una fecha
+// Obtener historial de asistencias por ID de estudiante
+export const getAttendanceByStudentId = async (req, res) => {
+  const validationError = handleValidationErrors(req, res);
+  if (validationError) return validationError;
+
+  const { id } = req.params;
+
+  try {
+      const attendances = await Attendance.find({
+          "attendance.idStudent": id
+      }).select("date category attendance.$").lean();
+
+      const history = attendances.map(record => {
+          const studentRecord = record.attendance[0]; 
+          return {
+              _id: record._id,
+              date: record.date,
+              category: record.category,
+              present: studentRecord ? studentRecord.present : null
+          };
+      });
+
+      res.status(200).json(history);
+  } catch (error) {
+      logger.error({ error: error.message }, 'Error al obtener historial del alumno');
+      return sendInternalServerError(res, 'Error al obtener historial');
+  }
+};
+
+// Crear Asistencia
 export const createAttendance = async (req, res) => {
+  const validationError = handleValidationErrors(req, res);
+  if (validationError) return validationError;
+
   const { date, category, attendance } = sanitize(req.body);
 
   if (!date || !category || !attendance || !Array.isArray(attendance) || attendance.length === 0) {
-    return res.status(400).json({ message: "Faltan campos requeridos o la lista de asistencia está vacía" });
+    return sendBadRequest(res, "Datos incompletos o lista vacía");
   }
+
   try {
     const attendanceDate = new Date(date);
-    if (isNaN(attendanceDate)) {
-      return res.status(400).json({ message: "Fecha inválida" });
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    if (isInvalidDate(attendanceDate)) {
+      return sendBadRequest(res, "Fecha inválida");
+    }
+    if (attendanceDate > today) {
+        return sendBadRequest(res, "No se puede registrar asistencia futura");
     }
 
-    let existingAttendance = await Attendance.findOne({ date: attendanceDate, category });
-    if (existingAttendance) {
-      existingAttendance.attendance = attendance;
-      await existingAttendance.save();
-      logger.info({ date, category }, 'Asistencia actualizada');
-      return res.status(200).json({ message: "Asistencia actualizada exitosamente", attendance: existingAttendance });
-    }
+    const dayRange = getAttendanceDayRange(attendanceDate);
+    const normalizedDate = dayRange?.start;
 
-    const newAttendance = new Attendance({ date: attendanceDate, category, attendance });
-    await newAttendance.save();
-    logger.info({ date, category }, 'Asistencia creada');
-    res.status(201).json({ message: "Asistencia registrada exitosamente", attendance: newAttendance });
+    const filter = {
+      date: { $gte: dayRange.start, $lte: dayRange.end },
+      category
+    };
+
+    const update = {
+      $set: {
+        date: normalizedDate,
+        category,
+        attendance
+      }
+    };
+
+    const existedBefore = await Attendance.exists(filter);
+
+    const attendanceDoc = await Attendance.findOneAndUpdate(filter, update, {
+      new: true,
+      upsert: true,
+      runValidators: true,
+      setDefaultsOnInsert: true
+    });
+
+    const wasCreated = !existedBefore;
+
+    logger.info({ date, category, wasCreated }, wasCreated ? 'Nueva asistencia creada' : 'Asistencia actualizada (upsert)');
+
+    return res.status(wasCreated ? 201 : 200).json({
+      message: wasCreated ? 'Asistencia registrada' : 'Asistencia actualizada',
+      attendance: attendanceDoc
+    });
+
   } catch (error) {
     logger.error({ error: error.message }, 'Error al crear asistencia');
-    res.status(500).json({ message: 'Error al registrar asistencia' });
+    if (error.code === 11000) {
+        return sendBadRequest(res, "Ya existe un registro para esta fecha y categoría.");
+    }
+    return sendInternalServerError(res, 'Error interno al registrar');
   }
 };
 
-// Actualizar una asistencia específica dentro de una categoría y fecha
+// Actualizar Asistencia
 export const updateAttendance = async (req, res) => {
+  const validationError = handleValidationErrors(req, res);
+  if (validationError) return validationError;
+
   const { date, category, attendance } = sanitize(req.body);
 
-  if (!date || !category || !attendance || !Array.isArray(attendance)) {
-    return res.status(400).json({ message: "Faltan campos requeridos" });
+  if (!date || !category || !Array.isArray(attendance)) {
+    return sendBadRequest(res, "Datos inválidos");
   }
 
   try {
-    const attendanceDate = new Date(date);
-    if (isNaN(attendanceDate)) {
-      return res.status(400).json({ message: "Fecha inválida" });
+    const dayRange = getAttendanceDayRange(date);
+    if (!dayRange) {
+      return sendBadRequest(res, "Fecha inválida");
     }
 
-    const startOfDay = new Date(attendanceDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(attendanceDate);
-    endOfDay.setHours(23, 59, 59, 999);
-
     const updatedAttendance = await Attendance.findOneAndUpdate(
-      { date: { $gte: startOfDay, $lte: endOfDay }, category },
-      { $set: { attendance } },
-      { new: true }
+      { date: { $gte: dayRange.start, $lte: dayRange.end }, category },
+      { $set: { attendance, date: dayRange.start } },
+      { new: true, runValidators: true }
     );
 
     if (!updatedAttendance) {
-      return res.status(404).json({ message: "Asistencia no encontrada" });
+      return sendNotFound(res, "Asistencia no encontrada");
     }
 
     logger.info({ date, category }, 'Asistencia actualizada');
-    res.status(200).json({ message: "Asistencia actualizada exitosamente", attendance: updatedAttendance });
+    res.status(200).json({ message: "Asistencia actualizada", attendance: updatedAttendance });
+
   } catch (error) {
-    logger.error({ error: error.message }, 'Error al actualizar asistencia');
-    res.status(500).json({ message: 'Error al actualizar asistencia' });
-  }
-};
-
-// Eliminar una asistencia completa por fecha y categoría
-export const deleteAttendance = async (req, res) => {
-  const { date, category } = sanitize(req.query);
-
-  if (!date || !category) {
-    return res.status(400).json({ message: "Faltan fecha o categoría" });
-  }
-
-  try {
-    const attendanceDate = new Date(date);
-    if (isNaN(attendanceDate)) {
-      return res.status(400).json({ message: "Fecha inválida" });
-    }
-
-    const attendance = await Attendance.findOneAndDelete({ date: attendanceDate, category });
-    if (!attendance) {
-      return res.status(404).json({ message: "No se encontró el registro de asistencia" });
-    }
-
-    logger.info({ date, category }, 'Asistencia eliminada');
-    res.status(200).json({ message: "Asistencia eliminada exitosamente" });
-  } catch (error) {
-    logger.error({ error: error.message }, 'Error al eliminar asistencia');
-    res.status(500).json({ message: 'Error al eliminar asistencia' });
+    logger.error({ error: error.message }, 'Error al actualizar');
+    return sendInternalServerError(res, 'Error al actualizar asistencia');
   }
 };

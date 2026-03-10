@@ -1,0 +1,9 @@
+/* Asegura que las alertas estén siempre por encima de tus modales */
+div.swal2-container {
+  z-index: 99999 !important;
+}
+
+/* Ajusta tu modal para que no sea tan alto si es necesario */
+.custom-modal {
+  z-index: 1050; /* Bootstrap standard, asegúrate que sea menor a 99999 */
+}

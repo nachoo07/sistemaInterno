@@ -13,10 +13,6 @@
   z-index: 1000;
 }
 
-.nav-left-section {
-  flex: 1;
-}
-
 /* user.css */
 .form-control.is-invalid {
   border-color: #dc3545;
@@ -42,22 +38,6 @@
   font-size: 14px;
 }
 
-.search-field {
-  width: 100%;
-  padding: 10px 12px 10px 40px;
-  border-radius: 12px;
-  border: none;
-  background-color: var(--background-alt);
-  color: var(--text-color);
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.search-field:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(244, 44, 140, 0.2);
-}
-
 .nav-right-section {
   display: flex;
   align-items: center;
@@ -67,53 +47,6 @@
   display: flex;
   height: calc(100vh - var(--header-height));
   transition: var(--transition);
-}
-
-.menu-toggle {
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  color: white;
-  cursor: pointer;
-  padding: 10px;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-  transition: var(--transition);
-}
-
-.menu-toggle:hover {
-  background-color: var(--primary-light);
-}
-
-.main-content {
-  flex: 1;
-  padding: 25px;
-  overflow-y: auto;
-  background-color: var(--background-color);
-}
-
-.dashboard-welcome-user {
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-}
-
-.welcome-text h1 {
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-
-.mobile-search-section {
-  display: none;
-  margin: 10px 0;
-  width: 100%;
 }
 
 .mobile-search-container {
@@ -130,7 +63,16 @@
   font-size: 0.9rem;
 }
 
-.mobile-search-input {
+.filter-actions-user {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin: 0px 10px;
+  margin-top: 10px;
+}
+
+.search-field {
   width: 100%;
   padding: 12px 40px;
   border-radius: var(--radius-md);
@@ -142,9 +84,9 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-.mobile-search-input:focus {
+.search-field:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #b71b6e !important;
   box-shadow: 0 0 0 2px rgba(244, 44, 140, 0.1);
 }
 
@@ -168,34 +110,6 @@
 
 .mobile-search-clear:hover {
   background-color: rgba(0, 0, 0, 0.05);
-}
-
-.users-controls {
-  margin-bottom: 20px;
-}
-
-.filter-actions {
-  display: flex;
-
-  gap: 15px;
-  margin: 0 10px;
-}
-
-.add-btn {
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: var(--transition);
-}
-
-.add-btn:hover {
-  background: var(--primary-hover);
 }
 
 .users-table-section {
@@ -415,21 +329,6 @@
   margin-top: 20px;
 }
 
-.save-btn {
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 16px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.save-btn:hover {
-  background: var(--primary-hover);
-}
-
 .btn-modal-cancelar {
     background: #909090 !important;
     color: white;
@@ -457,59 +356,16 @@
     display: none;
   }
 
-  .dashboard-welcome-user {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .main-content {
-    padding: 15px;
-  }
-
   .users-table th,
   .users-table td {
     font-size: 13px !important;
     padding: 6px !important;
   }
 
-  .action-btn {
-     font-size: 20px !important;
-    padding: 4px !important;
-  }
-
   .action-btn-user {
     font-size: 20px !important;
     padding: 4px !important;
     margin: 0px;
-  }
-
-  .filter-actions {
-    flex-direction: row !important;
-    margin-top: 10px !important;
-  }
-
-  .add-btn {
-    font-size: 12px !important;
-  }
-
-  .mobile-search-section {
-    display: block;
-  }
-
-  .dashboard-welcome-user {
-    margin-bottom: 10px;
-  }
-
-  .users-controls {
-    margin-top: 10px;
-  }
-
-  .welcome-text h1 {
-    font-size: 1.4rem;
-  }
-
-  .modal-content {
-    width: 95%;
   }
 
   .modal-header-user h2 {
@@ -523,16 +379,5 @@
   .form-control {
     font-size: 14px;
     padding: 8px;
-  }
-
-  .save-btn {
-    font-size: 14px;
-    padding: 6px 12px;
-  }
-}
-
-@media (min-width: 577px) {
-  .mobile-search-section {
-    display: none;
   }
 }

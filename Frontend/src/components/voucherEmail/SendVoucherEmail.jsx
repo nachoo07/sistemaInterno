@@ -4,7 +4,14 @@ import { FaFileInvoice, FaSpinner } from "react-icons/fa";
 import { EmailContext } from "../../context/email/EmailContext";
 import "./SendVoucherEmail.css";
 
-const SendVoucherEmail = ({ student, cuota, onSendingStart, onSendingEnd, onStudentUpdate }) => {
+const SendVoucherEmail = ({
+  student,
+  cuota,
+  onSendingStart = () => {},
+  onSendingEnd = () => {},
+  onStudentUpdate,
+  disabled = false,
+}) => {
   const [loading, setLoading] = useState(false);
   const [isDataReady, setIsDataReady] = useState(false);
   const { sendVoucherEmail } = useContext(EmailContext);
@@ -63,8 +70,8 @@ const SendVoucherEmail = ({ student, cuota, onSendingStart, onSendingEnd, onStud
           date: cuota.date
             ? new Date(cuota.date).toLocaleString('es-ES', { month: 'long', year: 'numeric', timeZone: 'America/Argentina/Tucuman' }).replace(/^\w/, (c) => c.toUpperCase())
             : 'N/A',
-          amount: cuota.amount
-            ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(cuota.amount)
+          amount: cuota.amount !== undefined && cuota.amount !== null
+            ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(cuota.amount)
             : 'N/A',
           paymentmethod: cuota.paymentmethod || 'N/A',
           paymentdate: cuota.paymentdate,
@@ -85,9 +92,9 @@ const SendVoucherEmail = ({ student, cuota, onSendingStart, onSendingEnd, onStud
   return (
     <>
       <Button
-        className={`send-voucher ${cuota.state !== "Pagado" ? "disabled" : ""}`}
+        className={`action-btn-student ${cuota.state !== "Pagado" ? "disabled" : ""}`}
         onClick={handleSendVoucher}
-        disabled={loading || !isDataReady || cuota.state !== "Pagado"}
+        disabled={loading || disabled || !isDataReady || cuota.state !== "Pagado"}
         title={cuota.state === "Pagado" ? "Enviar comprobante" : "Cuota no pagada"}
       >
         {!loading && <FaFileInvoice className={cuota.state !== "Pagado" ? "disabled-icon" : ""} />}

@@ -18,17 +18,15 @@
 
 .studentFormModal-cancel-btn,
 .studentFormModal-save-btn {
+  flex: 1;
   width: 100%;
-  max-width: 400px;
-  min-width: 180px;
+  max-width: none;
+  min-width: 0;
   padding: 14px 0;
   font-size: 1.08rem;
   font-weight: 700;
   border-radius: 8px;
-  border: none;
-  box-shadow: 0 2px 8px rgba(234,38,143,0.08);
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-  margin: 0 auto;
+  margin: 0;
   display: block;
 }
 
@@ -46,36 +44,36 @@
 .studentFormModal-form-check-custom label {
   margin-left: 10px;
   font-size: 18px;
-  color: #333;
+  color: var(--color-text);
 }
 
 .studentFormModal-form-check-custom input[type="checkbox"] {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #ea268f;
+  accent-color: var(--color-primary);
 }
 
 .studentFormModal-cancel-btn {
-  background: #f1f1f1;
-  color: #b71b6e;
-  border: 1.5px solid #ea268f;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: var(--btn-secondary-border);
 }
 .studentFormModal-cancel-btn:hover {
- background: #f1f1f1;
-  color: #b71b6e;
-  border: 1.5px solid #ea268f;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: var(--btn-secondary-border);
 }
 
 .studentFormModal-save-btn {
-  background: linear-gradient(90deg, #ea268f 60%, #b71b6e 100%);
-  color: #fff;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
   border: none;
 }
 .studentFormModal-save-btn:hover {
-  background: linear-gradient(90deg, #b71b6e 60%, #ea268f 100%);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(234,38,143,0.13);
+  background: var(--btn-primary-bg-hover);
+  color: var(--btn-primary-text);
+  box-shadow: 0 4px 16px rgba(234, 38, 143, 0.13);
 }
 .studentFormModal-save-btn:disabled {
   background: #e0e0e0;
@@ -96,28 +94,26 @@
   align-items: center;
 }
 .studentFormModal-preview-img {
-   width: 120px;
+  width: 120px;
   height: 120px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(234,38,143,0.10);
+  box-shadow: 0 2px 8px rgba(234, 38, 143, 0.1);
 }
 .modal-content {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 8px 40px rgba(234,38,143,0.13), 0 2px 10px rgba(0,0,0,0.08);
+  background: var(--modal-bg);
+  border-radius: var(--modal-radius);
+  box-shadow: var(--modal-shadow);
   border: none;
-
 }
 
 .studentFormModal-header {
-  background: linear-gradient(90deg, #ea268f 60%, #b71b6e 100%);
+  background: var(--modal-header-gradient);
   color: #fff;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
+  border-top-left-radius: var(--modal-radius);
+  border-top-right-radius: var(--modal-radius);
   padding: 15px;
   border-bottom: none;
-  
 }
 
 .studentFormModal-title {
@@ -125,14 +121,13 @@
   font-weight: 800;
   letter-spacing: 1px;
   margin: 0;
-  
 }
 
 .studentFormModal-body {
-  background: #fff;
+  background: var(--modal-bg);
   padding: 24px 0 0 0;
-  border-bottom-left-radius: 18px;
-  border-bottom-right-radius: 18px;
+  border-bottom-left-radius: var(--modal-radius);
+  border-bottom-right-radius: var(--modal-radius);
 }
 .studentFormModal-container.modal-dialog {
   max-width: 800px;
@@ -168,6 +163,14 @@
   }
 
   .studentFormModal-buttons-container {
-    flex-direction: column;
+    flex-direction: row;
+   
   }
+
+  .studentFormModal-container.modal-dialog {
+    width: calc(100% - 12px) !important;
+    margin: 6px auto;
+  }
+
+
 }

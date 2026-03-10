@@ -1,52 +1,84 @@
 import express from 'express';
-import { body, param } from 'express-validator';
-import { getPaymentsByStudent, createPayment, deletePayment, updatePayment, getAllPayments, getAllConcepts, createConcept, deleteConcept, getPaymentsByDateRange } from '../../controllers/payment/payment.controller.js';
+import { body, param, query } from 'express-validator';
+import { getPaymentsByStudent, createPayment, deletePayment, updatePayment, getAllPayments, getPaymentsByDateRange } from '../../controllers/payment/payment.controller.js';
+import { getAllConcepts, createConcept, deleteConcept } from '../../controllers/concept/paymentConcept.controller.js';
 import { protect, admin } from '../../middlewares/login/protect.js';
+import { isSupportedPaymentMethod } from '../../utils/payment/payment.utils.js';
 
 const router = express.Router();
 
 const validatePayment = [
   body('studentId').isMongoId().withMessage('ID de estudiante inválido'),
-  body('amount').isFloat({ min: 0 }).withMessage('Monto debe ser un número positivo'),
-  body('paymentDate').isDate().withMessage('Fecha de pago inválida'),
-  body('paymentMethod').isIn(['Efectivo', 'Transferencia']).withMessage('Método de pago inválido'),
-  body('concept').notEmpty().withMessage('Concepto es requerido'),
+  body('amount').isFloat({ min: 0 }).toFloat().withMessage('Monto debe ser un número positivo'),
+  body('paymentDate').isISO8601().withMessage('Fecha de pago inválida'),
+  body('paymentMethod').custom(isSupportedPaymentMethod).withMessage('Método de pago inválido'),
+  body('concept').isString().trim().notEmpty().withMessage('Concepto es requerido'),
 ];
 
 const validateConcept = [
-  body('name').notEmpty().withMessage('El nombre del concepto es requerido').isLength({ max: 50 }).withMessage('El concepto no puede exceder 50 caracteres'),
+  body('name').isString().trim().notEmpty().withMessage('El nombre del concepto es requerido').isLength({ max: 50 }).withMessage('El concepto no puede exceder 50 caracteres'),
 ];
 
-router.get( '/concepts', protect, admin, getAllConcepts );
+router.get('/concepts', protect, admin, getAllConcepts);
 
-router.post( '/concepts', validateConcept, protect, admin, createConcept ); 
+router.post('/concepts', protect, admin, validateConcept, createConcept);
 
 router.delete('/concepts/:id',
+  protect,
+  admin,
   [param('id').isMongoId().withMessage('ID de concepto inválido')],
-  protect, admin, deleteConcept
+  deleteConcept
 );
 
-router.get('/', protect, admin, getAllPayments );
+router.get('/', protect, admin, getAllPayments);
 
-router.post('/create', validatePayment, protect, admin, createPayment);
+// REST principal
+router.post('/', protect, admin, validatePayment, createPayment);
 
-router.put( '/update/:id',
+router.put('/:id',
+  protect,
+  admin,
   [param('id').isMongoId().withMessage('ID de pago inválido'), ...validatePayment],
-  protect, admin, updatePayment );
+  updatePayment
+);
 
-router.delete( '/delete/:id',
+router.delete('/:id',
+  protect,
+  admin,
   [param('id').isMongoId().withMessage('ID de pago inválido')],
-  protect, admin, deletePayment );
+  deletePayment
+);
 
-router.get( '/student/:studentId',
+router.get('/student/:studentId',
+  protect,
+  admin,
   [param('studentId').isMongoId().withMessage('ID de estudiante inválido')],
-  protect, admin, getPaymentsByStudent );
+  getPaymentsByStudent
+);
 
-router.get( '/date-range',
+router.get('/date-range',
+  protect,
+  admin,
   [
-    body('startDate').isISO8601().withMessage('Fecha de inicio inválida'),
-    body('endDate').isISO8601().withMessage('Fecha de fin inválida'),
+    query('startDate').isISO8601().withMessage('Fecha de inicio inválida'),
+    query('endDate').isISO8601().withMessage('Fecha de fin inválida'),
   ],
-  protect, admin, getPaymentsByDateRange );
+  getPaymentsByDateRange
+);
+
+// Compatibilidad legacy
+router.post('/create', protect, admin, validatePayment, createPayment);
+router.put('/update/:id',
+  protect,
+  admin,
+  [param('id').isMongoId().withMessage('ID de pago inválido'), ...validatePayment],
+  updatePayment
+);
+router.delete('/delete/:id',
+  protect,
+  admin,
+  [param('id').isMongoId().withMessage('ID de pago inválido')],
+  deletePayment
+);
 
 export default router;

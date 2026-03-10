@@ -9,6 +9,8 @@ import { AttendanceProvider } from "./context/attendance/AttendanceContext";
 import { MotionProvider } from "./context/motion/MotionContext";
 import EmailProvider from "./context/email/EmailContext";
 import PaymentProvider from "./context/payment/PaymentContext";
+import { Toaster } from "sonner";
+import { LeagueClosureProvider } from "./context/league/LeagueClosureContext";
 
 
 function App() {
@@ -17,22 +19,24 @@ function App() {
   return (
     <>
       <LoginProvider>
-        <UsersProvider>
-          <StudentsProvider>
-            <AttendanceProvider>
-              <SharesProvider>
-                <EmailProvider>
-                  <MotionProvider>
-                    <PaymentProvider>
-                
-                    <Routing />
-                    </PaymentProvider>
-                  </MotionProvider>
-                </EmailProvider>
-              </SharesProvider>
-            </AttendanceProvider>
-          </StudentsProvider>
-        </UsersProvider>
+        <LeagueClosureProvider>
+          <UsersProvider>
+            <StudentsProvider>
+              <AttendanceProvider>
+                <SharesProvider>
+                  <EmailProvider>
+                    <MotionProvider>
+                      <PaymentProvider>
+                        <Routing />
+                        <Toaster richColors position="top-right" />
+                      </PaymentProvider>
+                    </MotionProvider>
+                  </EmailProvider>
+                </SharesProvider>
+              </AttendanceProvider>
+            </StudentsProvider>
+          </UsersProvider>
+        </LeagueClosureProvider>
       </LoginProvider>
     </>
   );

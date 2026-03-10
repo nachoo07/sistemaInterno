@@ -1,8 +1,8 @@
 .modal-header-share {
-  background: linear-gradient(90deg, #ea268f 60%, #b71b6e 100%);
+  background: var(--modal-header-gradient);
   color: #fff;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
+  border-top-left-radius: var(--modal-radius);
+  border-top-right-radius: var(--modal-radius);
   padding: 15px;
   border-bottom: none;
 }
@@ -17,21 +17,21 @@
 
 .modal-body-share {
     padding: 20px !important;
-    background-color: #f9f9f9 !important;
+  background-color: var(--color-surface-muted) !important;
 }
 
 .modal-footer-share {
     display: flex !important;
     justify-content: center !important;
     padding: 10px !important;
-    background: #f1f1f1 !important;
+    background: var(--btn-secondary-bg) !important;
     margin-top: 0px !important;
 }
 
 .btn-modal-cancelar {
-    background: #909090 !important;
-    color: white;
-    border: none;
+    background: var(--btn-secondary-bg) !important;
+    color: var(--btn-secondary-text);
+    border: var(--btn-secondary-border);
     padding: 6px !important;
     border-radius: var(--radius-sm) !important;
     font-size: 20px !important;
@@ -39,13 +39,47 @@
 }
 
 .btn-modal-guardar {
-    background: linear-gradient(90deg, #ea268f 60%, #b71b6e 100%);
-  color: #fff;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
   border: none;
 }
 
 .btn-modal-guardar:hover {
-   background: linear-gradient(90deg, #b71b6e 60%, #ea268f 100%);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(234,38,143,0.13);
+  background: var(--btn-primary-bg-hover);
+  color: var(--btn-primary-text);
+  box-shadow: 0 4px 16px rgba(234, 38, 143, 0.13);
+}
+
+.share-inline-error {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #f3c7cf;
+  background: #fff5f7;
+  color: #9f1239;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 576px) {
+  .modal-title-share {
+    font-size: 20px !important;
+    text-align: left !important;
+  }
+
+  .btn-modal-cancelar {
+    width: 100% !important;
+    padding: 8px !important;
+    font-size: 18px !important;
+  }
+
+  .btn-modal-guardar {
+    width: 100% !important;
+    padding: 8px !important;
+    font-size: 18px !important;
+  }
+
+  .share-inline-error { 
+    font-size: 14px !important;
+  } 
+
 }

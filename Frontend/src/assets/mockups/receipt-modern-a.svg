@@ -1,0 +1,43 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="900" fill="#f2f4f8"/>
+  <rect x="140" y="70" width="1120" height="760" rx="24" fill="white"/>
+  <rect x="140" y="70" width="1120" height="16" fill="#e91e8f"/>
+
+  <g transform="translate(190 130)">
+    <circle cx="34" cy="34" r="34" fill="#ffe4f2"/>
+    <text x="34" y="42" text-anchor="middle" font-size="18" font-family="Arial" font-weight="700" fill="#e91e8f">YC</text>
+  </g>
+
+  <text x="280" y="175" font-size="44" font-family="Arial" font-weight="700" fill="#1f2937">Comprobante de Pago</text>
+  <text x="280" y="212" font-size="21" font-family="Arial" fill="#6b7280">Yo Claudio · Escuela de Fútbol</text>
+
+  <rect x="900" y="130" width="290" height="136" rx="14" fill="#fff2fa" stroke="#f6bfdc"/>
+  <text x="924" y="170" font-size="18" font-family="Arial" fill="#9d174d">N° Comprobante</text>
+  <text x="924" y="202" font-size="28" font-family="Arial" font-weight="700" fill="#e91e8f">COMP-20260306-A92F31</text>
+  <text x="924" y="230" font-size="16" font-family="Arial" fill="#6b7280">Pago: 06/03/2026</text>
+  <text x="924" y="252" font-size="16" font-family="Arial" fill="#6b7280">Emisión: 06/03/2026</text>
+
+  <line x1="190" y1="275" x2="1210" y2="275" stroke="#e5e7eb" stroke-width="2"/>
+
+  <text x="190" y="330" font-size="26" font-family="Arial" font-weight="700" fill="#111827">Datos del Alumno</text>
+  <rect x="190" y="350" width="1020" height="110" rx="14" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="220" y="390" font-size="20" font-family="Arial" fill="#374151">Nombre y Apellido: <tspan font-weight="700" fill="#111827">Ernesto Castro</tspan></text>
+  <text x="220" y="425" font-size="20" font-family="Arial" fill="#374151">DNI: <tspan font-weight="700" fill="#111827">44.637.784</tspan></text>
+
+  <text x="190" y="515" font-size="26" font-family="Arial" font-weight="700" fill="#111827">Detalle del Pago</text>
+  <rect x="190" y="536" width="1020" height="180" rx="14" fill="#f9fafb" stroke="#e5e7eb"/>
+
+  <text x="220" y="580" font-size="21" font-family="Arial" fill="#374151">Concepto</text>
+  <text x="560" y="580" font-size="21" font-family="Arial" fill="#374151">Período</text>
+  <text x="780" y="580" font-size="21" font-family="Arial" fill="#374151">Método</text>
+  <text x="1010" y="580" font-size="21" font-family="Arial" fill="#374151">Monto</text>
+
+  <line x1="220" y1="598" x2="1180" y2="598" stroke="#e5e7eb" stroke-width="2"/>
+
+  <text x="220" y="640" font-size="24" font-family="Arial" font-weight="700" fill="#111827">Cuota mensual</text>
+  <text x="560" y="640" font-size="24" font-family="Arial" fill="#111827">Marzo 2026</text>
+  <text x="780" y="640" font-size="24" font-family="Arial" fill="#111827">Transferencia</text>
+  <text x="1010" y="640" font-size="28" font-family="Arial" font-weight="700" fill="#e91e8f">$1.000</text>
+
+  <text x="190" y="770" font-size="17" font-family="Arial" fill="#6b7280">Emitido: 06/03/2026</text>
+</svg>

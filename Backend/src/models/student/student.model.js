@@ -6,11 +6,13 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
+    minlength: [2, 'El nombre debe tener al menos 2 caracteres.'],
   },
   lastName: {
     type: String,
     required: true,
     trim: true,
+    minlength: [2, 'El apellido debe tener al menos 2 caracteres.'],
   },
   cuil: {
     type: String,
@@ -18,8 +20,8 @@ const studentSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     validate: {
-      validator: (v) => /^\d{10,11}$/.test(v),
-      message: 'CUIL debe contener 10 u 11 dígitos.',
+      validator: (v) => /^\d{8}$/.test(v),
+      message: 'DNI debe contener 8 dígitos.',
     },
   },
   birthDate: {
@@ -30,16 +32,20 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
+    minlength: [5, 'La dirección debe tener al menos 5 caracteres.'],
   },
   guardianName: {
     type: String,
+    required: [true, 'El nombre del tutor es obligatorio.'],
     trim: true,
+    minlength: [3, 'El nombre del tutor debe tener al menos 3 caracteres.'],
   },
   guardianPhone: {
     type: String,
+    required: [true, 'El teléfono del tutor es obligatorio.'],
     trim: true,
     validate: {
-      validator: (v) => !v || /^\d{10,15}$/.test(v),
+      validator: (v) => /^\d{10,15}$/.test(v),
       message: 'El número de teléfono del tutor debe tener entre 10 y 15 dígitos.',
     },
   },
@@ -50,11 +56,11 @@ const studentSchema = new mongoose.Schema({
   },
   mail: {
     type: String,
+    required: [true, 'El correo electrónico es obligatorio.'],
     lowercase: true,
     trim: true,
-    default: '',
     validate: {
-      validator: (v) => !v || /\S+@\S+\.\S+/.test(v),
+      validator: (v) => /\S+@\S+\.\S+/.test(v),
       message: 'El formato del correo electrónico es inválido.',
     },
   },
@@ -74,10 +80,14 @@ const studentSchema = new mongoose.Schema({
   },
   league: {
     type: String,
-    enum: ['Si', 'No'], // Mantenemos el enum para valores válidos
-    required: false,    // No es obligatorio
-    default: null,      // Valor por defecto nulo
+    enum: ['Si', 'No', 'Sin especificar'], 
+    default: 'Sin especificar',            
   },
+  notes: {
+    type: String,
+    trim: true,
+    default: '',
+  }
 }, {
   timestamps: true,
 });

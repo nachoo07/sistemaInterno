@@ -9,7 +9,7 @@ export const MotionContext = createContext();
 export const MotionProvider = ({ children }) => {
   const [motions, setMotions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { auth, waitForAuth } = useContext(LoginContext);
+  const { auth } = useContext(LoginContext);
 
   const fetchMotions = useCallback(async () => {
     if (auth !== 'admin') return [];
@@ -134,7 +134,6 @@ export const MotionProvider = ({ children }) => {
   // Carga inicial de movimientos
   useEffect(() => {
     const fetchData = async () => {
-      await waitForAuth();
       if (auth === 'admin') {
         await fetchMotions();
       } else {
@@ -142,7 +141,7 @@ export const MotionProvider = ({ children }) => {
       }
     };
     fetchData();
-  }, [auth, fetchMotions, waitForAuth]);
+  }, [auth, fetchMotions]);
 
   return (
     <MotionContext.Provider
