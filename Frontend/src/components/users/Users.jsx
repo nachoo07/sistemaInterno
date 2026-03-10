@@ -18,7 +18,7 @@ const Users = () => {
   const navigate = useNavigate();
   const profileRef = useRef(null);
   const [show, setShow] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterState, setFilterState] = useState('todos');
@@ -49,11 +49,6 @@ const Users = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      if (newWidth <= 576) {
-        setIsMenuOpen(false);
-      } else {
-        setIsMenuOpen(true);
-      }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -286,7 +281,7 @@ const Users = () => {
         />
         <main className="main-content">
         
-            <div className="filter-actions">
+            <div className="user-header">
               <div className="search-box">
                 <FaSearch className="search-symbol" />
                 <input
@@ -319,7 +314,7 @@ const Users = () => {
 
           <section className="students-filter">
             <div className="filter-actions-user">
-              <div className="checkbox-filters" role="tablist" aria-label="Filtro de estado de usuarios">
+              <div className="checkbox-filters-student" role="tablist" aria-label="Filtro de estado de usuarios">
                 {FILTER_OPTIONS.map((option) => (
                   <button
                     key={option}
@@ -333,14 +328,7 @@ const Users = () => {
                     <span className="filter-count">{usersCountByState[option] || 0}</span>
                   </button>
                 ))}
-                <button
-                  type="button"
-                  className="filter-reset"
-                  onClick={handleClearFilters}
-                  disabled={isLoading || (!searchTerm && filterState === "todos")}
-                >
-                  Limpiar filtros
-                </button>
+                
               </div>
             </div>
           </section>

@@ -89,8 +89,8 @@
 
 .economic-page .summary-cards-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(160px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(5, minmax(160px, 1fr));
+  gap: 10px;
 }
 
 .economic-page .summary-metric-card {
@@ -119,7 +119,7 @@
 
 .economic-page .summary-metric-content p {
   margin: 5px 0 0;
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #231f36;
 }
@@ -217,6 +217,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
 }
 
 .economic-page .control-field span {
@@ -233,6 +234,8 @@
   background: #fff;
   color: #333;
   min-height: 38px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .economic-page .control-field input[type="date"]:focus,
@@ -243,6 +246,7 @@
 
 .economic-page .multi-select-dropdown {
   position: relative;
+  width: 100%;
 }
 
 .economic-page .multi-select-dropdown summary {
@@ -257,6 +261,11 @@
   font-size: 0.92rem;
   display: flex;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .economic-page .multi-select-dropdown summary::-webkit-details-marker {
@@ -312,21 +321,26 @@
 .economic-page .period-inline {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   color: #5a4a5c;
   font-size: 0.9rem;
   min-height: 38px;
-  width: 300px;
+  width: 100%;
+  max-width: 300px;
+  min-width: 0;
 }
 
 .economic-page .search-field-inline {
-  min-width: 300px;
+  flex: 1 1 300px;
+  min-width: 0;
 }
 
 .economic-page .search-export-row {
   display: flex;
   align-items: end;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .economic-page .search-input {
@@ -338,7 +352,9 @@
   border-radius: 10px;
   background: #fff;
   min-height: 38px;
-  width: 400px;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
 }
 
 .economic-page .search-input input {
@@ -367,7 +383,7 @@
   font-weight: 700;
 }
 
-.economic-page .table-wrapper {
+.economic-page {
   overflow: auto;
 }
 
@@ -382,6 +398,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .economic-page .table-export-btn:hover {
@@ -476,6 +494,39 @@
   .economic-page .table-filters-panel {
     position: static;
   }
+
+  .economic-page .table-filters-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .economic-page .period-inline,
+  .economic-page .search-input {
+    max-width: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .economic-page .table-filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .economic-page .search-export-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .economic-page .search-field-inline {
+    flex-basis: auto;
+  }
+
+  .economic-page .period-inline {
+    max-width: none;
+  }
+
+  .economic-page .table-export-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 576px) {
@@ -512,13 +563,11 @@
 
 
   .economic-page .search-export-row {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 8px;
   }
 
   .economic-page .table-export-btn {
-    width: 100%;
-    justify-content: center;
+    min-height: 40px;
   }
 
   .economic-page .economic-table th,

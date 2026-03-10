@@ -1,5 +1,5 @@
 import React, { useContext, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Navbar from 'react-bootstrap/Navbar';
 import { LoginContext } from '../../context/login/LoginContext';
@@ -11,8 +11,36 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 const AppNavbar = ({ setIsMenuOpen, isMenuOpen }) => {
   const { logout, userData, auth } = useContext(LoginContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = React.useState(false);
   const profileRef = useRef(null);
+
+  const routeTitleMap = {
+    '/': 'Dashboard',
+    '/homeuser': 'Inicio',
+    '/student': 'Alumnos',
+    '/share': 'Cuotas y Pagos',
+    '/motion': 'Movimientos',
+    '/attendance': 'Asistencia',
+    '/email-notifications': 'Envíos de Mail',
+    '/liststudent': 'Listado de Alumnos',
+    '/listeconomic': 'Reporte Económico',
+    '/settings': 'Ajustes',
+    '/user': 'Usuarios',
+    '/league-closure': 'Cierre de Liga',
+  };
+
+  const detailTitle = (() => {
+    if (location.pathname.startsWith('/paymentstudent/')) return 'Panel de Pagos';
+    if (location.pathname.startsWith('/detailstudent/')) return 'Detalle de Alumno';
+    if (location.pathname.startsWith('/share/')) {
+      const tab = new URLSearchParams(location.search).get('tab');
+      return tab === 'pagos' ? 'Panel de Pagos' : 'Panel de Cuotas';
+    }
+    return null;
+  })();
+
+  const currentTitle = detailTitle || routeTitleMap[location.pathname] || 'Panel de Control';
 
   const handleLogout = async () => {
     logout();
@@ -62,6 +90,8 @@ const AppNavbar = ({ setIsMenuOpen, isMenuOpen }) => {
           >
             <span className="navbar-toggler-icon"></span>
           </button>
+
+          <h2 className="mobile-nav-title">{currentTitle}</h2>
         
           <div className="profile-container" ref={profileRef}>
             <div

@@ -3,13 +3,6 @@
   align-items: center;
 }
 
-.content-columns {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 25px;
-  align-items: start;
-}
-
 .sidebar-column-payment {
   display: flex;
   flex-direction: column;
@@ -419,9 +412,6 @@
 }
 
 @media (max-width: 576px) {
-  .main-content {
-    padding: 15px;
-  }
 
   .payment-table th,
   .payment-table td {

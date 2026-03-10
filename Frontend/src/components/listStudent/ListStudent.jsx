@@ -70,8 +70,6 @@ const ListStudent = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      if (newWidth <= 576) setIsMenuOpen(false);
-      else setIsMenuOpen(true);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -375,8 +373,15 @@ const ListStudent = () => {
 
   const showResults = !!(categoryFilter && (categoryFilter || leagueFilter || searchTerm.trim() || (conceptFilter && selectedYear && selectedSemester)));
 
-  if (studentsLoading || loadingPayments) {
-    return <div className="loading">Cargando datos...</div>;
+  if (studentsLoading || loadingPayments || !authReady) {
+    return (
+      <div className="list-student-loading-screen" role="status" aria-live="polite">
+        <div className="list-student-loading-card">
+          <div className="list-student-loading-spinner" aria-hidden="true" />
+          <p>Cargando listado de alumnos...</p>
+        </div>
+      </div>
+    );
   }
 
   if (auth !== 'admin') {
@@ -542,7 +547,7 @@ const ListStudent = () => {
                       <th>#</th>
                       <th>Nombre Completo</th>
                       <th>Fecha de Nacimiento</th>
-                      <th>Categoría (año nacimiento)</th>
+                      <th>Categoría</th>
                       {leagueFilter && <th>Liga</th>}
                       {conceptFilter && selectedYear && selectedSemester && (
                         <th>Monto {conceptFilter.charAt(0).toUpperCase() + conceptFilter.slice(1)}</th>

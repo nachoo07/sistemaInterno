@@ -13,17 +13,6 @@ body {
   padding: 0;
 }
 
-/*.main-content {
-  flex: 1;
-  padding: 2rem;
-  margin-left: 0px !important;
-}*/
-
-/*.main-content h1 {
-  color: var(--text-color);
-  margin-bottom: 2rem;
-}*/
-
 .cards-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

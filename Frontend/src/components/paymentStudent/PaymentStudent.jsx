@@ -27,7 +27,7 @@ const PaymentStudent = ({
   const resolvedStudentId = studentIdProp || id;
   const navigate = useNavigate();
   const [student, setStudent] = useState(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [searchQuery, setSearchQuery] = useState("");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const toInputDate = (value) => {
@@ -118,11 +118,6 @@ const PaymentStudent = ({
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      if (newWidth <= 576) {
-        setIsMenuOpen(false);
-      } else {
-        setIsMenuOpen(true);
-      }
     };
     handleResize();
     window.addEventListener("resize", handleResize);

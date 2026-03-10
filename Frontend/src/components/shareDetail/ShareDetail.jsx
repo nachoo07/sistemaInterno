@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { FaTimes, FaArrowLeft, FaEdit, FaTrash, FaMoneyBillWave, FaPlus, FaSearch, FaSpinner } from "react-icons/fa";
+import { FiUser, FiCreditCard, FiEdit3, FiTrash2 } from "react-icons/fi";
 import { StudentsContext } from "../../context/student/StudentContext";
 import { SharesContext } from "../../context/share/ShareContext";
 import { PaymentContext } from "../../context/payment/PaymentContext";
@@ -125,11 +126,6 @@ const ShareDetail = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      if (newWidth < 768) {
-        setIsMenuOpen(false);
-      } else {
-        setIsMenuOpen(true);
-      }
     };
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -732,7 +728,7 @@ const ShareDetail = () => {
                                   aria-label={cuota.paymentmethod && cuota.paymentdate ? "Editar cuota" : "Pagar cuota"}
                                   disabled={loading || isSendingVoucher || isStudentInactive}
                                 >
-                                  {cuota.paymentmethod && cuota.paymentdate ? <FaEdit /> : <FaMoneyBillWave />}
+                                  {cuota.paymentmethod && cuota.paymentdate ? <FiEdit3 /> : <FaMoneyBillWave />}
                                 </button>
                                 <button
                                   className="action-btn-student"

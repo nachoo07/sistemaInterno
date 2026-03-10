@@ -5,6 +5,7 @@ import {
   FaCalendarCheck, FaUserCog, FaCog, FaEnvelope, FaHome, FaArrowLeft, FaUserCircle, FaChevronDown,
   FaTrash, FaEdit, FaPlus, FaClipboardList, FaSearch, FaTimes as FaTimesClear
 } from 'react-icons/fa';
+import { FiEdit3, FiTrash2 } from "react-icons/fi";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import 'dayjs/locale/es';
@@ -25,7 +26,7 @@ const Motion = () => {
   const { motions, fetchMotions, createMotion, updateMotion, deleteMotion, getMotionsByDateRange, loading } = useContext(MotionContext);
   const { auth, logout, userData } = useContext(LoginContext);
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [searchTerm, setSearchTerm] = useState(''); // Estado para el buscador (solo diseño)
@@ -59,11 +60,6 @@ const Motion = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      if (newWidth <= 576) {
-        setIsMenuOpen(false);
-      } else {
-        setIsMenuOpen(true);
-      }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -290,16 +286,16 @@ const Motion = () => {
                     <td>{capitalize(item.incomeType)}</td>
                     <td className="motion-actions">
                       <Button
-                        className="motion-edit-btn"
+                        className="action-btn-student"
                         onClick={() => handleEdit(item)}
                       >
-                        <span className="icon-btn"><FaEdit /></span>
+                       <FiEdit3 />
                       </Button>
                       <Button
-                        className="motion-delete-btn"
+                        className="action-btn-student"
                         onClick={() => handleDelete(item._id)}
                       >
-                        <span className="icon-btn"><FaTrash /></span>
+                        <FiTrash2 />
                       </Button>
                     </td>
                   </tr>

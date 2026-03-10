@@ -283,6 +283,10 @@
   background: rgba(234, 38, 143, 0.18);
 }
 
+.sb-mobile-backdrop {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .sb-container {
     position: fixed;
@@ -294,6 +298,19 @@
     transition: transform 0.25s ease;
     box-shadow: 10px 0 30px var(--overlay-strong);
     z-index: 1050;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .sb-mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    border: 0;
+    background: var(--overlay-strong);
+    z-index: 1040;
+    animation: fadeInBackdrop 0.25s ease;
   }
 
   .sb-container.sb-open {
@@ -314,15 +331,7 @@
   }
 
   .sb-container.sb-open::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 270px;
-    right: 0;
-    bottom: 0;
-    background: var(--overlay-strong);
-    z-index: -1;
-    animation: fadeInBackdrop 0.25s ease;
+    display: none;
   }
 
   @keyframes fadeInBackdrop {

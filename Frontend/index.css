@@ -28,11 +28,14 @@ body {
 }
 
 .main-content {
-  width: 100%;
+  flex-grow: 1;
+  padding: 20px;
+  background-color: var(--background-color);
+  transition: margin-left var(--transition);
+  margin-left: 0px ;
 }
 
 img,
-svg,
 canvas,
 video,
 iframe {
@@ -49,8 +52,13 @@ button {
 .table-wrapper {
   width: 100%;
   max-width: 100%;
+  flex: 1;
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+  background: var(--card-bg);
 }
 
 .ui-title-page {
@@ -80,8 +88,16 @@ button {
     min-height: calc(100dvh - 56px - env(safe-area-inset-top));
   }
 
-  .main-content {
-    padding-left: 10px;
-    padding-right: 10px;
+ .main-content{
+  padding: 10px;
+ }
+
+   .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    width: 100%;
   }
+
+
 }

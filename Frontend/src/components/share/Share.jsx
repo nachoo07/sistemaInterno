@@ -45,9 +45,6 @@ const Share = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      if (newWidth <= 576) {
-        setIsMenuOpen(false);
-      }
     };
 
     handleResize();
@@ -66,14 +63,13 @@ const Share = () => {
     setCurrentPage(page);
     setSearchTerm(search);
     setStatusFilter(normalizedState);
+  }, [location.search]);
 
-    // Cargar datos
+  useEffect(() => {
     obtenerEstudiantes();
     obtenerCuotas();
-
-    // Marcar que el montaje inicial ha finalizado
     setIsInitialMount(false);
-  }, [location.search, obtenerEstudiantes, obtenerCuotas]);
+  }, [obtenerEstudiantes, obtenerCuotas]);
 
   const buildQueryString = () => {
     const queryParams = new URLSearchParams();
@@ -253,7 +249,7 @@ const Share = () => {
             </div>
           </section>
           <section className="cuotas-filter">
-            <div className="filter-actions">
+            <div className="filter-actions-share">
               <div className="checkbox-filters-share" role="tablist" aria-label="Filtro de estado de cuotas">
                 {FILTER_OPTIONS.map((option) => (
                   <button
@@ -279,7 +275,7 @@ const Share = () => {
                     <th>#</th>
                     <th>Nombre</th>
                     <th>Apellido</th>
-                    <th>Cuil</th>
+                    <th>Dni</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>

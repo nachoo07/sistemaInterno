@@ -1,10 +1,4 @@
-.main-content {
-  flex-grow: 1;
-  padding: 20px;
-  background-color: var(--background-color);
-  transition: margin-left var(--transition);
-  margin-left: 0px ;
-}
+
 
 .attendance-date-picker {
   display: flex;
@@ -425,12 +419,6 @@
 }
 
 @media (max-width: 576px) {
-
-  .main-content {
-    margin-left: 0;
-    padding: 10px;
-    width: 100%;
-  }
 
   .attendance-date-picker {
     flex-direction: row;

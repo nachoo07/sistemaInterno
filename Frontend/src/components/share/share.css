@@ -6,7 +6,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 10px 12px;
+  margin: 0 10px 10px;
 }
 
 .cuotas-search-container {
@@ -16,11 +16,6 @@
 
 .desktop-search-container {
   max-width: 460px;
-}
-
-.mobile-search-container {
-  position: relative;
-  width: 100%;
 }
 
 .mobile-search-icon {
@@ -60,33 +55,24 @@
   flex-direction: column;
 }
 
-.table-wrapper {
-  flex: 1;
-  overflow-x: auto;
-  border-radius: var(--radius-md);
-  box-shadow: var(--card-shadow);
-  background: var(--card-bg);
-}
-
 .cuotas-table {
-  width: 100%;
+    width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
 }
 
 .cuotas-table th,
 .cuotas-table td {
   padding: 12px 15px;
-  text-align: center !important;
+  text-align: center;
   font-size: 18px;
   color: var(--text-color);
-
 }
 
 .cuotas-table th {
   background: #ea268f !important;
   color: white !important;
   font-weight: 600;
-
 }
 
 .empty-table-message {
@@ -136,7 +122,8 @@
   .cuotas-table td {
     font-size: 13px;
     padding: 5px;
-    border: none !important;
+    white-space: nowrap;
+    text-align: left;
   }
 
   .action-btn-share {
@@ -146,16 +133,14 @@
 
   .checkbox-filters-share {
     display: flex;
-    flex-direction: row !important;
+    gap: 5px;
     flex-wrap: wrap;
-    gap: 10px;
+    justify-content: center;
   }
 
-  .filter-actions {
+  .filter-actions-share {
     display: flex;
-    flex-wrap: wrap !important;
-    margin: 0px;
-    width: 100% !important;
+    margin-top: 10px !important;
   }
 
   .checkbox-custom {
@@ -164,16 +149,16 @@
   }
 
   .cuotas-filter {
-    margin-top: 10px;
+    margin: 10px 0px;
+
   }
 
   .action-buttons-share {
     padding: 4px !important;
   }
 
-  .filter-pill {
-    padding: 6px 10px !important;
-    font-size: 12px !important;
+  .cuotas-header {
+    margin-top: 10px
   }
   
 }

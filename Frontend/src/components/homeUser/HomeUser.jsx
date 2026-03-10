@@ -14,7 +14,7 @@ import Sidebar from '../sidebar/Sidebar';
 const HomeUser = () => {
   const navigate = useNavigate();
   const { auth, logout, userData } = useContext(LoginContext);
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('todos');
@@ -52,11 +52,6 @@ const HomeUser = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      if (newWidth < 576) {
-        setIsMenuOpen(false);
-      } else {
-        setIsMenuOpen(true);
-      }
     };
 
     handleResize();

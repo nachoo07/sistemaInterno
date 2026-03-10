@@ -10,6 +10,7 @@ import {
   FaChartLine,
   FaWallet,
   FaCoins,
+  FaExchangeAlt,
   FaRegDotCircle,
   FaReceipt,
 } from "react-icons/fa";
@@ -177,7 +178,6 @@ const EconomicMovements = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      setIsMenuOpen(newWidth > 576);
     };
 
     handleResize();
@@ -405,6 +405,14 @@ const EconomicMovements = () => {
       breakdown.cuotas.efectivo +
       Object.values(breakdown.pagos).reduce((sum, concept) => sum + concept.efectivo, 0) +
       breakdown.ingresos.efectivo
+    );
+  }, [breakdown]);
+
+  const totalTransferencia = useMemo(() => {
+    return (
+      breakdown.cuotas.transferencia +
+      Object.values(breakdown.pagos).reduce((sum, concept) => sum + concept.transferencia, 0) +
+      breakdown.ingresos.transferencia
     );
   }, [breakdown]);
 
@@ -654,6 +662,14 @@ const EconomicMovements = () => {
                 <div className="summary-metric-content">
                   <h4>Total Efectivo</h4>
                   <p>{formatMoney(totalEfectivo)}</p>
+                </div>
+              </article>
+
+              <article className="summary-metric-card">
+                <FaExchangeAlt className="summary-metric-icon" />
+                <div className="summary-metric-content">
+                  <h4>Total Transferencia</h4>
+                  <p>{formatMoney(totalTransferencia)}</p>
                 </div>
               </article>
             </div>

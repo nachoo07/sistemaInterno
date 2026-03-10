@@ -35,7 +35,7 @@ const LeagueClosure = () => {
   const { closureStatus, closureRequired, refreshClosureStatus } = useContext(LeagueClosureContext);
   const { refrescarEstudiantes } = useContext(StudentsContext);
 
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [isClosing, setIsClosing] = useState(false);
   const [seasonName, setSeasonName] = useState('');
@@ -50,11 +50,6 @@ const LeagueClosure = () => {
   const handleResize = () => {
     const newWidth = window.innerWidth;
     setWindowWidth(newWidth);
-    if (newWidth <= 576) {
-      setIsMenuOpen(false);
-    } else {
-      setIsMenuOpen(true);
-    }
   };
   handleResize();
   window.addEventListener("resize", handleResize);

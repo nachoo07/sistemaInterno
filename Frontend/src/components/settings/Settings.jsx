@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { SharesContext } from '../../context/share/ShareContext';
-import axios from 'axios';
+import client from '../../api/axios';
 import { FaInfoCircle, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import './settings.css';
@@ -8,9 +8,11 @@ import AppNavbar from '../navbar/AppNavbar';
 import logo from '../../assets/logoyoclaudio.png';
 import DesktopNavbar from '../navbar/DesktopNavbar';
 import Sidebar from '../sidebar/Sidebar';
+import { LoginContext } from '../../context/login/LoginContext';
 
 const Settings = () => {
   const { obtenerCuotas } = useContext(SharesContext);
+  const { auth, authReady } = useContext(LoginContext);
   const [cuotaBase, setCuotaBase] = useState('');
   const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,7 +27,6 @@ const Settings = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      setIsMenuOpen(newWidth >= 768);
     };
 
     handleResize();
@@ -35,9 +36,15 @@ const Settings = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!authReady) return;
+      if (auth !== 'admin') {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
-        const response = await axios.get('/api/config/cuotaBase', { withCredentials: true });
+        const response = await client.get('/config/cuotaBase');
         setCuotaBase(response.data.value || 30000);
       } catch (error) {
         setCuotaBase(30000);
@@ -48,7 +55,7 @@ const Settings = () => {
     };
 
     fetchData();
-  }, []);
+  }, [auth, authReady]);
 
   const handleSaveCuotaBase = async () => {
     setLoading(true);
@@ -59,13 +66,12 @@ const Settings = () => {
         return;
       }
 
-      await axios.post(
-        '/api/config/set',
+      await client.post(
+        '/config/set',
         {
           key: 'cuotaBase',
           value: newValue,
         },
-        { withCredentials: true }
       );
 
       Swal.fire('Guardado', 'Monto base actualizado para el próximo mes.', 'success');
@@ -108,7 +114,7 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      await axios.put('/api/shares/update-pending', {}, { withCredentials: true });
+      await client.put('/shares/update-pending');
       await obtenerCuotas();
       Swal.fire('Éxito', 'Cuotas pendientes actualizadas con el nuevo monto base.', 'success');
     } catch (error) {

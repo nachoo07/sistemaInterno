@@ -12,13 +12,20 @@ import './sidebar.css';
 const Sidebar = ({ isMenuOpen, setIsMenuOpen, activeRoute = '' }) => {
   const navigate = useNavigate();
   const { auth, logout } = useContext(LoginContext);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
   const handleMenuItemClick = (item) => {
+    const hasRoute = Boolean(item.route);
+
     if (item.route) {
       navigate(item.route);
     }
     if (item.action) {
       item.action();
+    }
+
+    if (isMobile && hasRoute) {
+      setIsMenuOpen(false);
     }
   };
 
@@ -74,48 +81,52 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen, activeRoute = '' }) => {
   };
 
   return (
-    <aside className={`sb-container ${isMenuOpen ? 'sb-open' : 'sb-closed'}`}>
-      <div className="sb-header">
-        <div className="sb-brand">
-          <div className="sb-brand-icon">
-            <FaFutbol />
+    <>
+      {isMobile && isMenuOpen && <button type="button" className="sb-mobile-backdrop" onClick={() => setIsMenuOpen(false)} aria-label="Cerrar menú" />}
+
+      <aside className={`sb-container ${isMenuOpen ? 'sb-open' : 'sb-closed'}`}>
+        <div className="sb-header">
+          <div className="sb-brand">
+            <div className="sb-brand-icon">
+              <FaFutbol />
+            </div>
+            <div className="sb-brand-text">Yo Claudio</div>
           </div>
-          <div className="sb-brand-text">Yo Claudio</div>
+
+          <button className="sb-toggle-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <FaTimes /> : <FaBars />}
+          </button>
         </div>
 
-        <button className="sb-toggle-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          {isMenuOpen ? <FaTimes /> : <FaBars />}
-        </button>
-      </div>
-      
-      <nav className="sb-nav-content">
-        {sections.map((section) => (
-          <div className="sb-section-block" key={section.title}>
-            <p className="sb-section-title">{section.title}</p>
-            <ul className="sb-menu-list">
-              {section.items.map((item) => (
-                <li
-                  key={item.route || item.name}
-                  className={`sb-item ${item.route === activeRoute ? 'sb-active' : ''}`}
-                  onClick={() => handleMenuItemClick(item)}
-                >
-                  <span className="sb-icon">{item.icon}</span>
-                  <span className="sb-text">{item.name}</span>
-                  {item.route === activeRoute && <div className="sb-active-indicator" />}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
+        <nav className="sb-nav-content">
+          {sections.map((section) => (
+            <div className="sb-section-block" key={section.title}>
+              <p className="sb-section-title">{section.title}</p>
+              <ul className="sb-menu-list">
+                {section.items.map((item) => (
+                  <li
+                    key={item.route || item.name}
+                    className={`sb-item ${item.route === activeRoute ? 'sb-active' : ''}`}
+                    onClick={() => handleMenuItemClick(item)}
+                  >
+                    <span className="sb-icon">{item.icon}</span>
+                    <span className="sb-text">{item.name}</span>
+                    {item.route === activeRoute && <div className="sb-active-indicator" />}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
 
-      <div className="sb-mobile-footer">
-        <button type="button" className="sb-mobile-logout-btn" onClick={handleMobileLogout}>
-          <span className="sb-icon"><FaSignOutAlt /></span>
-          <span className="sb-text">Cerrar sesión</span>
-        </button>
-      </div>
-    </aside>
+        <div className="sb-mobile-footer">
+          <button type="button" className="sb-mobile-logout-btn" onClick={handleMobileLogout}>
+            <span className="sb-icon"><FaSignOutAlt /></span>
+            <span className="sb-text">Cerrar sesión</span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 

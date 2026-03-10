@@ -27,7 +27,7 @@ const Student = () => {
     name: "", lastName: "", cuil: "", birthDate: "", address: "", mail: "", category: "", guardianName: "", guardianPhone: "", profileImage: null, state: "Activo", hasSiblingDiscount: false, league: 'Sin especificar',
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [isInitialMount, setIsInitialMount] = useState(true);
   const studentsPerPage = 10;
@@ -37,11 +37,6 @@ const Student = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      if (newWidth <= 576) {
-        setIsMenuOpen(false);
-      } else {
-        setIsMenuOpen(true);
-      }
     };
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -395,14 +390,7 @@ const Student = () => {
                     <span className="filter-count">{studentsCountByState[option] || 0}</span>
                   </button>
                 ))}
-                <button
-                  type="button"
-                  className="filter-reset"
-                  onClick={handleClearFilters}
-                  disabled={loading || (!searchTerm && filterState === "todos")}
-                >
-                  Limpiar filtros
-                </button>
+              
               </div>
 
             </div>
@@ -432,39 +420,41 @@ const Student = () => {
                         <td>{estudiante.lastName}</td>
                         <td>{estudiante.cuil}</td>
                         <td className='club'>{estudiante.state}</td>
-                        <td className="action-buttons">
-                          <button
-                            className="action-btn-student action-detail"
-                            onClick={() => handleViewDetail(estudiante._id)}
-                            title="Ver Detalle"
-                            disabled={loading}
-                          >
-                            <FiUser />
-                          </button>
-                          <button
-                            className="action-btn-student action-payment"
-                            onClick={() => handleViewPayments(estudiante._id)}
-                            title="Ver Pagos"
-                            disabled={loading}
-                          >
-                            <FiCreditCard />
-                          </button>
-                          <button
-                            className="action-btn-student action-edit"
-                            onClick={() => handleShow(estudiante)}
-                            title="Editar"
-                            disabled={loading}
-                          >
-                            <FiEdit3 />
-                          </button>
-                          <button
-                            className="action-btn-student action-delete"
-                            onClick={() => handleDelete(estudiante._id)}
-                            title="Eliminar"
-                            disabled={loading}
-                          >
-                            <FiTrash2 />
-                          </button>
+                        <td className="action-cell">
+                          <div className="action-buttons">
+                            <button
+                              className="action-btn-student"
+                              onClick={() => handleViewDetail(estudiante._id)}
+                              title="Ver Detalle"
+                              disabled={loading}
+                            >
+                              <FiUser />
+                            </button>
+                            <button
+                              className="action-btn-student "
+                              onClick={() => handleViewPayments(estudiante._id)}
+                              title="Ver Pagos"
+                              disabled={loading}
+                            >
+                              <FiCreditCard />
+                            </button>
+                            <button
+                              className="action-btn-student "
+                              onClick={() => handleShow(estudiante)}
+                              title="Editar"
+                              disabled={loading}
+                            >
+                              <FiEdit3 />
+                            </button>
+                            <button
+                              className="action-btn-student"
+                              onClick={() => handleDelete(estudiante._id)}
+                              title="Eliminar"
+                              disabled={loading}
+                            >
+                              <FiTrash2 />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

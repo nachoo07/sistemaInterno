@@ -2,6 +2,50 @@
   padding-top: var(--header-height);
 }
 
+.list-student-loading-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #fff 0%, #fff5fb 100%);
+  padding: 16px;
+}
+
+.list-student-loading-card {
+  min-width: 280px;
+  max-width: 420px;
+  width: 100%;
+  border: 1px solid #f3d4e6;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(227, 31, 168, 0.12);
+  padding: 20px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.list-student-loading-card p {
+  margin: 0;
+  color: #5a4a5c;
+  font-weight: 600;
+}
+
+.list-student-loading-spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid #f8cde6;
+  border-top-color: #ea268f;
+  animation: list-student-spin 0.9s linear infinite;
+}
+
+@keyframes list-student-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Inputs más compactos */
 .filter-input,
 .filter-group input[type="date"] {
@@ -61,31 +105,27 @@
   margin-top: 20px;
 }
 
-.table-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  width: 100%;
-}
-
 .students-payment {
-  width: 100%;
+  width: max-content;
   border-collapse: collapse;
-  min-width: 800px;
+  min-width: max(100%, 620px);
 }
 
 .students-payment th,
 .students-payment td {
-  padding: 12px 15px;
+  padding: 8px 10px;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
   text-align: center;
-  font-size: 18px;
+  font-size: 0.95rem;
+  line-height: 1.25;
 }
 
 .students-payment th {
    background: #ea268f;
   color: white;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .students-payment td {
@@ -237,12 +277,6 @@
   background: #e5e7eb;
 }
 
-.search-box {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-}
-
 .search-symbol {
   position: absolute;
   top: 50%;
@@ -360,21 +394,32 @@
 
 @media (max-width: 576px) {
 
-  .main-content {
-    padding-top: 0px !important;
+  .students-table-payment {
+    margin-top: 10px;
   }
+
+  .students-table-payment .table-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .students-payment {
+    width: max-content;
+    min-width: max(100%, 560px);
+    table-layout: auto;
+  }
+
   .students-payment th,
   .students-payment td {
-    padding: 10px 12px;
-    font-size: 0.85rem;
+    padding: 4px 6px;
+    font-size: 0.74rem;
+    line-height: 1.1;
     white-space: nowrap;
   }
 
-  .table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin: 0 -10px;
-    padding: 0 10px;
+  .students-payment tbody td {
+    font-weight: 500;
   }
 
   .download-actions {

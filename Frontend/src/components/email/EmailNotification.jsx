@@ -30,7 +30,7 @@ const EmailNotification = () => {
   const [dataLoading, setDataLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isOverdueMode, setIsOverdueMode] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth > 576);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [activeButton, setActiveButton] = useState(null);
   const [filterState, setFilterState] = useState("todos");
@@ -77,7 +77,6 @@ const EmailNotification = () => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       setWindowWidth(newWidth);
-      setIsMenuOpen(newWidth > 576);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
