@@ -6,13 +6,18 @@ import { showConfirmAlert, showErrorAlert, showSuccessToast } from '../../utils/
 
 export const MotionContext = createContext();
 
+const isAuthSessionError = (error) => {
+  const status = error?.response?.status;
+  return status === 401 || status === 403;
+};
+
 export const MotionProvider = ({ children }) => {
   const [motions, setMotions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { auth } = useContext(LoginContext);
+  const { auth, authReady } = useContext(LoginContext);
 
   const fetchMotions = useCallback(async () => {
-    if (auth !== 'admin') return [];
+    if (!authReady || auth !== 'admin') return [];
     try {
       setLoading(true);
       const response = await client.get('/motions/');
@@ -21,19 +26,17 @@ export const MotionProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error('Error fetching motions:', error);
-      if (error.response?.status === 401) {
-        // Token expirado, no mostrar alerta en login
-      } else {
+      if (!isAuthSessionError(error)) {
         showErrorAlert('¡Error!', 'No se pudieron obtener los movimientos.');
       }
       throw error;
     } finally {
       setLoading(false);
     }
-  }, [auth]);
+  }, [auth, authReady]);
 
   const createMotion = useCallback(async (motion) => {
-    if (auth !== 'admin') return null;
+    if (!authReady || auth !== 'admin') return null;
     try {
       const response = await client.post('/motions/create', motion);
       const newMotion = response.data;
@@ -47,13 +50,15 @@ export const MotionProvider = ({ children }) => {
       return newMotion;
     } catch (error) {
       console.error('Error creating motion:', error);
-      showErrorAlert('¡Error!', 'Ha ocurrido un error al crear el movimiento');
+      if (!isAuthSessionError(error)) {
+        showErrorAlert('¡Error!', 'Ha ocurrido un error al crear el movimiento');
+      }
       throw error;
     }
-  }, [auth]);
+  }, [auth, authReady]);
 
   const updateMotion = useCallback(async (id, updatedMotion) => {
-    if (auth !== 'admin') return null;
+    if (!authReady || auth !== 'admin') return null;
     try {
       const response = await client.put(`/motions/update/${id}`, updatedMotion);
       const updated = response.data;
@@ -62,13 +67,15 @@ export const MotionProvider = ({ children }) => {
       return updated;
     } catch (error) {
       console.error('Error updating motion:', error);
-      showErrorAlert('¡Error!', 'Ha ocurrido un error al actualizar el movimiento');
+      if (!isAuthSessionError(error)) {
+        showErrorAlert('¡Error!', 'Ha ocurrido un error al actualizar el movimiento');
+      }
       throw error;
     }
-  }, [auth]);
+  }, [auth, authReady]);
 
   const deleteMotion = useCallback(async (id) => {
-    if (auth !== 'admin') return;
+    if (!authReady || auth !== 'admin') return;
     try {
       const confirmacion = await showConfirmAlert(
         '¿Estás seguro que deseas eliminar el movimiento?',
@@ -81,13 +88,15 @@ export const MotionProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error deleting motion:', error);
-      showErrorAlert('¡Error!', 'Ha ocurrido un error al eliminar el movimiento');
+      if (!isAuthSessionError(error)) {
+        showErrorAlert('¡Error!', 'Ha ocurrido un error al eliminar el movimiento');
+      }
       throw error;
     }
-  }, [auth]);
+  }, [auth, authReady]);
 
   const getMotionsByDate = useCallback(async (date) => {
-    if (auth !== 'admin') return [];
+    if (!authReady || auth !== 'admin') return [];
     try {
       setLoading(true);
       const response = await client.get(`/motions/date/${date}`);
@@ -95,17 +104,17 @@ export const MotionProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error('Error obteniendo movimientos por fecha:', error);
-      if (error.response?.status !== 401) {
+      if (!isAuthSessionError(error)) {
         showErrorAlert('¡Error!', 'No se pudieron obtener los movimientos por fecha.');
       }
       throw error;
     } finally {
       setLoading(false);
     }
-  }, [auth]);
+  }, [auth, authReady]);
 
   const getMotionsByDateRange = useCallback(async (startDate, endDate) => {
-    if (auth !== 'admin') return [];
+    if (!authReady || auth !== 'admin') return [];
     try {
       setLoading(true);
       const response = await client.get(
@@ -115,18 +124,21 @@ export const MotionProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error('Error obteniendo movimientos por rango de fechas:', error);
-      if (error.response?.status !== 401) {
+      if (!isAuthSessionError(error)) {
         showErrorAlert('¡Error!', 'No se pudieron obtener los movimientos por rango de fechas.');
       }
       throw error;
     } finally {
       setLoading(false);
     }
-  }, [auth]);
+  }, [auth, authReady]);
 
   // Carga inicial de movimientos
   useEffect(() => {
     const fetchData = async () => {
+      if (!authReady) {
+        return;
+      }
       if (auth === 'admin') {
         await fetchMotions();
       } else {
@@ -134,7 +146,7 @@ export const MotionProvider = ({ children }) => {
       }
     };
     fetchData();
-  }, [auth, fetchMotions]);
+  }, [auth, authReady, fetchMotions]);
 
   return (
     <MotionContext.Provider

@@ -64,6 +64,14 @@ const UsersProvider = ({ children }) => {
       showErrorAlert("Error", "ID de usuario no válido");
       throw new Error("ID de usuario no válido");
     }
+    if (
+      userData?.id &&
+      String(userData.id) === String(id) &&
+      (usuarioActualizado.role !== undefined || typeof usuarioActualizado.state === "boolean")
+    ) {
+      showErrorAlert("Restricción", "No puedes cambiar tu propio rol o estado mientras tienes la sesión activa.");
+      throw new Error("No puedes cambiar tu propio rol o estado mientras tienes la sesión activa.");
+    }
     try {
       const response = await client.put(`/users/update/${id}`, usuarioActualizado);
       if (response.status === 200 && response.data.user) {

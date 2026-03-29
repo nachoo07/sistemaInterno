@@ -17,6 +17,11 @@ const clearAuthCookies = (res) => {
   res.clearCookie('refreshToken', cookieOptions);
 };
 
+const clearAccessTokenCookie = (res) => {
+  const cookieOptions = buildCookieOptions();
+  res.clearCookie('token', cookieOptions);
+};
+
 export const protect = async (req, res, next) => {
     const token = req.cookies.token;
 
@@ -44,10 +49,12 @@ export const protect = async (req, res, next) => {
         };
         return next();
       } catch (error) {
-        clearAuthCookies(res);
         if (error.name === 'TokenExpiredError') {
+          // El access token expirado debe poder renovarse con el refresh token.
+          clearAccessTokenCookie(res);
           return res.status(401).json({ message: 'Token Expirado' });
         }
+        clearAuthCookies(res);
         logger.warn({ ip: req.ip }, 'Token inválido o manipulado detectado');
         return res.status(401).json({ message: 'Token Inválido' });
       }

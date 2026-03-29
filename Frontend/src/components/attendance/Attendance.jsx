@@ -65,27 +65,35 @@ const Attendance = () => {
     }, {});
   }, [activeStudents]);
 
+  const studentsInSelectedCategory = useMemo(() => {
+    if (!selectedCategory) return [];
+
+    return activeStudents
+      .filter((student) => student.category === selectedCategory)
+      .sort((a, b) => a.lastName.localeCompare(b.lastName));
+  }, [activeStudents, selectedCategory]);
+
   const attendanceSummary = useMemo(() => {
-    if (!Array.isArray(filteredStudents) || filteredStudents.length === 0) {
+    if (!Array.isArray(studentsInSelectedCategory) || studentsInSelectedCategory.length === 0) {
       return { total: 0, present: 0, absent: 0, unmarked: 0, completion: 0 };
     }
 
     let present = 0;
     let absent = 0;
 
-    filteredStudents.forEach((student) => {
+    studentsInSelectedCategory.forEach((student) => {
       const mark = attendance[student._id];
       if (mark === 'present') present += 1;
       if (mark === 'absent') absent += 1;
     });
 
-    const total = filteredStudents.length;
+    const total = studentsInSelectedCategory.length;
     const marked = present + absent;
     const unmarked = Math.max(0, total - marked);
     const completion = total > 0 ? Math.round((marked / total) * 100) : 0;
 
     return { total, present, absent, unmarked, completion };
-  }, [filteredStudents, attendance]);
+  }, [studentsInSelectedCategory, attendance]);
 
   const isReadOnly = isAttendanceSaved && !isEditing;
 
@@ -108,23 +116,18 @@ const Attendance = () => {
   // Filtrado de estudiantes
   useEffect(() => {
     if (selectedCategory) {
-      const studentsArray = Array.isArray(activeStudents) ? activeStudents : [];
-      const filteredByCategory = studentsArray.filter(student => student.category === selectedCategory);
-      
-      const filteredBySearch = filteredByCategory.filter(student => {
+      const filteredBySearch = studentsInSelectedCategory.filter(student => {
         const searchNormalized = searchTerm.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         const nameNormalized = student.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         const lastNameNormalized = student.lastName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         const fullName = `${nameNormalized} ${lastNameNormalized}`;
         return fullName.includes(searchNormalized);
       });
-      
-      filteredBySearch.sort((a, b) => a.lastName.localeCompare(b.lastName));
       setFilteredStudents(filteredBySearch);
     } else {
       setFilteredStudents([]);
     }
-  }, [selectedCategory, activeStudents, searchTerm]);
+  }, [selectedCategory, searchTerm, studentsInSelectedCategory]);
 
   // Carga de asistencia existente
   useEffect(() => {
@@ -166,7 +169,7 @@ const Attendance = () => {
   };
 
   const handleAttendanceSubmit = async () => {
-    if (!filteredStudents.length) {
+    if (!studentsInSelectedCategory.length) {
       Swal.fire('Atención', 'No hay estudiantes en esta categoría.', 'warning');
       return;
     }
@@ -175,31 +178,31 @@ const Attendance = () => {
       return;
     }
 
-    const hasAtLeastOneMark = filteredStudents.some(student => {
+    const markedStudents = studentsInSelectedCategory
+      .map((student) => {
         const status = attendance[student._id];
-        return status === 'present' || status === 'absent';
-    });
+        if (status !== 'present' && status !== 'absent') {
+          return null;
+        }
 
-    if (!hasAtLeastOneMark) {
-        Swal.fire('Atención', 'Debes marcar la asistencia (presente o ausente) de al menos un alumno antes de guardar.', 'warning');
-        return;
-    }
-    
-    // Preparar datos
-    const attendanceData = {
-      date: new Date(selectedDate).toISOString(),
-      category: selectedCategory,
-      attendance: filteredStudents.map(student => {
-        const status = attendance[student._id];
-        const isPresent = status === 'present' ? true : (status === 'absent' ? false : null);
-        
         return {
           idStudent: student._id,
           name: student.name,
           lastName: student.lastName,
-          present: isPresent
+          present: status === 'present'
         };
       })
+      .filter(Boolean);
+
+    if (!markedStudents.length) {
+        Swal.fire('Atención', 'Debes marcar la asistencia (presente o ausente) de al menos un alumno antes de guardar.', 'warning');
+        return;
+    }
+    
+    const attendanceData = {
+      date: new Date(selectedDate).toISOString(),
+      category: selectedCategory,
+      attendance: markedStudents
     };
 
     let success = false;

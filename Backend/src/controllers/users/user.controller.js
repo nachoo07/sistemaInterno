@@ -18,6 +18,14 @@ const handleValidationErrors = (req, res) => {
   return null;
 };
 
+const isSelfRoleOrStateChange = (req, targetUserId, nextRole, nextState) => {
+  if (!req.user?.userId || String(req.user.userId) !== String(targetUserId)) {
+    return false;
+  }
+
+  return nextRole !== undefined || typeof nextState === 'boolean';
+};
+
 export const getAllUsers = async (req, res) => {
   const validationError = handleValidationErrors(req, res);
   if (validationError) return validationError;
@@ -121,6 +129,10 @@ export const updateUser = async (req, res) => {
       return sendNotFound(res, "Usuario no encontrado");
     }
 
+    if (isSelfRoleOrStateChange(req, id, role, state)) {
+      return sendBadRequest(res, "No puedes cambiar tu propio rol o estado mientras tienes la sesión activa");
+    }
+
     if (name) user.name = sanitize(name);
     if (mail) user.mail = sanitize(mail).toLowerCase().trim();
     if (role) user.role = sanitize(role);
@@ -189,6 +201,11 @@ export const updateUserState = async (req, res) => {
     if (!user) {
       return sendNotFound(res, "Usuario no encontrado");
     }
+
+    if (isSelfRoleOrStateChange(req, userId, undefined, state)) {
+      return sendBadRequest(res, "No puedes cambiar tu propio estado mientras tienes la sesión activa");
+    }
+
     user.state = state;
     await user.save();
     logger.info({ userId, state }, "Estado de usuario actualizado");

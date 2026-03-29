@@ -142,6 +142,10 @@ const Users = () => {
   );
 
   const totalUsersCount = useMemo(() => usuarios.length, [usuarios]);
+  const isEditingOwnSessionUser = useMemo(
+    () => !!formData._id && !!userData?.id && String(userData.id) === String(formData._id),
+    [formData._id, userData?.id]
+  );
 
   const resetForm = () => {
     setFormData({
@@ -477,12 +481,15 @@ const Users = () => {
                         name="state"
                         value={formData.state}
                         onChange={handleChange}
-                        disabled={!formData._id}
+                        disabled={!formData._id || isEditingOwnSessionUser}
                         className="form-control"
                       >
                         <option value="Activo">Activo</option>
                         <option value="Inactivo">Inactivo</option>
                       </select>
+                      {isEditingOwnSessionUser && (
+                        <div className="form-text">No puedes cambiar tu propio estado mientras tienes la sesión activa.</div>
+                      )}
                     </div>
                     <div className="form-group">
                       <label>Rol</label>
@@ -491,11 +498,15 @@ const Users = () => {
                         value={formData.role}
                         onChange={handleChange}
                         required
+                        disabled={isEditingOwnSessionUser}
                         className="form-control"
                       >
                         <option value="user">Usuario</option>
                         <option value="admin">Administrador</option>
                       </select>
+                      {isEditingOwnSessionUser && (
+                        <div className="form-text">No puedes cambiar tu propio rol mientras tienes la sesión activa.</div>
+                      )}
                     </div>
                     <div className="modal-actions">
                       <button type="button" className="btn-modal-cancelar" onClick={handleClose}>Cancelar</button>
